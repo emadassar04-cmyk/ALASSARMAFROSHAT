@@ -189,9 +189,13 @@ export async function deleteMedia(mediaId: string) {
   if (!m) return { error: "الملف غير موجود." };
   const { error } = await supabase.from("product_media").delete().eq("id", mediaId);
   if (error) return { error: dbError(error) };
-  const path = m.url.split("/storage/v1/object/public/product-media/")[1];
-  if (path) await supabase.storage.from("product-media").remove([decodeURIComponent(path)]);
   refresh((m.products as unknown as { slug: string } | null)?.slug);
+  // remove() لا يرمي خطأ إن لم يُحذف شيء؛ نتحقق من النتيجة حتى لا يبقى ملف يتيم دون علمنا
+  const path = m.url.split("/storage/v1/object/public/product-media/")[1];
+  if (path) {
+    const { data: removed, error: rmErr } = await supabase.storage.from("product-media").remove([decodeURIComponent(path)]);
+    if (rmErr || !removed?.length) return { error: "حُذفت الصورة من المنتج، لكن تعذر حذف الملف من التخزين." };
+  }
   return { ok: true };
 }
 

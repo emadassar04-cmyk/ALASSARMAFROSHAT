@@ -30,6 +30,8 @@ select tests.ok(jsonb_array_length(public.catalog_product('بطانية-جديد
 select tests.throws($$update public.inventory set on_hand = 50$$, 'permission denied', 'الكمية تُعدَّل عبر adjust_inventory فقط');
 
 reset role;
+select tests.ok(exists (select 1 from public.activity_logs where entity = 'product_media' and action = 'insert'),
+  'إضافة صورة مسجلة في سجل النشاط');
 select tests.ok((select count(*) = 2 from public.activity_logs where entity = 'products'
   and entity_id = 'd0000000-0000-0000-0000-000000000001'), 'الإضافة والتعديل الناجح مسجلان، والمحاولات المرفوضة لا تترك أثراً');
 select tests.ok(exists (select 1 from public.activity_logs where entity = 'products' and action = 'update'

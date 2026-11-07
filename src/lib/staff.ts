@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,7 +18,8 @@ export type StaffContext = {
  * 2) حساب موظف نشط
  * 3) جلسة بخطوتين aal2
  */
-export async function requireStaff(): Promise<StaffContext & { email: string | undefined }> {
+// cache: التخطيط والصفحة يطلبانها في نفس الطلب؛ تُنفَّذ مرة واحدة فقط
+export const requireStaff = cache(async function requireStaff(): Promise<StaffContext & { email: string | undefined }> {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const claims = claimsData?.claims;
@@ -30,4 +32,4 @@ export async function requireStaff(): Promise<StaffContext & { email: string | u
   if (!ctx.is_staff_account) redirect("/admin/login?error=not_staff");
   if (ctx.aal !== "aal2") redirect("/admin/mfa");
   return { ...ctx, email: claims.email as string | undefined };
-}
+});

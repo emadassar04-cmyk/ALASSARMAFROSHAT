@@ -53,6 +53,12 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
+// يعمل فقط حيث نحتاج الجلسة: لوحة الإدارة ومسار إكمال الدخول، وأي صفحة وصلها رمز دخول.
+// صفحات المتجر لا تمر به إطلاقاً، فتُخدم مباشرة من الشبكة القريبة من الزبون دون انتظار.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)"],
+  matcher: [
+    "/admin/:path*",
+    "/auth/:path*",
+    { source: "/:path*", has: [{ type: "query", key: "code" }] },
+  ],
 };

@@ -13,6 +13,8 @@ export ORDER_RATE_LIMIT_PER_IP=50
 pkill -f next-server || true
 bash supabase/tests/reset_db.sh > /dev/null
 psql -X -q -v ON_ERROR_STOP=1 -U postgres -h localhost -d alassar_test -f supabase/tests/seed_demo.sql
+# ذاكرة "use cache" في .next/cache تبقى بين عمليات البناء؛ نمسحها حتى لا تُستخدم بيانات قاعدة سابقة (معرّفات مختلفة)
+[ -d .next/cache ] && find .next/cache -mindepth 1 -delete
 npx next build > /tmp/e2e-build.log 2>&1 || { tail -30 /tmp/e2e-build.log; exit 1; }
 npx next start -p 3100 > /tmp/e2e-server.log 2>&1 &
 SERVER=$!

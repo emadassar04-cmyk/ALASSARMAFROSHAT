@@ -7,7 +7,7 @@ n8n لا يحسب شيئاً ولا يعدّل المخزون أو الطلبا�
 ## الاعتماديات (Credentials)
 | الاسم في n8n | النوع | المحتوى |
 |---|---|---|
-| `مفتاح متجر العصار (x-alassar-key)` | Header Auth | Name: `x-alassar-key` — Value: المفتاح من `/admin/settings/integrations` (يُعرض مرة واحدة) |
+| `Header Auth account 6` | Header Auth | Name: `x-alassar-key` — Value: المفتاح من `/admin/settings/integrations` (يُعرض مرة واحدة) |
 | `Telegram account 12` | Telegram API | بوت المدير (موجود مسبقاً). المحادثة: `972546610` |
 
 مفتاح التكامل لا يسمح إلا بـ: `notifications_claim`، `notifications_complete`، `notifications_daily_report`.
@@ -18,7 +18,7 @@ n8n لا يحسب شيئاً ولا يعدّل المخزون أو الطلبا�
 - **Trigger:** كل دقيقة.
 - **سحب الإشعارات:** `POST /rest/v1/rpc/notifications_claim {p_channel:"telegram", p_limit:10}` ← مصفوفة `{event_id, event_type, attempt, text}` (0 عنصر = لا شيء).
 - **إرسال إلى Telegram:** HTML، `onError: continueRegularOutput` حتى لا يوقف فشل رسالة واحدة البقية.
-- **تسجيل نتيجة الإرسال:** `notifications_complete {p_event_id, p_success, p_error}`.
+- **تسجيل نتيجة الإرسال:** `notifications_complete {p_event_id, p_success, p_error}` (الرد نص عادي: `sent`/`failed`/`dead`/`ignored`، لذا Response Format = Text).
 - **منع التكرار:** السحب يقفل الحدث (`processing`)، ولا يُعاد إلا إذا علق أكثر من 10 دقائق.
 - **إعادة المحاولة:** عند الفشل بتأخير متصاعد (2، 4، 8… حتى 60 دقيقة)، وبعد 5 محاولات يصبح `dead` ويظهر في لوحة التكاملات.
 - **الأحداث:** طلب جديد، اختيار تحويل بنكي، انتهاء حجز، دخول المدير للوحة.
@@ -35,3 +35,8 @@ n8n لا يحسب شيئاً ولا يعدّل المخزون أو الطلبا�
 ## الاختبار
 - قاعدة البيانات: `supabase/tests/19_notifications.sql` (23 اختباراً).
 - يدوياً: أنشئ طلباً تجريبياً ← يجب أن تصل رسالة خلال دقيقة؛ افتح «التكاملات» في اللوحة لرؤية العدّاد.
+
+## حالة التفعيل (2026-11-07)
+- الـ workflow الاثنان **منشوران (active)**. البوت: `@MafroshatAlAssar_bot` ← المحادثة `972546610`.
+- اختبار حقيقي: إشعار الطلب ALS-1001 + التحويل البنكي + رسالتا اختبار وصلت إلى Telegram، وسُجّلت `sent` في القاعدة بعد محاولة واحدة؛ التقرير اليومي نُفّذ يدوياً بنجاح.
+- درس من الإعداد: خانة **Name** في Header Auth هي اسم الترويسة (`x-alassar-key`) وليست اسم الاعتماد؛ وإنشاء مفتاح جديد من اللوحة يبطل السابق فوراً.

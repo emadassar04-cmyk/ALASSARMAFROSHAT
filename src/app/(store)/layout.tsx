@@ -4,6 +4,7 @@ import { Logo } from "@/components/store/Logo";
 import { SearchBox } from "@/components/store/SearchBox";
 import { HeaderCounters } from "@/components/store/HeaderCounters";
 import { WhatsAppFloat } from "@/components/store/WhatsAppFloat";
+import { SourceTracker } from "@/components/store/SourceTracker";
 import { getCategories, getStoreSettings } from "@/lib/catalog";
 
 async function CategoryNav() {
@@ -51,12 +52,14 @@ export default function StoreLayout({ children }: LayoutProps<"/">) {
               <li><Link href="/wishlist" className="hover:text-gold-dark">المفضلة</Link></li>
               <li><Link href="/compare" className="hover:text-gold-dark">المقارنة</Link></li>
               <li><Link href="/cart" className="hover:text-gold-dark">السلة</Link></li>
+              <li><Link href="/track" className="hover:text-gold-dark">طلباتي</Link></li>
             </ul>
           </div>
         </div>
         <p className="pb-6 text-center text-xs opacity-60">© مفروشات العصار – دير البلح – النصيرات</p>
       </footer>
       <Suspense fallback={null}><FloatingWhatsApp /></Suspense>
+      <SourceTracker />
     </>
   );
 }

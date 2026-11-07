@@ -44,3 +44,7 @@ from (values ('سجادة-تركية-كلاسيك', 'افتراضي', 6), ('سج
 join public.products p on p.slug = q.slug
 join public.product_variants v on v.product_id = p.id and v.name = q.vname
 where i.variant_id = v.id;
+
+insert into public.delivery_zones (name, fee, eta_text, sort_order) values
+  ('دير البلح', 10, 'خلال يوم', 1), ('النصيرات', 15, 'خلال يوم', 2), ('الزوايدة', 20, 'خلال يومين', 3);
+insert into public.coupons (code, kind, value) values ('WELCOME10', 'percent', 10);

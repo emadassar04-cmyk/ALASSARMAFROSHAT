@@ -79,10 +79,14 @@ export function CartView({ whatsapp }: { whatsapp: string | null }) {
           <div className="flex justify-between opacity-70"><dt>التوصيل والخصومات</dt><dd>تُحسب عند إتمام الطلب</dd></div>
         </dl>
         {hasProblems && <p className="rounded-lg bg-amber-50 p-2 text-xs text-amber-800">بعض المنتجات غير متوفرة ولن تُحتسب.</p>}
+        <Link href="/checkout" aria-disabled={!valid.length}
+          className={`block rounded-lg bg-gold px-4 py-3 text-center font-medium text-white hover:bg-gold-dark ${!valid.length ? "pointer-events-none opacity-50" : ""}`}>
+          إتمام الطلب
+        </Link>
         {wa && (
           <a href={wa} target="_blank" rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-3 font-medium text-white">
-            <WhatsAppIcon className="h-5 w-5" /> أرسل السلة عبر WhatsApp
+            <WhatsAppIcon className="h-5 w-5" /> أو أرسل السلة عبر WhatsApp
           </a>
         )}
         <p className="text-xs opacity-60">السلة محفوظة على هذا الجهاز، ويمكنك العودة إليها لاحقاً.</p>

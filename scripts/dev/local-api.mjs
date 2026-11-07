@@ -8,15 +8,25 @@ const PORT = Number(process.env.LOCAL_API_PORT ?? 54321);
 const pool = new pg.Pool({
   connectionString: process.env.TEST_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/alassar_test",
 });
-const ALLOWED_RPC = /^(catalog_[a-z_]+|get_variant_availability)$/;
-const SETTINGS_COLS = ["store_name", "whatsapp_number", "contact_phone", "is_published", "maintenance_mode"];
+// إعادة إنشاء قاعدة الاختبار تقطع الاتصالات المفتوحة: نتجاهلها ويُفتح اتصال جديد عند الطلب التالي
+pool.on("error", (e) => console.warn("pg pool connection dropped:", e.code ?? e.message));
 
-async function asAnon(sql, params) {
+const ANON_RPC = /^(catalog_[a-z_]+|get_variant_availability|quote_order|track_order)$/;
+// مفتاح اختبار محلي فقط (لا علاقة له بمفتاح Supabase الحقيقي)
+const SERVICE_KEY = process.env.LOCAL_SERVICE_KEY ?? "local-service-key";
+const SERVICE_RPC = /^(place_order|rate_limit_hit)$/;
+const TABLES = {
+  store_settings: "select store_name, whatsapp_number, contact_phone, is_published, maintenance_mode from public.store_settings",
+  delivery_zones: "select id, name, fee, eta_text, sort_order from public.delivery_zones where is_active order by sort_order, name",
+  payment_methods: "select code, name_ar, instructions, sort_order from public.payment_methods where is_enabled order by sort_order",
+};
+
+async function asRole(role, sql, params) {
   const c = await pool.connect();
   try {
     await c.query("begin");
-    await c.query("set local role anon");
-    await c.query(`select set_config('request.jwt.claims', '{"role":"anon"}', true)`);
+    await c.query(`set local role ${role === "service_role" ? "service_role" : "anon"}`);
+    await c.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ role })]);
     const r = await c.query(sql, params);
     await c.query("commit");
     return r;
@@ -42,10 +52,13 @@ http
   .createServer(async (req, res) => {
     if (req.method === "OPTIONS") return send(res, 204);
     const url = new URL(req.url, "http://local");
+    const bearer = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "");
+    const role = bearer === SERVICE_KEY || req.headers.apikey === SERVICE_KEY ? "service_role" : "anon";
     try {
       const rpc = url.pathname.match(/^\/rest\/v1\/rpc\/([a-z_]+)$/);
       if (rpc && req.method === "POST") {
-        if (!ALLOWED_RPC.test(rpc[1])) return send(res, 404, { message: "not allowed in local api" });
+        const allowed = ANON_RPC.test(rpc[1]) || (role === "service_role" && SERVICE_RPC.test(rpc[1]));
+        if (!allowed) return send(res, 401, { message: "permission denied (local api)", code: "42501" });
         let raw = "";
         for await (const chunk of req) raw += chunk;
         const args = raw ? JSON.parse(raw) : {};
@@ -55,16 +68,18 @@ http
           return v !== null && typeof v === "object" && !Array.isArray(v) ? JSON.stringify(v) : v;
         });
         const call = `select public.${rpc[1]}(${names.map((n, i) => `${n} => $${i + 1}`).join(", ")}) as r`;
-        const { rows } = await asAnon(call, values);
+        const { rows } = await asRole(role, call, values);
         return send(res, 200, rows[0]?.r ?? null);
       }
-      if (url.pathname === "/rest/v1/store_settings" && req.method === "GET") {
-        const { rows } = await asAnon(`select ${SETTINGS_COLS.join(", ")} from public.store_settings limit 1`);
-        return send(res, 200, rows[0] ?? null);
+      const table = url.pathname.match(/^\/rest\/v1\/([a-z_]+)$/)?.[1];
+      if (table && TABLES[table] && req.method === "GET") {
+        const { rows } = await asRole(role, TABLES[table]);
+        const single = (req.headers.accept ?? "").includes("vnd.pgrst.object");
+        return send(res, 200, single ? rows[0] ?? null : rows);
       }
       send(res, 404, { message: "not found" });
     } catch (e) {
-      send(res, 400, { message: e.message, code: e.code });
+      send(res, 400, { message: e.message, code: e.code, details: e.detail ?? null, hint: null });
     }
   })
   .listen(PORT, () => console.log(`local api on :${PORT}`));

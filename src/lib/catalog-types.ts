@@ -106,3 +106,29 @@ export const AVAILABILITY_LABEL: Record<Availability, string> = {
 export function isPurchasable(a: Availability) {
   return a === "in_stock" || a === "limited" || a === "made_to_order";
 }
+
+export type DeliveryZone = { id: string; name: string; fee: number; eta_text: string | null };
+export type PaymentMethodCode = "cash_on_delivery" | "cash_in_store" | "bank_transfer";
+export type PaymentMethod = { code: PaymentMethodCode; name_ar: string; instructions: string | null };
+
+export type Quote = {
+  lines: { variant_id: string; quantity: number; unit_price: number | null; line_total: number | null;
+           problem: null | "unavailable" | "requires_measurement" | "invalid_quantity" | "insufficient_stock" }[];
+  subtotal: number; discount: number; delivery_fee: number; total: number; reservation_minutes: number;
+  coupon: null | { valid: boolean; code: string; discount?: number; reason?: string };
+};
+
+export const ORDER_STATUS_LABEL: Record<string, string> = {
+  received: "تم استلام الطلب",
+  awaiting_confirmation: "بانتظار التواصل والتأكيد عبر WhatsApp",
+  confirmed: "تم تأكيد الطلب",
+  preparing: "قيد التجهيز",
+  ready_for_pickup: "جاهز للاستلام من المحل",
+  out_for_delivery: "خرج للتوصيل",
+  delivered: "تم التسليم",
+  cancelled: "تم إلغاء الطلب",
+};
+
+export const PAYMENT_STATUS_LABEL: Record<string, string> = {
+  unpaid: "لم يُدفع بعد", awaiting_review: "بانتظار مراجعة التحويل", paid: "مدفوع", rejected: "تحويل مرفوض", refunded: "مسترد",
+};

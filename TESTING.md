@@ -5,14 +5,12 @@
 PGPASSWORD=<كلمة مرور postgres المحلية> npm run test:db
 ```
 
-اختبار واجهة المتجر (End-to-End) على نسخة محلية ببيانات تجريبية في قاعدة الاختبار فقط:
+اختبارات End-to-End على نسخة محلية معزولة ببيانات تجريبية في قاعدة الاختبار فقط:
 ```bash
-node scripts/dev/local-api.mjs &            # بديل محلي لـ Supabase REST (دوال catalog_* فقط)
-psql ... -f supabase/tests/seed_demo.sql      # منتجات تجريبية محلية
-NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=local-test-key npx next build
-NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=local-test-key npx next start -p 3100 &
-NODE_PATH=$(npm root -g) node scripts/dev/storefront-e2e.mjs
+node scripts/dev/local-api.mjs &   # بديل محلي لـ Supabase REST (مفتاح اختبار محلي، لا علاقة له بالمفاتيح الحقيقية)
+bash scripts/dev/e2e.sh            # إعادة القاعدة ← بيانات تجريبية ← بناء ← تشغيل ← اختبار المتجر وإتمام الطلب
 ```
+مهم: البناء يجب أن يأتي بعد تعبئة البيانات، لأن Next.js يحفظ نسخة من بعض البيانات (مثل مناطق التوصيل) وقت البناء.
 تعمل على PostgreSQL محلي فقط (قاعدة `alassar_test` تُنشأ من جديد كل مرة)، ولا تلمس Supabase.
 `supabase/tests/00_supabase_shim.sql` يحاكي أدوار Supabase وصلاحياتها الافتراضية المفتوحة، حتى تُختبر القيود فعلاً.
 
@@ -21,8 +19,8 @@ NODE_PATH=$(npm root -g) node scripts/dev/storefront-e2e.mjs
 | التاريخ | الفحص | النتيجة |
 |---|---|---|
 | 2026-11-07 | `npm run lint` / `npm run build` | نجحا |
-| 2026-11-07 | `10_core` + `15_staff_auth` + `16_catalog` + `17_admin_catalog` | **131 نجاح، 0 فشل** |
-| 2026-11-07 | `scripts/dev/storefront-e2e.mjs` (Playwright على نسخة محلية) | **19 نجاح، 0 فشل** |
+| 2026-11-07 | `10_core` … `18_checkout` | **146 نجاح، 0 فشل** |
+| 2026-11-07 | `storefront-e2e` + `checkout-e2e` (Playwright على نسخة محلية) | **33 نجاح، 0 فشل** (19 + 14) |
 | 2026-11-07 | **دخول المدير الفعلي على Vercel** | نجح: Google ← تسجيل TOTP ← اللوحة (مدير كامل، 8 صلاحيات). في القاعدة: عامل TOTP واحد مُتحقق منه، والدخول وقبول الدعوة مسجلان في سجل النشاط |
 | 2026-11-07 | دخول المدير (Playwright على `next start`) | `/admin` و`/admin/mfa` بلا جلسة ← `/admin/login`؛ `/auth/callback` يرفض `//evil.com` و`https://evil.com`؛ ترويسات `noindex` و`no-store`؛ زر Google يصل إلى صفحة حساب Google بمفتاح العميل الصحيح (لا `redirect_uri_mismatch`)؛ RTL صحيح |
 | 2026-11-07 | `supabase/tests/20_concurrency.sh` (مكرر 4 مرات) | **4/4 نجاح في كل مرة** |
@@ -52,8 +50,14 @@ NODE_PATH=$(npm root -g) node scripts/dev/storefront-e2e.mjs
 
 ملاحظة: صفحة المنتج غير الموجود تعيد 200 مع `noindex` (لأن الصفحة تُبث قبل معرفة وجود المنتج — سلوك Next.js الموثّق)، وليس 404.
 
+### إتمام الطلب (E2E، 14)
+الملخص من الخادم · رسوم المنطقة · كوبون غير صالح بسببه · كوبون صالح (90 − 9 + 15 = 96) · طرق الدفع حسب الاستلام ·
+بيانات ناقصة لا تنشئ طلباً · طلب توصيل + تحويل بنكي + كوبون ← صفحة التأكيد · مطابقة القاعدة (الإجمالي، الخصم، الحجز، المصدر، الهاتف الموحد) ·
+تفريغ السلة و«طلباتي» · رمز تتبع خاطئ لا يكشف الطلب · استلام + دفع في المحل · كمية غير متوفرة تعطل الإرسال · الحد من التكرار (الرابع بنفس الرقم مرفوض).
+
 ## لم يُختبر بعد
 - الخروج التلقائي بعد 30 دقيقة خمول: مكتوب لكن لم يُختبر بانتظار فعلي.
+- صفحات إدارة الطلبات (تأكيد، حالات، ربح، مراجعة تحويل، مناطق التوصيل) في المتصفح: الدوال نفسها مختبرة في القاعدة؛ الواجهة تحتاج دخول المدير.
 - صفحات إدارة المنتجات في المتصفح (تحتاج دخول المدير الفعلي): اختُبر منطقها على مستوى قاعدة البيانات بنفس الصلاحيات فقط. رفع الصور إلى Storage لم يُجرَّب بعد.
 - واجهات Next.js وrate limiting و E2E (المراحل 3–4).
 - pg_cron على Supabase: المهمة مسجلة ونشطة، لكن لم أراقب تشغيلاً فعلياً يحرر حجزاً بعد.

@@ -2,7 +2,7 @@ import "server-only";
 import { createClient as createSupabase } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
-import type { Category, Facets, ProductDetail, SearchParams, SearchResult, StoreSettings } from "./catalog-types";
+import type { Category, DeliveryZone, Facets, PaymentMethod, ProductDetail, SearchParams, SearchResult, StoreSettings } from "./catalog-types";
 
 // عميل عام بلا جلسة: الكتالوج بيانات عامة وقابلة للتخزين المؤقت
 function publicClient() {
@@ -64,4 +64,30 @@ export async function getStoreSettings(): Promise<StoreSettings> {
     store_name: "مفروشات العصار – دير البلح – النصيرات",
     whatsapp_number: null, contact_phone: null, is_published: false, maintenance_mode: false,
   };
+}
+
+export async function getCheckoutOptions(): Promise<{ zones: DeliveryZone[]; methods: PaymentMethod[] }> {
+  "use cache";
+  cacheTag("settings");
+  cacheLife("minutes");
+  const db = publicClient();
+  const [zones, methods] = await Promise.all([
+    db.from("delivery_zones").select("id, name, fee, eta_text, sort_order").eq("is_active", true).order("sort_order").order("name"),
+    db.from("payment_methods").select("code, name_ar, instructions, sort_order").eq("is_enabled", true).order("sort_order"),
+  ]);
+  return { zones: (zones.data ?? []) as DeliveryZone[], methods: (methods.data ?? []) as PaymentMethod[] };
+}
+
+export type TrackedOrder = {
+  order_number: string; status: string; created_at: string; fulfillment: "delivery" | "pickup";
+  payment_method: string; payment_status: string; subtotal: number; discount: number; delivery_fee: number; total: number;
+  items: { name: string; variant: Record<string, string>; quantity: number; unit_price: number; line_total: number }[];
+  history: { status: string; at: string }[];
+};
+
+// بلا تخزين مؤقت: حالة الطلب تتغير، والرمز السري مطلوب
+export async function trackOrder(orderNumber: string, token: string): Promise<TrackedOrder | null> {
+  if (!/^ALS-\d{1,10}$/.test(orderNumber) || !/^[0-9a-f]{64}$/.test(token)) return null;
+  const { data } = await publicClient().rpc("track_order", { p_order_number: orderNumber, p_token: token });
+  return (data as TrackedOrder | null) ?? null;
 }

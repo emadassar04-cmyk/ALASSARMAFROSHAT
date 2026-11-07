@@ -19,9 +19,11 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <p className="font-bold text-gold-dark">مفروشات العصار – الإدارة</p>
           <p className="text-xs opacity-70">{staff.full_name ?? staff.email} · {staff.role_name}</p>
         </div>
-        <nav aria-label="أقسام الإدارة" className="flex gap-4 text-sm">
+        <nav aria-label="أقسام الإدارة" className="flex flex-wrap gap-4 text-sm">
           <Link href="/admin" className="hover:text-gold-dark">الرئيسية</Link>
+          <Link href="/admin/orders" className="hover:text-gold-dark">الطلبات</Link>
           <Link href="/admin/products" className="hover:text-gold-dark">المنتجات</Link>
+          <Link href="/admin/settings/delivery" className="hover:text-gold-dark">التوصيل والدفع</Link>
           <Link href="/" target="_blank" className="hover:text-gold-dark">المتجر ↗</Link>
         </nav>
         <form action={signOut}>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requireStaff } from "@/lib/staff";
 import { IdleLogout } from "@/components/admin/IdleLogout";
 import { signOut } from "../actions";
@@ -18,6 +19,11 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <p className="font-bold text-gold-dark">مفروشات العصار – الإدارة</p>
           <p className="text-xs opacity-70">{staff.full_name ?? staff.email} · {staff.role_name}</p>
         </div>
+        <nav aria-label="أقسام الإدارة" className="flex gap-4 text-sm">
+          <Link href="/admin" className="hover:text-gold-dark">الرئيسية</Link>
+          <Link href="/admin/products" className="hover:text-gold-dark">المنتجات</Link>
+          <Link href="/" target="_blank" className="hover:text-gold-dark">المتجر ↗</Link>
+        </nav>
         <form action={signOut}>
           <button className="rounded-lg border border-gold/40 px-3 py-1.5 text-sm hover:bg-beige">تسجيل الخروج</button>
         </form>

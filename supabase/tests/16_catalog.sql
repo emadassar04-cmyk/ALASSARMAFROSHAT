@@ -59,5 +59,10 @@ select tests.ok(public.catalog_facets() @> '{"colors":["أبيض"],"sizes":["50�
 select tests.throws($$insert into public.search_synonyms (term, synonym) values ('x','y')$$, 'row-level security',
   'الزائر لا يعدّل المرادفات');
 
+-- الأكثر مبيعاً: فقط ما بيع فعلاً في طلبات مؤكدة (سجادة أ بيعت في o1 المؤكد؛ o2 أُلغي)
+select tests.ok((select array_agg(x->>'slug') from jsonb_array_elements(public.catalog_best_sellers()) x) = array['سجادة-أ'],
+  'الأكثر مبيعاً يعرض المنتجات المباعة فعلاً فقط');
+select tests.ok(public.catalog_best_sellers()::text !~* '(cost|profit|on_hand)', 'الأكثر مبيعاً بلا بيانات داخلية');
+
 reset role;
 select 'ALL CATALOG TESTS PASSED' as result;

@@ -11,6 +11,10 @@
 | `0003_orders` | العملاء، مناطق التوصيل، وسائل الدفع، الحسابات البنكية، الكوبونات، الطلبات وبنودها، الحجوزات، سجل الحالات، صندوق الأحداث |
 | `0004_cron` | pg_cron: تحرير الحجوزات المنتهية كل 5 دقائق |
 | `0005_place_order_server_only` | إنشاء الطلب من خادم Next.js فقط |
+| `0006_staff_auth` | دعوات الموظفين بالبريد (`private.staff_invites`)، `my_staff_context`، `record_staff_login` |
+| `0007_catalog_api` | البحث العربي (`ar_normalize`، مرادفات اللهجة، trigram + levenshtein)، `catalog_*` بحقول آمنة فقط |
+| `0008_storage` | حاوية `product-media`: قراءة عامة، رفع/حذف لصاحب صلاحية الكتالوج |
+| `0009_best_sellers` | الأكثر مبيعاً من الطلبات المؤكدة فقط |
 
 ## مبادئ التصميم
 - **المبالغ:** `numeric(12,2)`، العملة ILS. لا floating point.

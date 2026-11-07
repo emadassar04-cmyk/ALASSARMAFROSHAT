@@ -4,6 +4,15 @@
 ```bash
 PGPASSWORD=<كلمة مرور postgres المحلية> npm run test:db
 ```
+
+اختبار واجهة المتجر (End-to-End) على نسخة محلية ببيانات تجريبية في قاعدة الاختبار فقط:
+```bash
+node scripts/dev/local-api.mjs &            # بديل محلي لـ Supabase REST (دوال catalog_* فقط)
+psql ... -f supabase/tests/seed_demo.sql      # منتجات تجريبية محلية
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=local-test-key npx next build
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=local-test-key npx next start -p 3100 &
+NODE_PATH=$(npm root -g) node scripts/dev/storefront-e2e.mjs
+```
 تعمل على PostgreSQL محلي فقط (قاعدة `alassar_test` تُنشأ من جديد كل مرة)، ولا تلمس Supabase.
 `supabase/tests/00_supabase_shim.sql` يحاكي أدوار Supabase وصلاحياتها الافتراضية المفتوحة، حتى تُختبر القيود فعلاً.
 
@@ -12,7 +21,8 @@ PGPASSWORD=<كلمة مرور postgres المحلية> npm run test:db
 | التاريخ | الفحص | النتيجة |
 |---|---|---|
 | 2026-11-07 | `npm run lint` / `npm run build` | نجحا |
-| 2026-11-07 | `supabase/tests/10_core.sql` + `15_staff_auth.sql` | **81 نجاح، 0 فشل** |
+| 2026-11-07 | `10_core` + `15_staff_auth` + `16_catalog` + `17_admin_catalog` | **131 نجاح، 0 فشل** |
+| 2026-11-07 | `scripts/dev/storefront-e2e.mjs` (Playwright على نسخة محلية) | **19 نجاح، 0 فشل** |
 | 2026-11-07 | **دخول المدير الفعلي على Vercel** | نجح: Google ← تسجيل TOTP ← اللوحة (مدير كامل، 8 صلاحيات). في القاعدة: عامل TOTP واحد مُتحقق منه، والدخول وقبول الدعوة مسجلان في سجل النشاط |
 | 2026-11-07 | دخول المدير (Playwright على `next start`) | `/admin` و`/admin/mfa` بلا جلسة ← `/admin/login`؛ `/auth/callback` يرفض `//evil.com` و`https://evil.com`؛ ترويسات `noindex` و`no-store`؛ زر Google يصل إلى صفحة حساب Google بمفتاح العميل الصحيح (لا `redirect_uri_mismatch`)؛ RTL صحيح |
 | 2026-11-07 | `supabase/tests/20_concurrency.sh` (مكرر 4 مرات) | **4/4 نجاح في كل مرة** |
@@ -34,8 +44,17 @@ PGPASSWORD=<كلمة مرور postgres المحلية> npm run test:db
 لا تأكيد بعد انتهاء الحجز · التحرير مرة واحدة · البيع في المحل لا يمس المحجوز · الجرد · قيود المخزون السالب ·
 سجل النشاط append-only حتى لمالك القاعدة · صندوق الأحداث لا يسلّم الحدث مرتين.
 
+### واجهة المتجر (E2E، 19)
+الرئيسية والتصنيفات · لا بيانات داخلية في HTML · اقتراحات البحث بكلمة لهجة · تحمّل الخطأ الإملائي · بحث بلا نتائج ·
+الترتيب بالسعر · فلتر التصنيف · فلتر اللون + المتوفر · سعر الخصم وJSON-LD · اختيار خيار بسعر مختلف · السلة بسعر الخادم وتبقى بعد التحديث ·
+تجاهل التلاعب بالسعر في localStorage · تعديل/حذف من السلة · المنتج النافد معطل · منتج القياس بلا سعر + نموذج المقاسات ·
+المفضلة · حد المقارنة 3 · صفحة 404 مع noindex · لا أخطاء JavaScript.
+
+ملاحظة: صفحة المنتج غير الموجود تعيد 200 مع `noindex` (لأن الصفحة تُبث قبل معرفة وجود المنتج — سلوك Next.js الموثّق)، وليس 404.
+
 ## لم يُختبر بعد
 - الخروج التلقائي بعد 30 دقيقة خمول: مكتوب لكن لم يُختبر بانتظار فعلي.
+- صفحات إدارة المنتجات في المتصفح (تحتاج دخول المدير الفعلي): اختُبر منطقها على مستوى قاعدة البيانات بنفس الصلاحيات فقط. رفع الصور إلى Storage لم يُجرَّب بعد.
 - واجهات Next.js وrate limiting و E2E (المراحل 3–4).
 - pg_cron على Supabase: المهمة مسجلة ونشطة، لكن لم أراقب تشغيلاً فعلياً يحرر حجزاً بعد.
 - WhatsApp وTelegram وn8n، النسخ الاحتياطي والاستعادة.

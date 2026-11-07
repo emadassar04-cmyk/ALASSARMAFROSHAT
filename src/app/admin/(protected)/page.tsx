@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireStaff } from "@/lib/staff";
 import { signOutEverywhere } from "../actions";
 
@@ -23,7 +24,11 @@ export default async function AdminHome() {
           </button>
         </form>
       </section>
-      <p className="text-sm opacity-70">أقسام لوحة التحكم (الطلبات، المنتجات، المخزون، التقارير) تُبنى في المراحل القادمة.</p>
+      <Link href="/admin/products" className="block rounded-xl border border-gold/30 bg-white p-5 hover:border-gold">
+        <h2 className="font-bold">المنتجات</h2>
+        <p className="text-sm opacity-70">أضف منتجاتك وصورها وأسعارها وكمياتها.</p>
+      </Link>
+      <p className="text-sm opacity-70">أقسام الطلبات والمخزون والتقارير تُبنى في المراحل القادمة.</p>
     </div>
   );
 }

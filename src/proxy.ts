@@ -4,6 +4,18 @@ import { NextResponse, type NextRequest } from "next/server";
 // يحدّث جلسة Supabase في كل طلب، ويمنع الوصول إلى /admin دون تسجيل دخول.
 // التحقق الكامل (موظف + خطوتين) يتم في الخادم داخل requireStaff.
 export async function proxy(request: NextRequest) {
+  // إذا أعاد Supabase رمز الدخول إلى صفحة أخرى (مثلاً Site URL بدلاً من /auth/callback)،
+  // نحوّله إلى مسار إكمال الدخول بدلاً من تجاهله
+  const code = request.nextUrl.searchParams.get("code");
+  if (code && request.nextUrl.pathname !== "/auth/callback") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    url.search = "";
+    url.searchParams.set("code", code);
+    url.searchParams.set("next", "/admin/mfa");
+    return NextResponse.redirect(url);
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

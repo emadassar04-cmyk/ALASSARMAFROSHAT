@@ -80,7 +80,7 @@ await check("طلب صحيح (توصيل + تحويل بنكي + كوبون) ←
   await page.getByLabel("العنوان بالتفصيل *").fill("النصيرات، شارع صلاح الدين، قرب المسجد");
   await page.getByText("أوافق على شروط الاستخدام").click();
   await page.getByRole("button", { name: "إرسال الطلب" }).click();
-  await page.getByRole("heading", { name: "تم استلام طلبك ✓" }).waitFor({ timeout: 15000 }).catch(async (e) => {
+  await page.getByRole("heading", { name: "تم استلام طلبك ✓" }).waitFor({ timeout: 15000 }).catch(async () => {
     throw new Error(`no confirmation; alerts: ${JSON.stringify(await page.getByRole("alert").allTextContents())}`);
   });
   orderUrl = page.url();

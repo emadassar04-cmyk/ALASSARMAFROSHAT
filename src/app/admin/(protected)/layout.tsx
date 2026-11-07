@@ -24,6 +24,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <Link href="/admin/orders" className="hover:text-gold-dark">الطلبات</Link>
           <Link href="/admin/products" className="hover:text-gold-dark">المنتجات</Link>
           <Link href="/admin/settings/delivery" className="hover:text-gold-dark">التوصيل والدفع</Link>
+          <Link href="/admin/settings/integrations" className="hover:text-gold-dark">التكاملات</Link>
           <Link href="/" target="_blank" className="hover:text-gold-dark">المتجر ↗</Link>
         </nav>
         <form action={signOut}>

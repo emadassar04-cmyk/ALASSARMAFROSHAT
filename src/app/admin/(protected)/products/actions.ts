@@ -2,6 +2,7 @@
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { gazaDateTime } from "@/lib/admin/actions-util";
 
 export type FormState = { ok?: boolean; error?: string; message?: string };
 
@@ -57,6 +58,8 @@ function productFields(f: FormData) {
     requires_measurement: requiresMeasurement,
     price: requiresMeasurement ? null : money(f, "price"),
     sale_price: requiresMeasurement ? null : money(f, "sale_price"),
+    sale_starts_at: requiresMeasurement ? null : gazaDateTime(f.get("sale_starts_at")),
+    sale_ends_at: requiresMeasurement ? null : gazaDateTime(f.get("sale_ends_at")),
     prep_days_min: int(f, "prep_days_min", 0, 365),
     prep_days_max: int(f, "prep_days_max", 0, 365),
     is_featured: bool(f, "is_featured"),

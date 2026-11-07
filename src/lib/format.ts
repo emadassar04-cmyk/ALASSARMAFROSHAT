@@ -6,9 +6,15 @@ const ils = new Intl.NumberFormat("ar", {
   minimumFractionDigits: 0,
 });
 
+const ils2 = new Intl.NumberFormat("ar", {
+  style: "currency", currency: "ILS", numberingSystem: "latn", minimumFractionDigits: 2, maximumFractionDigits: 2,
+});
+
+// أرقام صحيحة بلا كسور (450 ₪)، وغير الصحيحة بمنزلتين دائماً (4,210.50 ₪)
 export function formatPrice(value: number | string | null | undefined): string {
   if (value === null || value === undefined || value === "") return "";
-  return ils.format(Number(value));
+  const n = Number(value);
+  return Number.isInteger(n) ? ils.format(n) : ils2.format(n);
 }
 
 // رابط WhatsApp بنص مسبق (الرقم بصيغة دولية بلا رموز)

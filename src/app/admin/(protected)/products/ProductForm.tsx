@@ -1,11 +1,13 @@
 "use client";
 import { useActionState, useState } from "react";
 import type { FormState } from "./actions";
+import { toGazaLocalInput } from "@/lib/admin/actions-util";
 
 type Option = { id: string | number; name: string };
 export type ProductValues = {
   id?: string; name?: string; slug?: string; description?: string | null; category_id?: string | null; unit_id?: number;
   status?: string; availability_mode?: string; requires_measurement?: boolean; price?: string | null; sale_price?: string | null;
+  sale_starts_at?: string | null; sale_ends_at?: string | null;
   prep_days_min?: number | null; prep_days_max?: number | null; is_featured?: boolean; low_stock_threshold?: number;
   materials?: string[]; seo_title?: string | null; seo_description?: string | null;
 };
@@ -57,6 +59,10 @@ export function ProductForm({ action, values = {}, categories, units, isNew }: {
               <input name="price" inputMode="decimal" defaultValue={values.price ?? ""} className={field} placeholder="مثال: 450" /></label>
             <label className={label}><span>سعر الخصم (₪) — اختياري</span>
               <input name="sale_price" inputMode="decimal" defaultValue={values.sale_price ?? ""} className={field} /></label>
+            <label className={label}><span>يبدأ الخصم (اختياري، توقيت فلسطين)</span>
+              <input name="sale_starts_at" type="datetime-local" defaultValue={toGazaLocalInput(values.sale_starts_at)} className={field} /></label>
+            <label className={label}><span>ينتهي الخصم (اختياري)</span>
+              <input name="sale_ends_at" type="datetime-local" defaultValue={toGazaLocalInput(values.sale_ends_at)} className={field} /></label>
           </div>
         )}
         {isNew && (

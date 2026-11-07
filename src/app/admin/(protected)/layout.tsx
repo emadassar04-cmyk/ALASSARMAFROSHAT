@@ -14,15 +14,20 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <IdleLogout />
-      <header className="flex items-center justify-between border-b border-gold/30 bg-white px-6 py-4">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/30 bg-white px-6 py-4">
         <div>
           <p className="font-bold text-gold-dark">مفروشات العصار – الإدارة</p>
           <p className="text-xs opacity-70">{staff.full_name ?? staff.email} · {staff.role_name}</p>
         </div>
-        <nav aria-label="أقسام الإدارة" className="flex flex-wrap gap-4 text-sm">
+        <nav aria-label="أقسام الإدارة" className="flex flex-wrap gap-x-4 gap-y-1 text-sm print:hidden">
           <Link href="/admin" className="hover:text-gold-dark">الرئيسية</Link>
           <Link href="/admin/orders" className="hover:text-gold-dark">الطلبات</Link>
           <Link href="/admin/products" className="hover:text-gold-dark">المنتجات</Link>
+          <Link href="/admin/inventory" className="hover:text-gold-dark">المخزون والجرد</Link>
+          <Link href="/admin/reports" className="hover:text-gold-dark">التقارير</Link>
+          <Link href="/admin/expenses" className="hover:text-gold-dark">المصروفات</Link>
+          <Link href="/admin/coupons" className="hover:text-gold-dark">الكوبونات</Link>
+          <Link href="/admin/customers" className="hover:text-gold-dark">العملاء</Link>
           <Link href="/admin/settings/delivery" className="hover:text-gold-dark">التوصيل والدفع</Link>
           <Link href="/admin/settings/integrations" className="hover:text-gold-dark">التكاملات</Link>
           <Link href="/" target="_blank" className="hover:text-gold-dark">المتجر ↗</Link>

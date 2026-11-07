@@ -19,7 +19,7 @@ bash scripts/dev/e2e.sh            # إعادة القاعدة ← بيانات 
 | التاريخ | الفحص | النتيجة |
 |---|---|---|
 | 2026-11-07 | `npm run lint` / `npm run build` | نجحا |
-| 2026-11-07 | `10_core` … `18_checkout` | **146 نجاح، 0 فشل** |
+| 2026-11-07 | `10_core` … `19_notifications` | **169 نجاح، 0 فشل** |
 | 2026-11-07 | `storefront-e2e` + `checkout-e2e` (Playwright على نسخة محلية) | **33 نجاح، 0 فشل** (19 + 14) |
 | 2026-11-07 | **دخول المدير الفعلي على Vercel** | نجح: Google ← تسجيل TOTP ← اللوحة (مدير كامل، 8 صلاحيات). في القاعدة: عامل TOTP واحد مُتحقق منه، والدخول وقبول الدعوة مسجلان في سجل النشاط |
 | 2026-11-07 | دخول المدير (Playwright على `next start`) | `/admin` و`/admin/mfa` بلا جلسة ← `/admin/login`؛ `/auth/callback` يرفض `//evil.com` و`https://evil.com`؛ ترويسات `noindex` و`no-store`؛ زر Google يصل إلى صفحة حساب Google بمفتاح العميل الصحيح (لا `redirect_uri_mismatch`)؛ RTL صحيح |

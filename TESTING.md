@@ -12,7 +12,8 @@ PGPASSWORD=<كلمة مرور postgres المحلية> npm run test:db
 | التاريخ | الفحص | النتيجة |
 |---|---|---|
 | 2026-11-07 | `npm run lint` / `npm run build` | نجحا |
-| 2026-11-07 | `supabase/tests/10_core.sql` | **69 نجاح، 0 فشل** |
+| 2026-11-07 | `supabase/tests/10_core.sql` + `15_staff_auth.sql` | **81 نجاح، 0 فشل** |
+| 2026-11-07 | دخول المدير (Playwright على `next start`) | `/admin` و`/admin/mfa` بلا جلسة ← `/admin/login`؛ `/auth/callback` يرفض `//evil.com` و`https://evil.com`؛ ترويسات `noindex` و`no-store`؛ زر Google يصل إلى صفحة حساب Google بمفتاح العميل الصحيح (لا `redirect_uri_mismatch`)؛ RTL صحيح |
 | 2026-11-07 | `supabase/tests/20_concurrency.sh` (مكرر 4 مرات) | **4/4 نجاح في كل مرة** |
 | 2026-11-07 | مطابقة Supabase مع النسخة المحلية (md5) | متطابقة: 33 دالة، 46 سياسة، 136 قيداً، 283 عموداً، 24 مشغلاً |
 | 2026-11-07 | Supabase security advisor | لا جداول بلا RLS. تحذيرات `security definer` مقصودة (الدوال تتحقق من الصلاحية داخلياً) |
@@ -33,7 +34,8 @@ PGPASSWORD=<كلمة مرور postgres المحلية> npm run test:db
 سجل النشاط append-only حتى لمالك القاعدة · صندوق الأحداث لا يسلّم الحدث مرتين.
 
 ## لم يُختبر بعد
-- تسجيل دخول المدير الفعلي بـ Google و2FA (يحتاج إعداد Google OAuth).
+- إكمال دخول المدير فعلياً (Google ← TOTP ← اللوحة) بحسابه: يحتاج أن يجربه المدير بنفسه.
+- الخروج التلقائي بعد 30 دقيقة خمول: مكتوب لكن لم يُختبر بانتظار فعلي.
 - واجهات Next.js وrate limiting و E2E (المراحل 3–4).
 - pg_cron على Supabase: المهمة مسجلة ونشطة، لكن لم أراقب تشغيلاً فعلياً يحرر حجزاً بعد.
 - WhatsApp وTelegram وn8n، النسخ الاحتياطي والاستعادة.

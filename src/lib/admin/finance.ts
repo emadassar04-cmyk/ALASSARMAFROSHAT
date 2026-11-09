@@ -38,9 +38,9 @@ export function addDays(iso: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export type Preset = "today" | "yesterday" | "7d" | "30d" | "month" | "last_month";
+export type Preset = "today" | "yesterday" | "7d" | "30d" | "month" | "last_month" | "year";
 export const PRESET_LABEL: Record<Preset, string> = {
-  today: "اليوم", yesterday: "أمس", "7d": "آخر 7 أيام", "30d": "آخر 30 يوماً", month: "هذا الشهر", last_month: "الشهر الماضي",
+  today: "اليوم", yesterday: "أمس", "7d": "آخر 7 أيام", "30d": "آخر 30 يوماً", month: "هذا الشهر", last_month: "الشهر الماضي", year: "هذا العام",
 };
 
 export function presetRange(p: Preset, today = gazaToday()): { from: string; to: string } {
@@ -53,17 +53,19 @@ export function presetRange(p: Preset, today = gazaToday()): { from: string; to:
     case "30d": return { from: addDays(today, -29), to: today };
     case "month": return { from: monthStart, to: today };
     case "last_month": return { from: addDays(monthStart, -1).slice(0, 8) + "01", to: addDays(monthStart, -1) };
+    case "year": return { from: `${y}-01-01`, to: today };
   }
 }
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
-export function parseRange(sp: Record<string, string | string[] | undefined>): { from: string; to: string; preset?: Preset } {
+export function parseRange(sp: Record<string, string | string[] | undefined>, fallback: Preset = "month"): { from: string; to: string; preset?: Preset } {
   const preset = typeof sp.preset === "string" && sp.preset in PRESET_LABEL ? (sp.preset as Preset) : undefined;
   if (preset) return { ...presetRange(preset), preset };
   const from = typeof sp.from === "string" && ISO.test(sp.from) ? sp.from : undefined;
   const to = typeof sp.to === "string" && ISO.test(sp.to) ? sp.to : undefined;
-  if (from && to && from <= to) return { from, to };
-  return { ...presetRange("month"), preset: "month" };
+  // فترة مخصصة: حتى سنة كحد أقصى (نفس حد قاعدة البيانات)
+  if (from && to && from <= to && (Date.parse(to) - Date.parse(from)) / 86_400_000 <= 366) return { from, to };
+  return { ...presetRange(fallback), preset: fallback };
 }
 
 // نسبة التغير مقارنة بالفترة السابقة (null إن لم توجد قيمة سابقة)

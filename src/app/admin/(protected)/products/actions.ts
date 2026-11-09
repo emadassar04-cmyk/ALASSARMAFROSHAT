@@ -221,3 +221,14 @@ export async function moveMedia(mediaId: string, direction: -1 | 1) {
   refresh(p?.slug);
   return { ok: true };
 }
+
+// حذف نهائي لمنتج لم يُستخدم قط (لا طلبات ولا حركات مخزون) — وإلا تُقترح الأرشفة. التحقق كله داخل delete_product
+export async function deleteProduct(id: string): Promise<{ ok?: boolean; error?: string }> {
+  if (!/^[0-9a-f-]{36}$/.test(id)) return { error: "generic" };
+  const supabase = await createClient();
+  const { data: p } = await supabase.from("products").select("slug").eq("id", id).maybeSingle();
+  const { error } = await supabase.rpc("delete_product", { p_id: id });
+  if (error) return { error: /product_has_history/.test(error.message) ? "history" : /forbidden/.test(error.message) ? "forbidden" : "generic" };
+  refresh(p?.slug);
+  return { ok: true };
+}

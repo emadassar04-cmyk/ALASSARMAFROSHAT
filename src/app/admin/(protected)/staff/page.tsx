@@ -1,61 +1,73 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff } from "@/lib/staff";
-import { InviteForm, StaffRow } from "./Forms";
+import { requireStaff, can } from "@/lib/staff";
+import { getDict, fmt } from "@/lib/admin/i18n";
+import { Card, PageHeader } from "@/components/admin/ui";
+import { InviteForm, RolePermissions, StaffRow } from "./Forms";
 
 export const instant = false;
 
 type Overview = {
   staff: { id: string; name: string | null; email: string; role: string | null; role_name: string | null; active: boolean; is_me: boolean }[];
   invites: { email: string; role: string; created_at: string }[];
-  roles: { code: string; name: string }[];
 };
-
-const ROLE_HELP: Record<string, string> = {
-  reception: "يسجّل مبيعات الفرع فقط (رقم الجوال + المبلغ + الفرع)",
-  inventory: "بلا صلاحيات حالياً",
-  fulfilment: "بلا صلاحيات حالياً",
-  reports: "بلا صلاحيات حالياً",
+type Roles = {
+  permissions: { code: string; description: string }[];
+  roles: { code: string; name: string; name_en: string | null; locked: boolean; members: number; permissions: string[] }[];
 };
 
 export default async function StaffPage() {
   const staff = await requireStaff();
-  if (!staff.permissions.includes("staff.manage")) redirect("/admin");
+  if (!can(staff, "staff.manage")) redirect("/admin");
+  const t = getDict(staff.locale), f = fmt(staff.locale);
   const supabase = await createClient();
-  const { data } = await supabase.rpc("staff_overview");
-  const o = (data ?? { staff: [], invites: [], roles: [] }) as Overview;
+  const [{ data }, { data: rolesData }] = await Promise.all([supabase.rpc("staff_overview"), supabase.rpc("admin_roles")]);
+  const o = (data ?? { staff: [], invites: [] }) as Overview;
+  const r = (rolesData ?? { permissions: [], roles: [] }) as Roles;
+  const roleName = (code: string | null) => {
+    const x = r.roles.find((y) => y.code === code);
+    return x ? (staff.locale === "en" ? x.name_en ?? x.name : x.name) : code ?? "";
+  };
+  const assignable = r.roles.filter((x) => !x.locked).map((x) => ({ code: x.code, name: roleName(x.code) }));
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <h1 className="text-2xl font-bold">الموظفون</h1>
-      <section className="space-y-3 rounded-2xl border border-gold/20 bg-white p-5">
-        <h2 className="text-lg font-bold">دعوة موظف</h2>
-        <p className="text-sm leading-6 opacity-80">
-          الموظف يحتاج حساب Google وتطبيق مصادقة على جواله (مثل Google Authenticator). بعد الدعوة يدخل من صفحة الإدارة،
-          ويرى فقط ما يسمح به دوره. {Object.entries(ROLE_HELP).map(([k, v]) => `«${o.roles.find((r) => r.code === k)?.name ?? k}»: ${v}`).join(" · ")}
-        </p>
-        <InviteForm roles={o.roles} />
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader title={t.staff.title} subtitle={t.staff.subtitle} />
+      <Card title={t.staff.invite}>
+        <p className="mb-4 text-sm leading-6 text-[var(--a-muted-ink)]">{t.staff.inviteHelp}</p>
+        <InviteForm roles={assignable} />
         {o.invites.length > 0 && (
-          <div className="text-sm"><p className="mb-1 font-medium">دعوات لم تُستخدم بعد:</p>
-            <ul className="space-y-1">{o.invites.map((i) => <li key={i.email} dir="ltr" className="text-right">{i.email} — {o.roles.find((r) => r.code === i.role)?.name ?? i.role}</li>)}</ul></div>
+          <div className="mt-4 text-sm"><p className="a-label">{t.staff.pendingInvites}</p>
+            <ul className="space-y-1">{o.invites.map((i) => <li key={i.email} className="flex flex-wrap gap-2"><span dir="ltr">{i.email}</span><span className="text-[var(--a-muted-ink)]">· {roleName(i.role)} · {f.date(i.created_at)}</span></li>)}</ul></div>
         )}
-      </section>
-      <section className="space-y-3">
-        <h2 className="text-lg font-bold">الحسابات</h2>
-        <ul className="divide-y divide-gold/15 rounded-2xl border border-gold/20 bg-white">
+      </Card>
+      <Card title={t.staff.accounts} bodyClass="">
+        <ul className="divide-y divide-[var(--a-line)]">
           {o.staff.map((s) => (
-            <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <div>
-                <p className="font-medium">{s.name ?? s.email} {s.is_me && <span className="text-xs opacity-60">(أنت)</span>}</p>
-                <p dir="ltr" className="text-right text-xs opacity-70">{s.email}</p>
+            <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <span aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-lg bg-[#f5efe3] text-sm font-bold text-[var(--a-accent-ink)]">{(s.name ?? s.email).trim()[0]?.toUpperCase()}</span>
+                <div>
+                  <p className="font-semibold">{s.name ?? s.email} {s.is_me && <span className="text-xs font-normal text-[var(--a-muted-ink)]">({t.staff.you})</span>}</p>
+                  <p dir="ltr" className="text-end text-xs text-[var(--a-muted-ink)] rtl:text-start">{s.email}</p>
+                </div>
               </div>
               {s.role === "owner" || s.is_me
-                ? <span className="text-sm">{s.role_name}{s.active ? "" : " (موقوف)"}</span>
-                : <StaffRow id={s.id} role={s.role ?? "reception"} active={s.active} roles={o.roles} />}
+                ? <span className="text-sm">{roleName(s.role)}{s.active ? "" : ` (${t.staff.suspended})`}</span>
+                : <StaffRow id={s.id} role={s.role ?? "viewer"} active={s.active} roles={assignable} />}
             </li>
           ))}
         </ul>
-      </section>
+      </Card>
+      <Card title={t.staff.rolesTitle} bodyClass="">
+        <p className="border-b border-[var(--a-line)] px-5 py-3 text-sm text-[var(--a-muted-ink)]">{t.staff.rolesHint}</p>
+        <div className="divide-y divide-[var(--a-line)]">
+          {r.roles.map((x) => (
+            <RolePermissions key={x.code} role={x.code} name={roleName(x.code)} members={x.members} granted={x.permissions}
+              all={r.permissions.map((p) => p.code)} locked={x.locked} />
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }

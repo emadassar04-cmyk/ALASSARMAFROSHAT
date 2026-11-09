@@ -1,157 +1,206 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  Ban, Boxes, CircleCheck, Coins, Hourglass, PackageX, Receipt, ShoppingBag, Sparkles, Store, TrendingUp, Users,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff } from "@/lib/staff";
-import { formatPrice } from "@/lib/format";
-import { ORDER_STATUS_LABEL } from "@/lib/catalog-types";
-import type { Kpis } from "@/lib/admin/finance";
-import { Kpi } from "@/components/admin/Kpi";
-import { signOutEverywhere } from "../actions";
+import { requireStaff, can } from "@/lib/staff";
+import { getDict, fmt, fill } from "@/lib/admin/i18n";
+import { parseRange, type Kpis } from "@/lib/admin/finance";
+import { Card, EmptyState, PageHeader, PeriodPicker, StatCard, StatusBadge, rangeLabel } from "@/components/admin/ui";
+import { BarChart, TrendChart, type Point } from "@/components/admin/charts/Charts";
+import { CHART } from "@/components/admin/charts/palette";
 
 export const instant = false;
 
-type Dashboard = {
-  finance_visible: boolean; today: Kpis | null; month: Kpis | null;
-  status_counts: Record<string, number>; pending_transfers: number; expiring_soon: number;
-  low_stock: { id: string; name: string; available: number; threshold: number }[];
-  top_month: { name: string; qty: number; revenue: number }[] | null;
-  recent: { id: string; order_number: string; status: string; total: number; created_at: string }[];
+type Counts = { total: number; new: number; processing: number; completed: number; cancelled: number; new_customers: number };
+type Overview = {
+  from: string; to: string; days: number; unit: "hour" | "day" | "month"; prev_from: string; prev_to: string;
+  visible: { orders: boolean; finance: boolean; stock: boolean; sales: boolean };
+  orders: null | { current: Counts; previous: Counts; customers_total: number; status_now: Record<string, number> };
+  finance: null | { current: Kpis; previous: Kpis };
+  series: Point[] | null; series_prev: Point[] | null;
+  weekdays: { dow: number; orders: number; revenue: number }[] | null;
+  top_products: { product_id: string | null; name: string; qty: number; revenue: number }[] | null;
+  stock: null | { low: number; out: number };
+  store_sales: null | { approved_count: number; approved_amount: number; pending_count: number };
+};
+type OrderRow = {
+  id: string; order_number: string; customer_name: string; status: string; payment_method: string; total: number;
+  created_at: string; first_item: string | null; lines: number;
 };
 
-const ATTENTION = ["received", "awaiting_confirmation", "confirmed", "preparing", "ready_for_pickup", "out_for_delivery"];
-
-export default async function AdminHome() {
+export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
   const staff = await requireStaff();
   // موظف الفرع (تسجيل المبيعات فقط) يذهب مباشرة إلى صفحة التسجيل
-  if (!staff.permissions.includes("orders.read")) {
-    redirect(staff.permissions.includes("sales.record") ? "/admin/sales" : "/admin/login?error=not_staff");
-  }
+  const sees = ["orders.read", "finance.read", "inventory.manage", "catalog.manage", "sales.review"].some((p) => can(staff, p));
+  if (!sees && can(staff, "sales.record")) redirect("/admin/sales");
+  const t = getDict(staff.locale), f = fmt(staff.locale);
+  const sp = await searchParams;
+  const range = parseRange(sp, "30d");
   const supabase = await createClient();
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Gaza" }).format(await Promise.resolve(new Date()));
-  const [{ data, error }, { data: sales }] = await Promise.all([
-    supabase.rpc("admin_dashboard"),
-    staff.permissions.includes("sales.review")
-      ? supabase.rpc("purchases_summary", { p_from: `${today.slice(0, 8)}01`, p_to: today })
-      : Promise.resolve({ data: null }),
+  const [{ data, error }, recent] = await Promise.all([
+    supabase.rpc("admin_overview", { p_from: range.from, p_to: range.to }),
+    can(staff, "orders.read") ? supabase.rpc("admin_orders", { p: { page_size: 8 } }) : Promise.resolve({ data: null }),
   ]);
-  const d = data as Dashboard | null;
-  const store = sales as { store_pending: { count: number; amount: number }; store_approved: { count: number; amount: number } } | null;
+  const d = data as Overview | null;
+  const rows = ((recent.data as { rows: OrderRow[] } | null)?.rows ?? []);
+  const o = d?.orders, fin = d?.finance;
+  const ico = "h-[1.1rem] w-[1.1rem]";
+  const q = (p: Record<string, string>) => `/admin/orders?${new URLSearchParams({ from: range.from, to: range.to, ...p })}`;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <h1 className="text-2xl font-bold">لوحة المعلومات</h1>
-        <p className="text-sm opacity-70">مرحباً {staff.full_name ?? ""}</p>
-      </div>
-      {store && (
-        <section aria-label="مبيعات الفروع" className="grid gap-3 sm:grid-cols-2">
-          <Link href="/admin/purchases?source=store&status=pending" className={`rounded-2xl border p-4 ${store.store_pending.count ? "border-amber-300 bg-amber-50" : "border-gold/20 bg-white"}`}>
-            <p className="text-sm opacity-80">مبيعات فروع بانتظار اعتمادك</p>
-            <p className="mt-1 text-xl font-bold">{store.store_pending.count} عملية · {formatPrice(store.store_pending.amount)}</p>
-          </Link>
-          <Link href="/admin/purchases?source=store&status=completed" className="rounded-2xl border border-gold/20 bg-white p-4">
-            <p className="text-sm opacity-80">مبيعات الفروع المعتمدة هذا الشهر (منفصلة عن أرباح الطلبات)</p>
-            <p className="mt-1 text-xl font-bold">{store.store_approved.count} عملية · {formatPrice(store.store_approved.amount)}</p>
-          </Link>
-        </section>
-      )}
-      {error || !d ? <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-800">تعذر تحميل لوحة المعلومات.</p> : (
-        <>
-          {(d.pending_transfers > 0 || d.expiring_soon > 0 || d.low_stock.length > 0) && (
-            <section aria-label="يحتاج انتباهك" className="space-y-2">
-              {d.expiring_soon > 0 && <Alert href="/admin/orders?status=received">⏳ {d.expiring_soon} طلب ينتهي حجزه خلال 30 دقيقة — أكّدها أو تواصل مع الزبون</Alert>}
-              {d.pending_transfers > 0 && <Alert href="/admin/orders">🏦 {d.pending_transfers} تحويل بنكي بانتظار المراجعة</Alert>}
-              {d.low_stock.length > 0 && <Alert href="/admin/inventory">⚠️ {d.low_stock.length} منتج مخزونه منخفض</Alert>}
-            </section>
-          )}
+    <div className="mx-auto max-w-[90rem]">
+      <PageHeader title={t.dashboard.title} subtitle={`${t.dashboard.welcome} ${staff.full_name ?? ""} · ${rangeLabel(range, f)}`}
+        actions={<PeriodPicker base="/admin" range={range} t={t} />} />
 
-          {d.finance_visible && d.today && d.month && (
-            <>
-              <section aria-labelledby="today" className="space-y-2">
-                <h2 id="today" className="font-bold">اليوم</h2>
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                  <Kpi label="المبيعات المؤكدة" value={d.today.revenue} />
-                  <Kpi label="عدد الطلبات المؤكدة" value={d.today.orders} money={false} />
-                  <Kpi label="صافي ربحك" value={d.today.manager_net} />
-                  <Kpi label="مستحقات المحل" value={d.today.store_due}
-                    hint={d.today.items_missing_profit ? `${d.today.items_missing_profit} بند بلا ربح مسجل` : undefined}
-                    tone={d.today.items_missing_profit ? "warn" : undefined} />
-                </div>
-              </section>
-              <section aria-labelledby="month" className="space-y-2">
-                <div className="flex items-end justify-between">
-                  <h2 id="month" className="font-bold">هذا الشهر</h2>
-                  <Link href="/admin/reports" className="text-sm text-gold-dark hover:underline">التقارير التفصيلية</Link>
-                </div>
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                  <Kpi label="المبيعات المؤكدة" value={d.month.revenue} />
-                  <Kpi label="عدد الطلبات" value={d.month.orders} money={false} />
-                  <Kpi label="صافي ربحك (بعد المصروفات)" value={d.month.manager_net} />
-                  <Kpi label="مستحقات المحل" value={d.month.store_due}
-                    hint={d.month.items_missing_profit ? `${d.month.items_missing_profit} بند بلا ربح مسجل` : undefined}
-                    tone={d.month.items_missing_profit ? "warn" : undefined} />
-                </div>
-              </section>
-            </>
-          )}
-
-          <div className="grid gap-5 md:grid-cols-2">
-            <section className="rounded-2xl border border-gold/20 bg-white p-4">
-              <h2 className="mb-3 font-bold">الطلبات حسب الحالة</h2>
-              <ul className="space-y-1 text-sm">
-                {ATTENTION.map((s) => (
-                  <li key={s}><Link href={`/admin/orders?status=${s}`} className="flex justify-between hover:text-gold-dark">
-                    <span>{ORDER_STATUS_LABEL[s]}</span><span className="font-medium">{d.status_counts[s] ?? 0}</span></Link></li>
-                ))}
-                <li className="flex justify-between border-t border-gold/10 pt-1 opacity-70"><span>مُسلَّمة (30 يوماً)</span><span>{d.status_counts.delivered ?? 0}</span></li>
-                <li className="flex justify-between opacity-70"><span>ملغاة (30 يوماً)</span><span>{d.status_counts.cancelled ?? 0}</span></li>
-              </ul>
-            </section>
-            <section className="rounded-2xl border border-gold/20 bg-white p-4">
-              <h2 className="mb-3 font-bold">أحدث الطلبات</h2>
-              {d.recent.length === 0 ? <p className="text-sm opacity-70">لا طلبات بعد.</p> : (
-                <ul className="space-y-1 text-sm">
-                  {d.recent.map((o) => (
-                    <li key={o.id}><Link href={`/admin/orders/${o.id}`} className="flex justify-between gap-2 hover:text-gold-dark">
-                      <span dir="ltr">{o.order_number}</span><span className="opacity-70">{ORDER_STATUS_LABEL[o.status]}</span><span>{formatPrice(o.total)}</span></Link></li>
-                  ))}
-                </ul>
-              )}
-            </section>
-            {d.top_month && (
-              <section className="rounded-2xl border border-gold/20 bg-white p-4">
-                <h2 className="mb-3 font-bold">الأكثر مبيعاً هذا الشهر</h2>
-                {d.top_month.length === 0 ? <p className="text-sm opacity-70">لا مبيعات مؤكدة بعد.</p> : (
-                  <ol className="space-y-1 text-sm">{d.top_month.map((p) => (
-                    <li key={p.name} className="flex justify-between gap-2"><span>{p.name}</span><span className="opacity-70">{p.qty} قطعة · {formatPrice(p.revenue)}</span></li>))}
-                  </ol>
-                )}
-              </section>
+      {error || !d ? <p role="alert" className="a-card p-4 text-[var(--a-danger-ink)]">{t.common.error}</p> : (
+        <div className="space-y-6">
+          <section aria-label={t.dashboard.subtitle} className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-5">
+            {fin && (
+              <>
+                <StatCard t={t} f={f} label={t.dashboard.kpi.sales} value={f.money(fin.current.revenue)} current={+fin.current.revenue} previous={+fin.previous.revenue}
+                  icon={<Coins className={ico} />} href={`/admin/reports?from=${range.from}&to=${range.to}`} />
+                <StatCard t={t} f={f} label={t.dashboard.kpi.net} value={f.money(fin.current.manager_net)} current={+fin.current.manager_net} previous={+fin.previous.manager_net}
+                  icon={<TrendingUp className={ico} />} href={`/admin/profits?from=${range.from}&to=${range.to}`}
+                  tone={fin.current.items_missing_profit ? "warn" : undefined}
+                  hint={fin.current.items_missing_profit ? `${f.number(fin.current.items_missing_profit)} ${t.dashboard.kpi.missingProfit}` : undefined} />
+              </>
             )}
-            <section className="rounded-2xl border border-gold/20 bg-white p-4">
-              <h2 className="mb-3 font-bold">تنبيهات المخزون</h2>
-              {d.low_stock.length === 0 ? <p className="text-sm opacity-70">لا منتجات تحت حد التنبيه.</p> : (
-                <ul className="space-y-1 text-sm">{d.low_stock.map((p) => (
-                  <li key={p.id}><Link href={`/admin/products/${p.id}`} className="flex justify-between hover:text-gold-dark">
-                    <span>{p.name}</span><span className={p.available <= 0 ? "font-medium text-red-700" : "text-amber-700"}>المتاح {p.available}</span></Link></li>))}
-                </ul>
-              )}
-            </section>
-          </div>
-        </>
-      )}
+            {o && (
+              <>
+                <StatCard t={t} f={f} label={t.dashboard.kpi.orders} value={f.number(o.current.total)} current={o.current.total} previous={o.previous.total}
+                  icon={<ShoppingBag className={ico} />} href={q({})} />
+                <StatCard t={t} f={f} label={t.dashboard.kpi.new} value={f.number(o.current.new)} current={o.current.new} previous={o.previous.new}
+                  icon={<Sparkles className={ico} />} href={q({ status: "received" })} />
+                <StatCard t={t} f={f} label={t.dashboard.kpi.processing} value={f.number(o.current.processing)} current={o.current.processing} previous={o.previous.processing}
+                  icon={<Hourglass className={ico} />} href={q({ status: "preparing" })} />
+                <StatCard t={t} f={f} label={t.dashboard.kpi.completed} value={f.number(o.current.completed)} current={o.current.completed} previous={o.previous.completed}
+                  icon={<CircleCheck className={ico} />} href={q({ status: "delivered" })} />
+                <StatCard t={t} f={f} label={t.dashboard.kpi.cancelled} value={f.number(o.current.cancelled)} current={o.current.cancelled} previous={o.previous.cancelled}
+                  good="down" icon={<Ban className={ico} />} href={q({ status: "cancelled" })} />
+                <StatCard t={t} f={f} label={t.dashboard.kpi.customers} value={f.number(o.customers_total)} current={o.current.new_customers} previous={o.previous.new_customers}
+                  icon={<Users className={ico} />} href="/admin/customers" hint={`+${f.number(o.current.new_customers)} ${t.dashboard.kpi.customersHint}`} />
+              </>
+            )}
+            {fin && (
+              <StatCard t={t} f={f} label={t.dashboard.kpi.aov} value={f.money(fin.current.avg_order)} current={+fin.current.avg_order} previous={+fin.previous.avg_order}
+                icon={<Receipt className={ico} />} href={`/admin/reports?from=${range.from}&to=${range.to}`} />
+            )}
+            {d.stock && (
+              <StatCard t={t} f={f} label={t.dashboard.kpi.lowStock} value={f.number(d.stock.low + d.stock.out)} icon={<PackageX className={ico} />}
+                tone={d.stock.low + d.stock.out > 0 ? "warn" : undefined} href="/admin/inventory?filter=low"
+                hint={d.stock.out ? `${f.number(d.stock.out)} ${t.dashboard.kpi.lowStockHint}` : undefined} />
+            )}
+          </section>
 
-      <section className="rounded-2xl border border-gold/20 bg-white p-4 text-sm">
-        <h2 className="mb-2 font-bold">الجلسة</h2>
-        <p>الحساب: <span dir="ltr">{staff.email}</span> · {staff.role_name} · التحقق بخطوتين مفعّل ✓</p>
-        <form action={signOutEverywhere} className="mt-3">
-          <button className="rounded-lg border border-red-300 px-3 py-1.5 text-red-800 hover:bg-red-50">إنهاء كل الجلسات على كل الأجهزة</button>
-        </form>
-      </section>
+          {d.store_sales && (
+            <Link href="/admin/purchases?source=store" className="a-card flex flex-wrap items-center gap-4 p-4 hover:border-[#d9d2c4]">
+              <span aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-[10px] bg-[#f5efe3] text-[var(--a-accent-ink)]"><Store className={ico} /></span>
+              <div className="min-w-0 flex-1 basis-[11rem]">
+                <p className="text-sm font-semibold">{t.dashboard.storeSales}</p>
+                <p className="text-xs text-[var(--a-muted-ink)]">{t.dashboard.storeSalesHint}</p>
+              </div>
+              <p className="text-lg font-bold tabular-nums">{f.money(d.store_sales.approved_amount)} <span className="text-sm font-medium text-[var(--a-muted-ink)]">· {f.number(d.store_sales.approved_count)} {t.common.orders}</span></p>
+              {d.store_sales.pending_count > 0 && <StatusBadge status="submitted" label={`${f.number(d.store_sales.pending_count)} ${t.dashboard.pendingStoreSales}`} />}
+            </Link>
+          )}
+
+          {d.series && d.series_prev ? (
+            <>
+              <Card title={t.dashboard.revenue} action={<span className="text-xs text-[var(--a-muted-ink)]">{t.period.compared} {rangeLabel({ from: d.prev_from, to: d.prev_to }, f)}</span>}>
+                {d.series.every((p) => +p.revenue === 0) && d.series_prev.every((p) => +p.revenue === 0)
+                  ? <EmptyState icon={<Coins className="h-5 w-5" />} title={t.dashboard.noSales} />
+                  : <TrendChart series={d.series} previous={d.series_prev} unit={d.unit} label={t.dashboard.revenue} />}
+              </Card>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <Card title={t.dashboard.ordersChart}><BarChart series={d.series} unit={d.unit} metric="orders" label={t.dashboard.ordersChart} /></Card>
+                <Card title={t.dashboard.profitChart}><BarChart series={d.series} unit={d.unit} metric="profit" label={t.dashboard.profitChart} color={CHART.current} /></Card>
+              </div>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <Card title={t.dashboard.bestDays}><Ranked rows={(d.weekdays ?? []).map((w) => ({ key: String(w.dow), name: t.days[w.dow], value: +w.revenue, sub: `${f.number(w.orders)} ${t.common.orders}` }))} f={f} sort /></Card>
+                <Card title={t.dashboard.topProducts} action={<Link href={`/admin/reports?from=${range.from}&to=${range.to}`} className="text-xs font-semibold text-[var(--a-accent-ink)] hover:underline">{t.common.viewAll}</Link>}>
+                  {(d.top_products ?? []).length === 0 ? <p className="py-6 text-center text-sm text-[var(--a-muted-ink)]">{t.dashboard.noSales}</p>
+                    : <Ranked rows={(d.top_products ?? []).map((p) => ({ key: p.product_id ?? p.name, name: p.name, value: +p.revenue, sub: `${f.number(p.qty)} ${t.common.items}`, href: p.product_id ? `/admin/products/${p.product_id}` : undefined }))} f={f} />}
+                </Card>
+              </div>
+            </>
+          ) : <p className="a-card p-4 text-sm text-[var(--a-muted-ink)]">{t.dashboard.financeHidden}</p>}
+
+          {o && (
+            <Card title={t.dashboard.recentOrders} bodyClass=""
+              action={<form action="/admin/orders" className="flex items-center gap-2"><input name="q" placeholder={t.orders.searchPlaceholder} aria-label={t.common.search} className="a-input hidden h-9 min-h-0 w-56 sm:block" /><Link href="/admin/orders" className="text-xs font-semibold text-[var(--a-accent-ink)] hover:underline">{t.common.viewAll}</Link></form>}>
+              {rows.length === 0 ? <EmptyState icon={<ShoppingBag className="h-5 w-5" />} title={t.orders.empty} /> : <RecentOrders rows={rows} t={t} f={f} />}
+            </Card>
+          )}
+          {!o && !fin && !d.stock && <EmptyState icon={<Boxes className="h-5 w-5" />} title={t.dashboard.financeHidden} />}
+        </div>
+      )}
     </div>
   );
 }
 
-function Alert({ href, children }: { href: string; children: React.ReactNode }) {
-  return <Link href={href} className="block rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 hover:bg-amber-100">{children}</Link>;
+// قائمة مرتبة بأشرطة أفقية (أفضل الأيام / الأكثر مبيعاً): الرقم مكتوب بجانب كل شريط
+function Ranked({ rows, f, sort = false }: { rows: { key: string; name: string; value: number; sub: string; href?: string }[]; f: ReturnType<typeof fmt>; sort?: boolean }) {
+  const list = sort ? [...rows].sort((a, b) => b.value - a.value) : rows;
+  const max = Math.max(1, ...list.map((r) => r.value));
+  return (
+    <ol className="space-y-3">
+      {list.map((r, i) => {
+        const name = r.href ? <Link href={r.href} className="hover:underline">{r.name}</Link> : r.name;
+        return (
+          <li key={r.key}>
+            <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
+              <span className="min-w-0 truncate"><span className="me-2 text-xs tabular-nums text-[var(--a-muted-ink)]">{i + 1}</span>{name}</span>
+              <span className="shrink-0 tabular-nums"><b>{f.money(r.value)}</b> <span className="text-xs text-[var(--a-muted-ink)]">· {r.sub}</span></span>
+            </div>
+            <div className="h-2 rounded-full bg-[#f3f0ea]"><div className="h-2 rounded-full" style={{ width: `${Math.max(2, (r.value / max) * 100)}%`, background: i === 0 ? CHART.current : "#c8b48c" }} /></div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function RecentOrders({ rows, t, f }: { rows: OrderRow[]; t: ReturnType<typeof getDict>; f: ReturnType<typeof fmt> }) {
+  return (
+    <>
+      <div className="hidden overflow-x-auto md:block">
+        <table className="a-table min-w-[52rem]">
+          <thead><tr>
+            <th scope="col">{t.orders.number}</th><th scope="col">{t.orders.customer}</th><th scope="col">{t.orders.product}</th>
+            <th scope="col">{t.orders.date}</th><th scope="col">{t.orders.amount}</th><th scope="col">{t.orders.payment}</th>
+            <th scope="col">{t.orders.status}</th><th scope="col"><span className="sr-only">{t.common.actions}</span></th>
+          </tr></thead>
+          <tbody>{rows.map((r) => (
+            <tr key={r.id}>
+              <td dir="ltr" className="text-end font-semibold rtl:text-start">{r.order_number}</td>
+              <td>{r.customer_name}</td>
+              <td className="max-w-[14rem] truncate text-[var(--a-muted-ink)]">{r.first_item ?? "—"}{r.lines > 1 ? ` ${fill(t.orders.moreItems, { n: r.lines - 1 })}` : ""}</td>
+              <td className="whitespace-nowrap text-[var(--a-muted-ink)]">{f.dateTime(r.created_at)}</td>
+              <td className="font-semibold tabular-nums">{f.money(r.total)}</td>
+              <td className="text-[var(--a-muted-ink)]">{t.payment[r.payment_method as keyof typeof t.payment] ?? r.payment_method}</td>
+              <td><StatusBadge status={r.status} label={t.status[r.status as keyof typeof t.status] ?? r.status} /></td>
+              <td className="text-end"><Link href={`/admin/orders/${r.id}`} className="a-btn a-btn-ghost h-8 min-h-0 px-3 text-xs">{t.orders.view}</Link></td>
+            </tr>))}</tbody>
+        </table>
+      </div>
+      <ul className="divide-y divide-[var(--a-line)] md:hidden">
+        {rows.map((r) => (
+          <li key={r.id}>
+            <Link href={`/admin/orders/${r.id}`} className="flex items-center gap-3 px-5 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 text-sm"><b dir="ltr">{r.order_number}</b><span className="truncate">{r.customer_name}</span></p>
+                <p className="mt-0.5 text-xs text-[var(--a-muted-ink)]">{f.dateTime(r.created_at)}</p>
+              </div>
+              <div className="text-end">
+                <p className="text-sm font-semibold tabular-nums">{f.money(r.total)}</p>
+                <StatusBadge status={r.status} label={t.status[r.status as keyof typeof t.status] ?? r.status} />
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
 }

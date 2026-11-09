@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ClipboardCheck, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff } from "@/lib/staff";
-import { formatPrice } from "@/lib/format";
+import { requireStaff, can } from "@/lib/staff";
+import { getDict, fmt } from "@/lib/admin/i18n";
 import { formatPhone } from "@/lib/phone";
-import { ORDER_STATUS_LABEL } from "@/lib/catalog-types";
+import { Card, EmptyState, PageHeader, Pagination, StatusBadge } from "@/components/admin/ui";
 import { ApproveAll, RowActions } from "./RowActions";
 
 export const instant = false;
@@ -13,20 +14,18 @@ type Item = { id: string; source: "online" | "store"; ref: string | null; phone:
   status: string; status_group: string; created_at: string; review_reason: string | null; branch: string | null; created_by_name: string | null };
 type Money = { count: number; amount: number };
 type Summary = { online_completed: Money; online_open: Money; store_approved: Money; store_pending: Money; by_branch: { branch: string; count: number; amount: number }[] };
-
-const STORE_STATUS: Record<string, string> = { submitted: "بانتظار الاعتماد", approved: "معتمدة", rejected: "مرفوضة", voided: "ملغاة" };
-const GROUP_STYLE: Record<string, string> = { pending: "bg-amber-50 text-amber-800", completed: "bg-emerald-50 text-emerald-800", cancelled: "bg-stone-100 text-stone-600" };
+const GROUP_TONE: Record<string, string> = { pending: "submitted", completed: "approved", cancelled: "voided" };
 
 const gazaToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Gaza" }).format(new Date());
 
 export default async function PurchasesPage({ searchParams }: PageProps<"/admin/purchases">) {
   const staff = await requireStaff();
-  if (!staff.permissions.includes("sales.review")) redirect("/admin");
+  if (!can(staff, "sales.review")) redirect("/admin");
+  const t = getDict(staff.locale), f = fmt(staff.locale), P = t.pur;
   const sp = await searchParams;
   const one = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : "");
   const today = gazaToday();
-  const monthStart = `${today.slice(0, 8)}01`;
-  const from = one("from") || monthStart;
+  const from = one("from") || `${today.slice(0, 8)}01`;
   const to = one("to") || today;
   const page = Math.max(1, Number(one("page")) || 1);
 
@@ -38,94 +37,76 @@ export default async function PurchasesPage({ searchParams }: PageProps<"/admin/
   ]);
   const res = (list ?? { items: [], total: 0 }) as { items: Item[]; total: number; invalid_phone?: boolean };
   const s = summary as Summary | null;
-  const pages = Math.max(1, Math.ceil(res.total / 25));
   const branchIdByName = new Map((branches ?? []).map((b) => [b.name, b.id]));
   const pendingIds = res.items.filter((i) => i.source === "store" && i.status === "submitted").map((i) => i.id);
-  const qs = (p: number) => { const q = new URLSearchParams(); for (const k of ["source", "branch", "phone", "status", "from", "to"]) if (one(k)) q.set(k, one(k)); if (p > 1) q.set("page", String(p)); return `?${q}`; };
-  const field = "rounded-md border border-gold/30 bg-white px-2 py-1.5 text-sm";
+  const statusLabel = (i: Item) => (i.source === "store" ? P.st[i.status] : t.status[i.status as keyof typeof t.status]) ?? i.status;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <h1 className="text-2xl font-bold">المشتريات (أونلاين + الفروع)</h1>
-        <Link href="/admin/sales" className="rounded-lg bg-charcoal px-4 py-2 text-sm text-white">＋ تسجيل بيع في الفرع</Link>
-      </div>
+    <div className="mx-auto max-w-[90rem] space-y-6">
+      <PageHeader title={P.title} subtitle={P.subtitle} actions={can(staff, "sales.record") && <Link href="/admin/sales" className="a-btn a-btn-primary"><Plus aria-hidden="true" className="h-4 w-4" />{P.record}</Link>} />
 
       {s && (
-        <section aria-label="ملخص الفترة" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            ["أونلاين مكتملة (تم التسليم)", s.online_completed],
-            ["أونلاين قيد التنفيذ", s.online_open],
-            ["الفروع (معتمدة)", s.store_approved],
-            ["الفروع بانتظار الاعتماد (الكل)", s.store_pending],
-          ].map(([label, m]) => (
-            <div key={label as string} className="rounded-2xl border border-gold/20 bg-white p-4">
-              <p className="text-xs opacity-70">{label as string}</p>
-              <p className="mt-1 text-xl font-bold tabular-nums">{formatPrice((m as Money).amount)}</p>
-              <p className="text-xs opacity-70">{(m as Money).count} عملية</p>
+        <section aria-label={t.rep.summary} className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {([[P.onlineDone, s.online_completed], [P.onlineOpen, s.online_open], [P.storeApproved, s.store_approved], [P.storePending, s.store_pending]] as const).map(([label, m]) => (
+            <div key={label} className="a-card p-4">
+              <p className="text-[0.8125rem] font-medium text-[var(--a-muted-ink)]">{label}</p>
+              <p className="mt-1 text-xl font-bold tabular-nums">{f.money(m.amount)}</p>
+              <p className="text-xs text-[var(--a-muted-ink)]">{f.number(m.count)} {P.ops}</p>
             </div>
           ))}
           {s.by_branch.map((b) => (
-            <div key={b.branch} className="rounded-2xl border border-gold/20 bg-beige/40 p-4">
-              <p className="text-xs opacity-70">{b.branch} (معتمدة)</p>
-              <p className="mt-1 text-lg font-bold tabular-nums">{formatPrice(b.amount)}</p>
-              <p className="text-xs opacity-70">{b.count} عملية</p>
+            <div key={b.branch} className="a-card bg-[#fbf8f2] p-4">
+              <p className="text-xs text-[var(--a-muted-ink)]">{b.branch} {P.approvedSuffix}</p>
+              <p className="mt-1 text-lg font-bold tabular-nums">{f.money(b.amount)}</p>
+              <p className="text-xs text-[var(--a-muted-ink)]">{f.number(b.count)} {P.ops}</p>
             </div>
           ))}
         </section>
       )}
 
-      <form className="flex flex-wrap items-end gap-2 rounded-2xl border border-gold/20 bg-white p-4 text-sm">
-        <label className="space-y-1"><span className="block text-xs">رقم الجوال</span><input name="phone" defaultValue={one("phone")} dir="ltr" inputMode="tel" placeholder="0599…" className={`${field} w-36`} /></label>
-        <label className="space-y-1"><span className="block text-xs">المصدر</span>
-          <select name="source" defaultValue={one("source")} className={field}><option value="">الكل</option><option value="online">أونلاين</option><option value="store">الفروع</option></select></label>
-        <label className="space-y-1"><span className="block text-xs">الفرع</span>
-          <select name="branch" defaultValue={one("branch")} className={field}><option value="">الكل</option>{(branches ?? []).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
-        <label className="space-y-1"><span className="block text-xs">الحالة</span>
-          <select name="status" defaultValue={one("status")} className={field}><option value="">الكل</option><option value="pending">بانتظار / قيد التنفيذ</option><option value="completed">مكتملة / معتمدة</option><option value="cancelled">ملغاة / مرفوضة</option></select></label>
-        <label className="space-y-1"><span className="block text-xs">من</span><input type="date" name="from" defaultValue={from} className={field} /></label>
-        <label className="space-y-1"><span className="block text-xs">إلى</span><input type="date" name="to" defaultValue={to} className={field} /></label>
-        <button className="rounded-md bg-charcoal px-4 py-1.5 text-white">عرض</button>
-        <Link href="/admin/purchases" className="px-2 py-1.5 underline">مسح</Link>
+      <form className="a-card grid gap-3 p-4 sm:grid-cols-3 lg:grid-cols-[repeat(6,minmax(0,1fr))_auto]">
+        <label className="block"><span className="a-label">{P.phone}</span><input name="phone" defaultValue={one("phone")} dir="ltr" inputMode="tel" placeholder="0599…" className="a-input" /></label>
+        <label className="block"><span className="a-label">{P.source}</span>
+          <select name="source" defaultValue={one("source")} className="a-input"><option value="">{t.common.all}</option><option value="online">{P.online}</option><option value="store">{P.stores}</option></select></label>
+        <label className="block"><span className="a-label">{P.branch}</span>
+          <select name="branch" defaultValue={one("branch")} className="a-input"><option value="">{t.common.all}</option>{(branches ?? []).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
+        <label className="block"><span className="a-label">{P.status}</span>
+          <select name="status" defaultValue={one("status")} className="a-input"><option value="">{t.common.all}</option><option value="pending">{P.pendingG}</option><option value="completed">{P.completedG}</option><option value="cancelled">{P.cancelledG}</option></select></label>
+        <label className="block"><span className="a-label">{t.common.from}</span><input type="date" name="from" defaultValue={from} className="a-input" /></label>
+        <label className="block"><span className="a-label">{t.common.to}</span><input type="date" name="to" defaultValue={to} className="a-input" /></label>
+        <div className="flex items-end gap-2"><button className="a-btn a-btn-primary">{t.common.apply}</button><Link href="/admin/purchases" className="a-btn a-btn-ghost">{t.common.reset}</Link></div>
       </form>
 
-      {res.invalid_phone && <p role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">رقم الجوال غير صحيح. اكتبه هكذا: 0599123456</p>}
+      {res.invalid_phone && <p role="alert" className="a-card border-[#ecd9b8] bg-[#fffaf1] p-3 text-sm text-[var(--a-warning)]">{P.invalidPhone}</p>}
       <ApproveAll ids={pendingIds} />
 
-      <p className="text-sm opacity-70">{res.total} عملية</p>
-      <div className="overflow-x-auto rounded-2xl border border-gold/20 bg-white">
-        <table className="w-full min-w-[56rem] text-sm">
-          <thead className="bg-beige/60 text-right">
-            <tr>{["التاريخ", "الزبون", "المصدر", "الفرع", "المبلغ", "الحالة", "سجّلها", "إجراء"].map((h) => <th key={h} scope="col" className="p-3 font-medium">{h}</th>)}</tr>
-          </thead>
-          <tbody>
-            {res.items.length === 0 && <tr><td colSpan={8} className="p-8 text-center opacity-70">لا توجد مشتريات بهذه الفلاتر.</td></tr>}
-            {res.items.map((i) => (
-              <tr key={`${i.source}-${i.id}`} className="border-t border-gold/10 align-top">
-                <td className="p-3 text-xs" dir="ltr">{new Date(i.created_at).toLocaleString("ar", { timeZone: "Asia/Gaza", numberingSystem: "latn", dateStyle: "short", timeStyle: "short" })}</td>
-                <td className="p-3"><Link href={`/admin/purchases?phone=${i.phone}`} dir="ltr" className="block tabular-nums text-gold-dark hover:underline">{formatPhone(i.phone)}</Link><span className="text-xs opacity-70">{i.customer_name}</span></td>
-                <td className="p-3">{i.source === "online" ? <Link href={`/admin/orders?q=${i.ref}`} className="hover:underline">أونلاين <span dir="ltr" className="text-xs opacity-70">{i.ref}</span></Link> : "الفرع"}</td>
-                <td className="p-3">{i.branch ?? "—"}</td>
-                <td className="p-3 font-medium tabular-nums">{formatPrice(i.amount)}</td>
-                <td className="p-3">
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${GROUP_STYLE[i.status_group]}`}>{i.source === "store" ? STORE_STATUS[i.status] : ORDER_STATUS_LABEL[i.status] ?? i.status}</span>
-                  {i.review_reason && <span className="mt-1 block text-xs opacity-70">السبب: {i.review_reason}</span>}
-                </td>
-                <td className="p-3 text-xs">{i.source === "store" ? i.created_by_name ?? "—" : "الزبون"}</td>
-                <td className="p-3">{i.source === "store" && <RowActions id={i.id} status={i.status} amount={i.amount} branchId={i.branch ? branchIdByName.get(i.branch) ?? null : null} branches={branches ?? []} />}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {pages > 1 && (
-        <nav aria-label="الصفحات" className="flex flex-wrap justify-center gap-2">
-          {Array.from({ length: pages }, (_, k) => k + 1).map((p) => (
-            <Link key={p} href={qs(p)} aria-current={p === page ? "page" : undefined}
-              className={`min-w-9 rounded-md border px-3 py-1.5 text-center text-sm ${p === page ? "border-charcoal bg-charcoal text-white" : "border-gold/30 bg-white"}`}>{p}</Link>
-          ))}
-        </nav>
-      )}
+      <Card bodyClass="">
+        {res.items.length === 0 ? <EmptyState icon={<ClipboardCheck className="h-5 w-5" />} title={P.empty} /> : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="a-table min-w-[60rem]">
+                <thead><tr>{[P.date, P.customer, P.source, P.branch, P.amount, P.status, P.by, P.action].map((h) => <th key={h} scope="col">{h}</th>)}</tr></thead>
+                <tbody>
+                  {res.items.map((i) => (
+                    <tr key={`${i.source}-${i.id}`} className="align-top">
+                      <td className="whitespace-nowrap text-xs text-[var(--a-muted-ink)]">{f.dateTime(i.created_at)}</td>
+                      <td><Link href={`/admin/purchases?phone=${i.phone}`} dir="ltr" className="block text-end font-medium tabular-nums hover:text-[var(--a-accent-ink)] rtl:text-start">{formatPhone(i.phone)}</Link><span className="text-xs text-[var(--a-muted-ink)]">{i.customer_name}</span></td>
+                      <td>{i.source === "online" ? <Link href={`/admin/orders?q=${i.ref}`} className="hover:underline">{P.online} <span dir="ltr" className="text-xs text-[var(--a-muted-ink)]">{i.ref}</span></Link> : P.store}</td>
+                      <td>{i.branch ?? "—"}</td>
+                      <td className="font-semibold tabular-nums">{f.money(i.amount)}</td>
+                      <td><StatusBadge status={GROUP_TONE[i.status_group] ?? "unpaid"} label={statusLabel(i)} />
+                        {i.review_reason && <span className="mt-1 block text-xs text-[var(--a-muted-ink)]">{P.reason}: {i.review_reason}</span>}</td>
+                      <td className="text-xs">{i.source === "store" ? i.created_by_name ?? "—" : P.theCustomer}</td>
+                      <td>{i.source === "store" && <RowActions id={i.id} status={i.status} amount={i.amount} branchId={i.branch ? branchIdByName.get(i.branch) ?? null : null} branches={branches ?? []} />}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination base="/admin/purchases" sp={sp} page={page} pageSize={25} total={res.total} t={t} f={f} />
+          </>
+        )}
+      </Card>
     </div>
   );
 }

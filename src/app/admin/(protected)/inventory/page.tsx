@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Boxes, PackageCheck, PackageX, Search, TriangleAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff } from "@/lib/staff";
+import { requireStaff, can } from "@/lib/staff";
+import { getDict, fmt, fill } from "@/lib/admin/i18n";
+import { Card, EmptyState, PageHeader, StatCard, withParams } from "@/components/admin/ui";
 import { CountInput, SaleForm, StartStocktake, StocktakeActions } from "./Forms";
 
 export const instant = false;
@@ -9,107 +12,124 @@ type Row = { id: string; name: string; color: string | null; size: string | null
   products: { id: string; name: string; status: string; availability_mode: string; low_stock_threshold: number };
   inventory: { on_hand: number; reserved: number }[] };
 
-const KIND: Record<string, string> = {
-  initial: "كمية أولية", adjustment: "تعديل", reserve: "حجز طلب", release: "تحرير حجز", sale_online: "بيع أونلاين",
-  sale_in_store: "بيع في المحل", stocktake: "جرد", cancellation_restock: "إرجاع بعد إلغاء", return_restock: "إرجاع",
-};
-const dt = (s: string) => new Date(s).toLocaleString("ar", { numberingSystem: "latn", timeZone: "Asia/Gaza", dateStyle: "short", timeStyle: "short" });
-
 export default async function InventoryPage({ searchParams }: PageProps<"/admin/inventory">) {
   const staff = await requireStaff();
-  const canManage = staff.permissions.includes("inventory.manage");
+  const t = getDict(staff.locale), f = fmt(staff.locale);
+  const canManage = can(staff, "inventory.manage");
   const sp = await searchParams;
-  const q = typeof sp.q === "string" ? sp.q.trim() : "";
-  const onlyLow = sp.low === "1";
+  const q = typeof sp.q === "string" ? sp.q.trim().slice(0, 60) : "";
+  const filter = sp.low === "1" || sp.filter === "low" ? "low" : sp.filter === "out" ? "out" : "";
   const supabase = await createClient();
 
   const [{ data: variants }, { data: openTake }, { data: movements }] = await Promise.all([
     supabase.from("product_variants").select("id, name, color, size, is_active, products!inner(id, name, status, availability_mode, low_stock_threshold), inventory(on_hand, reserved)")
       .neq("products.status", "archived").eq("products.availability_mode", "stock").order("created_at").limit(1000),
     supabase.from("stocktakes").select("id, created_at, note").eq("status", "open").maybeSingle(),
-    supabase.from("inventory_movements").select("id, kind, on_hand_delta, reserved_delta, on_hand_after, note, created_at, product_variants(name, products(name))")
-      .order("id", { ascending: false }).limit(30),
+    supabase.from("inventory_movements").select("id, kind, on_hand_delta, reserved_delta, on_hand_after, note, created_at, actor_id, product_variants(name, products(name))")
+      .order("id", { ascending: false }).limit(40),
   ]);
-  let rows = ((variants ?? []) as unknown as Row[]).map((v) => {
+  const all = ((variants ?? []) as unknown as Row[]).map((v) => {
     const inv = v.inventory[0] ?? { on_hand: 0, reserved: 0 };
     const label = [v.name !== "افتراضي" ? v.name : null, v.color, v.size].filter(Boolean).join(" · ");
     return { ...v, label, on_hand: inv.on_hand, reserved: inv.reserved, available: inv.on_hand - inv.reserved };
   });
+  const isLow = (r: (typeof all)[number]) => r.available > 0 && r.available <= r.products.low_stock_threshold;
+  let rows = all;
   if (q) rows = rows.filter((r) => r.products.name.includes(q) || r.label.includes(q));
-  if (onlyLow) rows = rows.filter((r) => r.available <= r.products.low_stock_threshold);
+  if (filter === "low") rows = rows.filter((r) => r.available <= r.products.low_stock_threshold);
+  if (filter === "out") rows = rows.filter((r) => r.available <= 0);
 
   let items: { id: number; variant_id: string; expected_on_hand: number; counted: number | null }[] = [];
   if (openTake) {
     const { data } = await supabase.from("stocktake_items").select("id, variant_id, expected_on_hand, counted").eq("stocktake_id", openTake.id);
     items = data ?? [];
   }
-  const byVariant = new Map(rows.map((r) => [r.id, r]));
+  const byVariant = new Map(all.map((r) => [r.id, r]));
   const countedN = items.filter((i) => i.counted !== null).length;
+  const ico = "h-[1.1rem] w-[1.1rem]";
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <h1 className="text-2xl font-bold">المخزون والجرد</h1>
+    <div className="mx-auto max-w-[90rem] space-y-6">
+      <PageHeader title={t.inv.title} subtitle={t.inv.subtitle} />
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <StatCard t={t} f={f} label={t.inv.skus} value={f.number(all.length)} icon={<Boxes className={ico} />} href="/admin/inventory" />
+        <StatCard t={t} f={f} label={t.inv.totalUnits} value={f.number(all.reduce((a, r) => a + Math.max(0, r.available), 0))} icon={<PackageCheck className={ico} />} />
+        <StatCard t={t} f={f} label={t.inv.lowCount} value={f.number(all.filter(isLow).length)} icon={<TriangleAlert className={ico} />} tone={all.some(isLow) ? "warn" : undefined} href="/admin/inventory?filter=low" />
+        <StatCard t={t} f={f} label={t.inv.outCount} value={f.number(all.filter((r) => r.available <= 0).length)} icon={<PackageX className={ico} />} tone={all.some((r) => r.available <= 0) ? "warn" : undefined} href="/admin/inventory?filter=out" />
+      </div>
 
-      <section className="space-y-3 rounded-2xl border border-gold/20 bg-white p-4">
-        <h2 className="font-bold">الجرد الفعلي</h2>
+      <Card title={t.inv.stocktake}>
         {openTake ? (
-          <>
-            <p className="text-sm">جرد مفتوح منذ {dt(openTake.created_at)}. اكتب الكمية المعدودة لكل صنف (تُحفظ تلقائياً). عند الاعتماد يُطبَّق الفرق على الكمية الحالية، فلا تضيع المبيعات التي تحدث أثناء العد. الأصناف الفارغة لا تتغير.</p>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[32rem] text-sm">
-                <thead className="bg-beige/60"><tr><th className="p-2 text-start">المنتج</th><th className="p-2 text-start">المسجّل عند البدء</th><th className="p-2 text-start">المعدود فعلاً</th></tr></thead>
+          <div className="space-y-4">
+            <p className="text-sm leading-6 text-[var(--a-muted-ink)]">{fill(t.inv.openSince, { d: f.dateTime(openTake.created_at) })}</p>
+            <div className="overflow-x-auto rounded-[10px] border border-[var(--a-line)]">
+              <table className="a-table min-w-[32rem]">
+                <thead><tr><th scope="col">{t.inv.product}</th><th scope="col">{t.inv.recorded}</th><th scope="col">{t.inv.counted}</th></tr></thead>
                 <tbody>{items.map((i) => { const v = byVariant.get(i.variant_id); return (
-                  <tr key={i.id} className="border-t border-gold/10"><td className="p-2">{v?.products.name ?? "—"} {v?.label && <span className="opacity-60">({v.label})</span>}</td>
-                    <td className="p-2">{i.expected_on_hand}</td><td className="p-2"><CountInput itemId={i.id} counted={i.counted} expected={i.expected_on_hand} /></td></tr>); })}
+                  <tr key={i.id}><td>{v?.products.name ?? "—"} {v?.label && <span className="text-[var(--a-muted-ink)]">({v.label})</span>}</td>
+                    <td className="tabular-nums">{f.number(i.expected_on_hand)}</td><td><CountInput itemId={i.id} counted={i.counted} expected={i.expected_on_hand} /></td></tr>); })}
                 </tbody>
               </table>
             </div>
             {canManage && <StocktakeActions id={openTake.id} counted={countedN} />}
-          </>
+          </div>
         ) : canManage ? (
-          <><p className="text-sm opacity-80">ابدأ جرداً لمقارنة الكميات الفعلية في المحل بالمسجلة، وتسوية الفروقات (تُسجَّل كحركات «جرد»).</p><StartStocktake /></>
-        ) : <p className="text-sm opacity-70">لا يوجد جرد مفتوح.</p>}
-      </section>
+          <div className="space-y-3"><p className="text-sm text-[var(--a-muted-ink)]">{t.inv.startHint}</p><StartStocktake /></div>
+        ) : <p className="text-sm text-[var(--a-muted-ink)]">{t.inv.noOpen}</p>}
+      </Card>
 
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <h2 className="font-bold">الكميات الحالية</h2>
-          <form className="flex gap-2 text-sm">
-            <input name="q" defaultValue={q} placeholder="ابحث باسم المنتج" className="rounded-lg border border-gold/30 px-3 py-1.5" />
-            <label className="flex items-center gap-1"><input type="checkbox" name="low" value="1" defaultChecked={onlyLow} />المنخفض فقط</label>
-            <button className="rounded-lg border border-gold/30 bg-white px-3 py-1.5">عرض</button>
-          </form>
+      <Card title={t.inv.current} bodyClass="" action={
+        <form className="flex flex-wrap items-center gap-2">
+          {filter && <input type="hidden" name="filter" value={filter} />}
+          <label className="relative block">
+            <span className="sr-only">{t.common.search}</span>
+            <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--a-muted)]" />
+            <input name="q" defaultValue={q} placeholder={t.inv.searchPlaceholder} className="a-input h-9 min-h-0 w-52 ps-9" />
+          </label>
+          <button className="a-btn a-btn-ghost h-9 min-h-0">{t.common.search}</button>
+        </form>
+      }>
+        <div className="flex flex-wrap items-center gap-2 border-b border-[var(--a-line)] px-5 py-3">
+          {([["", t.inv.all], ["low", t.inv.onlyLow], ["out", t.inv.onlyOut]] as const).map(([k, l]) => (
+            <Link key={k || "all"} href={withParams("/admin/inventory", sp, { filter: k || null, low: null })} aria-current={filter === k ? "true" : undefined} className="a-chip">{l}</Link>
+          ))}
+          <p className="w-full text-xs text-[var(--a-muted-ink)]">{t.inv.saleHint}</p>
         </div>
-        <p className="text-xs opacity-70">«بيع في المحل» يخصم من المتاح فقط ولا يمس الكميات المحجوزة لطلبات الموقع. لتعديل الكمية يدوياً افتح صفحة المنتج.</p>
-        <div className="overflow-x-auto rounded-2xl border border-gold/20 bg-white">
-          <table className="w-full min-w-[44rem] text-sm">
-            <thead className="bg-beige/60"><tr><th className="p-2 text-start">المنتج</th><th className="p-2">الكمية</th><th className="p-2">محجوز</th><th className="p-2">متاح</th>{canManage && <th className="p-2 text-start">بيع في المحل</th>}</tr></thead>
-            <tbody>{rows.map((r) => (
-              <tr key={r.id} className="border-t border-gold/10">
-                <td className="p-2"><Link href={`/admin/products/${r.products.id}`} className="hover:text-gold-dark">{r.products.name}</Link>{r.label && <span className="opacity-60"> ({r.label})</span>}
-                  {r.products.status !== "active" && <span className="ms-1 text-xs opacity-60">[مسودة]</span>}</td>
-                <td className="p-2 text-center">{r.on_hand}</td><td className="p-2 text-center">{r.reserved}</td>
-                <td className={`p-2 text-center font-medium ${r.available <= 0 ? "text-red-700" : r.available <= r.products.low_stock_threshold ? "text-amber-700" : ""}`}>{r.available}</td>
-                {canManage && <td className="p-2"><SaleForm variantId={r.id} available={r.available} /></td>}
-              </tr>))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+        {rows.length === 0 ? <EmptyState icon={<Boxes className="h-5 w-5" />} title={t.common.noData} /> : (
+          <div className="overflow-x-auto">
+            <table className="a-table min-w-[46rem]">
+              <thead><tr><th scope="col">{t.inv.product}</th><th scope="col">{t.inv.onHand}</th><th scope="col">{t.inv.reserved}</th><th scope="col">{t.inv.available}</th>{canManage && <th scope="col">{t.inv.sellInStore}</th>}</tr></thead>
+              <tbody>{rows.map((r) => (
+                <tr key={r.id}>
+                  <td><Link href={`/admin/products/${r.products.id}`} className="font-medium hover:text-[var(--a-accent-ink)]">{r.products.name}</Link>{r.label && <span className="text-[var(--a-muted-ink)]"> ({r.label})</span>}
+                    {r.products.status !== "active" && <span className="ms-1.5 rounded bg-[#f1eee8] px-1.5 text-xs">{t.inv.draft}</span>}</td>
+                  <td className="tabular-nums">{f.number(r.on_hand)}</td><td className="tabular-nums">{f.number(r.reserved)}</td>
+                  <td className={`font-semibold tabular-nums ${r.available <= 0 ? "text-[var(--a-danger-ink)]" : isLow(r) ? "text-[var(--a-warning)]" : ""}`}>{f.number(r.available)}</td>
+                  {canManage && <td><SaleForm variantId={r.id} available={r.available} /></td>}
+                </tr>))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
-      <section className="space-y-2">
-        <h2 className="font-bold">آخر حركات المخزون</h2>
-        <ul className="divide-y divide-gold/10 rounded-2xl border border-gold/20 bg-white text-sm">
+      <Card title={t.inv.movements} bodyClass="">
+        <ul className="divide-y divide-[var(--a-line)] text-sm">
           {(movements ?? []).map((m) => {
             const pv = m.product_variants as unknown as { name: string; products: { name: string } } | null;
+            const delta = m.on_hand_delta || 0;
             return (
-              <li key={m.id} className="flex flex-wrap justify-between gap-2 p-2">
-                <span>{pv?.products.name} — {KIND[m.kind] ?? m.kind}{m.note ? ` (${m.note})` : ""}</span>
-                <span className="opacity-70">{m.on_hand_delta ? `${m.on_hand_delta > 0 ? "+" : ""}${m.on_hand_delta}` : m.reserved_delta ? `حجز ${m.reserved_delta > 0 ? "+" : ""}${m.reserved_delta}` : ""} · الكمية بعدها {m.on_hand_after} · {dt(m.created_at)}</span>
+              <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3">
+                <span className="min-w-0"><b className="font-medium">{pv?.products.name}</b> <span className="text-[var(--a-muted-ink)]">· {t.inv.kind[m.kind] ?? m.kind}{m.note ? ` (${m.note})` : ""}</span></span>
+                <span className="flex items-center gap-3 tabular-nums text-[var(--a-muted-ink)]">
+                  {delta ? <b className={delta > 0 ? "text-[var(--a-success)]" : "text-[var(--a-danger-ink)]"}>{delta > 0 ? "+" : ""}{delta}</b>
+                    : m.reserved_delta ? <span>{t.inv.reserve} {m.reserved_delta > 0 ? "+" : ""}{m.reserved_delta}</span> : null}
+                  <span>{t.inv.after} {f.number(m.on_hand_after)}</span><span>{f.dateTime(m.created_at)}</span>
+                </span>
               </li>);
           })}
         </ul>
-      </section>
+      </Card>
     </div>
   );
 }

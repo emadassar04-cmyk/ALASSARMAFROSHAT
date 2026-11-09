@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export function GoogleButton() {
+export function GoogleButton({ labels }: { labels: { google: string; redirecting: string; failed: string } }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +18,7 @@ export function GoogleButton() {
       },
     });
     if (error) {
-      setError("تعذر بدء تسجيل الدخول. حاول مرة أخرى.");
+      setError(labels.failed);
       setLoading(false);
     }
   }
@@ -29,11 +29,11 @@ export function GoogleButton() {
         type="button"
         onClick={signIn}
         disabled={loading}
-        className="w-full rounded-lg bg-charcoal px-4 py-3 font-medium text-white transition hover:bg-[#3d372e] disabled:opacity-60"
+        className="a-btn a-btn-primary w-full py-3 text-base"
       >
-        {loading ? "جارٍ التحويل إلى Google…" : "الدخول بحساب Google"}
+        {loading ? labels.redirecting : labels.google}
       </button>
-      {error && <p role="alert" className="mt-3 text-center text-sm text-red-700">{error}</p>}
+      {error && <p role="alert" className="mt-3 text-center text-sm text-[var(--a-danger-ink)]">{error}</p>}
     </>
   );
 }

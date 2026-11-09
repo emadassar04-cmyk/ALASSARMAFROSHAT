@@ -185,7 +185,7 @@ select tests.ok((select (v->'store_approved'->>'count')::int = 2 and (v->'store_
   'ملخص الفروع: المعتمد فقط (250 + 40)');
 
 -- ============ 5) الموظفون ============
-select tests.ok(jsonb_array_length(public.staff_overview()->'roles') = 4, 'أدوار قابلة للمنح دون المدير الكامل');
+select tests.ok(jsonb_array_length(public.staff_overview()->'roles') = 9, 'أدوار قابلة للمنح دون المدير العام (4 قديمة + 5 من 0023)');
 select public.staff_invite('New.Staff@Test.local', 'reception');
 select tests.ok((public.staff_overview()->'invites'->0->>'email') = 'new.staff@test.local', 'دعوة موظف بالبريد');
 select tests.throws($$select public.staff_invite('x@test.local', 'owner')$$, 'invalid_role', 'لا منح دور المدير الكامل من الواجهة');

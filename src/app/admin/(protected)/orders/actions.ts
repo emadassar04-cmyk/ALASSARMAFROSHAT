@@ -4,21 +4,17 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ActionResult = { ok?: boolean; error?: string };
 
+// رموز أخطاء ثابتة؛ الواجهة تترجمها حسب لغة الموظف (قاموس od.err)
 const ERR: [RegExp, string][] = [
-  [/reservation_expired/, "انتهت مدة الحجز (ساعتان). الطلب سيُلغى تلقائياً؛ أنشئ طلباً جديداً إن لزم."],
-  [/invalid_transition/, "لا يمكن الانتقال إلى هذه الحالة من الحالة الحالية."],
-  [/requires_admin_approval/, "الطلب بدأ تجهيزه: الإلغاء يحتاج تأكيد «موافقة الإدارة»."],
-  [/profit_exceeds_net_line/, "الربح لا يمكن أن يتجاوز صافي قيمة البند."],
-  [/order_not_confirmed/, "يُسجَّل الربح بعد تأكيد الطلب فقط."],
-  [/payment_not_reviewable/, "لا يوجد تحويل بنكي بانتظار المراجعة لهذا الطلب."],
-  [/address_locked/, "لا يمكن تعديل العنوان بعد خروج الطلب للتوصيل."],
-  [/reason is required/, "اكتب سبب الإلغاء."],
-  [/invalid_amount/, "قيمة غير صحيحة (رقم موجب بحد أقصى منزلتين عشريتين)."],
-  [/forbidden|permission/, "لا تملك صلاحية تنفيذ هذه العملية."],
+  [/reservation_expired/, "reservation_expired"], [/invalid_transition/, "invalid_transition"],
+  [/requires_admin_approval/, "requires_admin_approval"], [/profit_exceeds_net_line/, "profit_exceeds_net_line"],
+  [/order_not_confirmed/, "order_not_confirmed"], [/payment_not_reviewable/, "payment_not_reviewable"],
+  [/address_locked/, "address_locked"], [/reason is required/, "reason_required"], [/invalid_amount/, "invalid_amount"],
+  [/forbidden|permission/, "forbidden"],
 ];
 function message(e: { message?: string } | null): string {
   const m = e?.message ?? "";
-  return ERR.find(([re]) => re.test(m))?.[1] ?? "تعذر تنفيذ العملية. حاول مرة أخرى.";
+  return ERR.find(([re]) => re.test(m))?.[1] ?? "generic";
 }
 
 async function call(fn: string, args: Record<string, unknown>): Promise<ActionResult> {
@@ -43,7 +39,7 @@ export async function cancelOrder(orderId: string, reason: string, force: boolea
 
 export async function setItemProfit(itemId: string, amount: string) {
   const v = amount.trim().replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
-  if (!/^\d{1,10}(\.\d{1,2})?$/.test(v)) return { error: "اكتب الربح كرقم، مثل 25 أو 25.50" };
+  if (!/^\d{1,10}(\.\d{1,2})?$/.test(v)) return { error: "invalid_amount" };
   return call("set_item_profit", { p_order_item_id: itemId, p_amount: v });
 }
 
@@ -53,7 +49,7 @@ export async function reviewTransfer(orderId: string, approved: boolean, referen
 }
 
 export async function addNote(orderId: string, body: string) {
-  if (!body.trim()) return { error: "الملاحظة فارغة." };
+  if (!body.trim()) return { error: "empty_note" };
   return call("add_order_note", { p_order_id: orderId, p_body: body.trim().slice(0, 2000) });
 }
 

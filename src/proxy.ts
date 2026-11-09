@@ -37,7 +37,7 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const path = request.nextUrl.pathname;
   const isAdminArea = path.startsWith("/admin");
-  const isPublicAdminPage = path === "/admin/login";
+  const isPublicAdminPage = path === "/admin/login" || path === "/admin/locale";
 
   if (isAdminArea && !isPublicAdminPage && !data?.claims) {
     const url = request.nextUrl.clone();

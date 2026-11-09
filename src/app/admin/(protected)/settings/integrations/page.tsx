@@ -1,13 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/staff";
+import { getDict, fmt } from "@/lib/admin/i18n";
+import { Card, PageHeader } from "@/components/admin/ui";
 import { KeyGenerator } from "./KeyGenerator";
 
 export const instant = false;
 
-const dt = (s: string | null) => s ? new Date(s).toLocaleString("ar", { numberingSystem: "latn", timeZone: "Asia/Gaza" }) : "لم يُستخدم بعد";
-
 export default async function IntegrationsPage() {
-  await requireStaff();
+  const staff = await requireStaff();
+  const t = getDict(staff.locale), f = fmt(staff.locale), S = t.set;
   const supabase = await createClient();
   const [{ data: status }, { data: deliveries }] = await Promise.all([
     supabase.rpc("integration_key_status", { p_name: "n8n" }),
@@ -18,22 +19,20 @@ export default async function IntegrationsPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-2xl font-bold">التكاملات</h1>
-      <section className="space-y-3 rounded-2xl border border-gold/20 bg-white p-5">
-        <h2 className="text-lg font-bold">n8n ← Telegram</h2>
-        <p className="text-sm opacity-80">
-          n8n يسحب إشعارات الطلبات والتقرير اليومي من قاعدة البيانات بمفتاح خاص لا يسمح إلا بذلك.
-          إن كان n8n متوقفاً (جهازك مطفأ)، تُحفظ الإشعارات وتُرسل عند عودته.
-        </p>
-        <dl className="grid grid-cols-2 gap-1 text-sm">
-          <dt>حالة المفتاح</dt><dd>{s?.exists ? "مُنشأ" : "غير مُنشأ"}</dd>
-          {s?.exists && <><dt>آخر استخدام من n8n</dt><dd>{dt(s.last_used_at)}</dd></>}
-          <dt>إشعارات بانتظار الإرسال</dt><dd>{count("pending") + count("failed") + count("processing")}</dd>
-          <dt>أُرسلت</dt><dd>{count("sent")}</dd>
-          {count("dead") > 0 && <><dt className="text-red-700">فشلت نهائياً</dt><dd className="text-red-700">{count("dead")}</dd></>}
-        </dl>
-        <KeyGenerator hasKey={!!s?.exists} />
-      </section>
+      <PageHeader title={S.integrationsTitle} />
+      <Card title="n8n → Telegram">
+        <div className="space-y-4">
+          <p className="text-sm leading-6 text-[var(--a-muted-ink)]">{S.n8nHint}</p>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <dt className="text-[var(--a-muted-ink)]">{S.keyStatus}</dt><dd className="font-semibold">{s?.exists ? S.created : S.notCreated}</dd>
+            {s?.exists && <><dt className="text-[var(--a-muted-ink)]">{S.lastUsed}</dt><dd>{s.last_used_at ? f.dateTime(s.last_used_at) : S.neverUsed}</dd></>}
+            <dt className="text-[var(--a-muted-ink)]">{S.pending}</dt><dd className="tabular-nums">{f.number(count("pending") + count("failed") + count("processing"))}</dd>
+            <dt className="text-[var(--a-muted-ink)]">{S.sent}</dt><dd className="tabular-nums">{f.number(count("sent"))}</dd>
+            {count("dead") > 0 && <><dt className="text-[var(--a-danger-ink)]">{S.dead}</dt><dd className="tabular-nums text-[var(--a-danger-ink)]">{f.number(count("dead"))}</dd></>}
+          </dl>
+          <KeyGenerator hasKey={!!s?.exists} />
+        </div>
+      </Card>
     </div>
   );
 }

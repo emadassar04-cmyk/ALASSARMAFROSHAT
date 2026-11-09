@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export type StaffContext = {
@@ -8,7 +9,9 @@ export type StaffContext = {
   aal: "aal1" | "aal2";
   role: string | null;
   role_name: string | null;
+  role_name_en: string | null;
   full_name: string | null;
+  locale: "ar" | "en";
   permissions: string[];
 };
 
@@ -19,7 +22,7 @@ export type StaffContext = {
  * 3) جلسة بخطوتين aal2
  */
 // cache: التخطيط والصفحة يطلبانها في نفس الطلب؛ تُنفَّذ مرة واحدة فقط
-export const requireStaff = cache(async function requireStaff(): Promise<StaffContext & { email: string | undefined }> {
+const requireStaffOnce = cache(async function requireStaff(): Promise<StaffContext & { email: string | undefined }> {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   const claims = claimsData?.claims;
@@ -31,5 +34,14 @@ export const requireStaff = cache(async function requireStaff(): Promise<StaffCo
 
   if (!ctx.is_staff_account) redirect("/admin/login?error=not_staff");
   if (ctx.aal !== "aal2") redirect("/admin/mfa");
-  return { ...ctx, email: claims.email as string | undefined };
+  return { ...ctx, locale: ctx.locale === "en" ? "en" : "ar", email: claims.email as string | undefined };
 });
+
+// كل صفحة تستدعيها: connection() يعلن أن الصفحة تُعرض عند الطلب (قبل أي استخدام للوقت الحالي)،
+// والتحقق نفسه يُنفَّذ مرة واحدة لكل طلب (cache)
+export async function requireStaff() {
+  await connection();
+  return requireStaffOnce();
+}
+
+export const can = (staff: StaffContext, perm: string) => staff.permissions.includes(perm);

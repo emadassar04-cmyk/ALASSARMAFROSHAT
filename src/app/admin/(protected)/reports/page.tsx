@@ -1,136 +1,185 @@
 import Link from "next/link";
+import { Ban, CircleCheck, Coins, Download, FileSpreadsheet, Receipt, ShoppingBag, TrendingUp, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { requireStaff } from "@/lib/staff";
-import { formatPrice } from "@/lib/format";
-import { EXPENSE_LABEL, PRESET_LABEL, parseRange, sourceLabel, type Preset, type Report } from "@/lib/admin/finance";
-import { Kpi } from "@/components/admin/Kpi";
-import { DailyBars } from "@/components/admin/DailyBars";
-import { PrintButton } from "./PrintButton";
+import { requireStaff, can } from "@/lib/staff";
+import { getDict, fmt, fill } from "@/lib/admin/i18n";
+import { parseRange, sourceLabel, type Report } from "@/lib/admin/finance";
+import { Card, EmptyState, PageHeader, PeriodPicker, StatCard, rangeLabel, withParams } from "@/components/admin/ui";
+import { BarChart } from "@/components/admin/charts/Charts";
+import { CHART } from "@/components/admin/charts/palette";
+import { PrintButton } from "@/components/admin/PrintButton";
 
 export const instant = false;
 
-const th = "p-2 text-start font-medium";
-const td = "p-2";
+const TYPES = ["sales", "profits", "orders", "products", "customers", "inventory", "expenses"] as const;
+type Type = (typeof TYPES)[number];
 
 export default async function ReportsPage({ searchParams }: PageProps<"/admin/reports">) {
   const staff = await requireStaff();
-  if (!staff.permissions.includes("finance.read")) {
-    return <p className="rounded-lg bg-amber-50 p-4">التقارير المالية تحتاج صلاحية المالية.</p>;
-  }
-  const range = parseRange(await searchParams);
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("finance_report", { p_from: range.from, p_to: range.to });
-  const r = data as Report | null;
+  const t = getDict(staff.locale), f = fmt(staff.locale), R = t.rep;
+  if (!can(staff, "finance.read")) return <p className="a-card p-4">{R.needFinance}</p>;
+  const sp = await searchParams;
+  const type: Type = (TYPES as readonly string[]).includes(String(sp.type)) ? (sp.type as Type) : "sales";
+  const range = parseRange(sp);
   const qs = `from=${range.from}&to=${range.to}`;
+  const supabase = await createClient();
+  const needsReport = ["sales", "orders", "products", "expenses"].includes(type);
+  const [{ data, error }, customers, inventory] = await Promise.all([
+    needsReport ? supabase.rpc("finance_report", { p_from: range.from, p_to: range.to }) : Promise.resolve({ data: null, error: null }),
+    type === "customers" ? supabase.rpc("admin_customers", { p: { segment: "top", page_size: 25 } }) : Promise.resolve({ data: null }),
+    type === "inventory" ? supabase.from("product_variants").select("id, name, price_override, is_active, products!inner(name, price, status, availability_mode), inventory(on_hand, reserved), variant_costs(unit_cost)")
+      .eq("products.availability_mode", "stock").neq("products.status", "archived").limit(2000) : Promise.resolve({ data: null }),
+  ]);
+  const r = data as Report | null;
   const k = r?.kpis, p = r?.previous;
-  const rate = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "—");
+  const rate = (a: number, b: number) => (b ? `${f.number(Math.round((a / b) * 100))}%` : "—");
+  const ico = "h-[1.1rem] w-[1.1rem]";
+  const expLabel = (c: string) => t.exp.cat[c] ?? c;
+  const exportLinks = (
+    <>
+      {type === "sales" || type === "products" || type === "expenses" ? (
+        <>
+          <a href={`/admin/reports/export?${qs}&format=xlsx`} className="a-btn a-btn-ghost"><FileSpreadsheet aria-hidden="true" className="h-4 w-4" />{t.common.exportXlsx}</a>
+          <a href={`/admin/reports/export?${qs}&format=csv`} className="a-btn a-btn-ghost"><Download aria-hidden="true" className="h-4 w-4" />CSV</a>
+        </>
+      ) : type === "orders" ? <a href={`/admin/orders/export?${qs}`} className="a-btn a-btn-ghost"><Download aria-hidden="true" className="h-4 w-4" />{R.ordersExport}</a>
+        : type === "customers" ? /* تنزيل ملف من مسار خادم، لا صفحة */ // eslint-disable-next-line @next/next/no-html-link-for-pages
+        <a href="/admin/customers/export" className="a-btn a-btn-ghost"><Download aria-hidden="true" className="h-4 w-4" />{R.customersExport}</a>
+        : type === "inventory" ? <a href="/admin/inventory/export" className="a-btn a-btn-ghost"><Download aria-hidden="true" className="h-4 w-4" />{R.inventoryExport}</a> : null}
+      <PrintButton label={R.printPdf} />
+    </>
+  );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 print:max-w-none">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">التقارير</h1>
-          <p className="text-sm opacity-70">من {range.from} إلى {range.to} (بتوقيت فلسطين). البيع يُحتسب عند تأكيد الطلب.</p>
-        </div>
-        <div className="flex flex-wrap gap-2 print:hidden">
-          <a href={`/admin/reports/export?${qs}&format=xlsx`} className="rounded-lg bg-charcoal px-3 py-2 text-sm text-white hover:bg-[#3d372e]">تصدير Excel</a>
-          <a href={`/admin/reports/export?${qs}&format=csv`} className="rounded-lg border border-gold/40 bg-white px-3 py-2 text-sm hover:bg-beige">CSV</a>
-          <PrintButton />
-        </div>
+    <div className="mx-auto max-w-[90rem] space-y-6 print:max-w-none">
+      <PageHeader title={`${R.title} · ${R.types[type]}`} subtitle={`${R.subtitle} · ${rangeLabel(range, f)}`} actions={<div className="flex flex-wrap gap-2 print:hidden">{exportLinks}</div>} />
+      <div className="flex flex-col gap-3 print:hidden lg:flex-row lg:items-center lg:justify-between">
+        <nav aria-label={R.title} className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1">
+          {TYPES.map((x) => (
+            <Link key={x} href={x === "profits" ? `/admin/profits?${qs}` : withParams("/admin/reports", sp, { type: x === "sales" ? null : x })}
+              aria-current={type === x ? "true" : undefined} className="a-chip">{R.types[x]}</Link>
+          ))}
+        </nav>
+        {!["customers", "inventory"].includes(type) && <PeriodPicker base="/admin/reports" range={range} t={t} extra={type === "sales" ? {} : { type }} />}
       </div>
 
-      <nav aria-label="الفترة" className="flex flex-wrap items-end gap-2 print:hidden">
-        {(Object.keys(PRESET_LABEL) as Preset[]).map((pr) => (
-          <Link key={pr} href={`/admin/reports?preset=${pr}`} aria-current={range.preset === pr ? "page" : undefined}
-            className={`rounded-full px-3 py-1.5 text-sm ${range.preset === pr ? "bg-charcoal text-white" : "border border-gold/30 bg-white hover:bg-beige"}`}>{PRESET_LABEL[pr]}</Link>
-        ))}
-        <form className="flex items-end gap-2 text-sm">
-          <label className="space-y-1"><span className="block text-xs opacity-70">من</span><input type="date" name="from" defaultValue={range.from} className="rounded-lg border border-gold/30 px-2 py-1.5" /></label>
-          <label className="space-y-1"><span className="block text-xs opacity-70">إلى</span><input type="date" name="to" defaultValue={range.to} className="rounded-lg border border-gold/30 px-2 py-1.5" /></label>
-          <button className="rounded-lg border border-gold/40 bg-white px-3 py-1.5 hover:bg-beige">عرض</button>
-        </form>
-      </nav>
+      {needsReport && (error || !r || !k || !p) ? <p role="alert" className="a-card p-4 text-[var(--a-danger-ink)]">{R.loadError}</p> : null}
 
-      {error || !r || !k || !p ? <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-800">تعذر تحميل التقرير. تأكد أن الفترة لا تتجاوز سنة.</p> : (
+      {type === "sales" && r && k && p && (
         <>
-          {k.items_missing_profit > 0 && (
-            <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-              ⚠️ {k.items_missing_profit} بند مبيع بلا ربح مسجل (قيمتها {formatPrice(k.store_due_pending)}): الربح ومستحقات المحل غير مكتملة لهذه الفترة.
-              سجّل الربح من صفحة كل طلب.
-            </p>
-          )}
-          <section aria-labelledby="kpis" className="space-y-2">
-            <h2 id="kpis" className="font-bold">الملخص <span className="text-xs font-normal opacity-60">(مقارنة بـ {r.days} يوماً قبلها)</span></h2>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <Kpi label="المبيعات المؤكدة (الإجمالي)" value={k.revenue} previous={p.revenue} />
-              <Kpi label="عدد الطلبات المؤكدة" value={k.orders} previous={p.orders} money={false} />
-              <Kpi label="ربحك من المنتجات" value={k.manager_profit} previous={p.manager_profit} />
-              <Kpi label="مستحقات المحل" value={k.store_due} previous={p.store_due} />
-              <Kpi label="رسوم التوصيل المحصّلة" value={k.delivery_fees} previous={p.delivery_fees} />
-              <Kpi label="المصروفات" value={k.expenses} previous={p.expenses} />
-              <Kpi label="صافي ربحك" value={k.manager_net} previous={p.manager_net} />
-              <Kpi label="متوسط قيمة الطلب" value={k.avg_order} previous={p.avg_order} />
-            </div>
-            <p className="text-xs opacity-70">
-              صافي ربحك = ربحك من المنتجات + رسوم التوصيل − المصروفات. خصومات الكوبونات ({formatPrice(k.discounts)}) مخصومة من المبيعات أصلاً.
-              تكلفة البضاعة المباعة: {formatPrice(k.cogs)}{k.items_missing_cost ? ` (${k.items_missing_cost} بند بلا تكلفة مسجلة)` : ""}.
-            </p>
-            <p className="text-sm">
-              طلبات أُنشئت في الفترة: {k.created_orders} · نسبة الإتمام: {rate(k.created_delivered, k.created_orders)} · نسبة الإلغاء: {rate(k.created_cancelled, k.created_orders)}
-            </p>
+          {k.items_missing_profit > 0 && <p className="a-card border-[#ecd9b8] bg-[#fffaf1] p-4 text-sm text-[var(--a-warning)]">{fill(R.missingWarn, { n: f.number(k.items_missing_profit) })}</p>}
+          <section aria-label={R.summary} className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+            <StatCard t={t} f={f} label={R.revenue} value={f.money(k.revenue)} current={+k.revenue} previous={+p.revenue} icon={<Coins className={ico} />} />
+            <StatCard t={t} f={f} label={R.ordersN} value={f.number(k.orders)} current={+k.orders} previous={+p.orders} icon={<ShoppingBag className={ico} />} />
+            <StatCard t={t} f={f} label={R.managerProfit} value={f.money(k.manager_profit)} current={+k.manager_profit} previous={+p.manager_profit} icon={<TrendingUp className={ico} />} />
+            <StatCard t={t} f={f} label={R.storeDue} value={f.money(k.store_due)} current={+k.store_due} previous={+p.store_due} icon={<Receipt className={ico} />} />
+            <StatCard t={t} f={f} label={R.deliveryFees} value={f.money(k.delivery_fees)} current={+k.delivery_fees} previous={+p.delivery_fees} icon={<Coins className={ico} />} />
+            <StatCard t={t} f={f} label={R.expenses} value={f.money(k.expenses)} current={+k.expenses} previous={+p.expenses} good="down" icon={<Wallet className={ico} />} />
+            <StatCard t={t} f={f} label={R.managerNet} value={f.money(k.manager_net)} current={+k.manager_net} previous={+p.manager_net} icon={<TrendingUp className={ico} />} />
+            <StatCard t={t} f={f} label={R.aov} value={f.money(k.avg_order)} current={+k.avg_order} previous={+p.avg_order} icon={<Receipt className={ico} />} />
           </section>
-
-          {r.days > 1 && (
-            <section aria-labelledby="daily" className="rounded-2xl border border-gold/20 bg-white p-4">
-              <h2 id="daily" className="mb-2 font-bold">المبيعات اليومية</h2>
-              <DailyBars data={r.daily} />
-              <details className="mt-2 text-sm">
-                <summary className="cursor-pointer text-gold-dark">جدول الأيام</summary>
-                <table className="mt-2 w-full"><thead className="bg-beige/60"><tr><th className={th}>اليوم</th><th className={th}>الطلبات</th><th className={th}>المبيعات</th><th className={th}>ربحك</th></tr></thead>
-                  <tbody>{r.daily.map((d) => <tr key={d.day} className="border-t border-gold/10"><td className={td}>{d.day}</td><td className={td}>{d.orders}</td><td className={td}>{formatPrice(d.revenue)}</td><td className={td}>{formatPrice(d.profit)}</td></tr>)}</tbody>
-                </table>
-              </details>
-            </section>
-          )}
-
-          <section aria-labelledby="products" className="overflow-x-auto rounded-2xl border border-gold/20 bg-white p-4">
-            <h2 id="products" className="mb-2 font-bold">المنتجات المباعة (الأكثر ← الأقل)</h2>
-            {r.products.length === 0 ? <p className="text-sm opacity-70">لا مبيعات مؤكدة في هذه الفترة.</p> : (
-              <table className="w-full min-w-[36rem] text-sm">
-                <thead className="bg-beige/60"><tr><th className={th}>المنتج</th><th className={th}>الكمية</th><th className={th}>المبيعات</th><th className={th}>التكلفة</th><th className={th}>ربحك</th><th className={th}>مستحق المحل</th></tr></thead>
-                <tbody>{r.products.map((x) => (
-                  <tr key={`${x.product_id}-${x.name}`} className="border-t border-gold/10"><td className={td}>{x.name}</td><td className={td}>{x.qty}</td>
-                    <td className={td}>{formatPrice(x.revenue)}</td><td className={td}>{x.cogs === null ? "—" : formatPrice(x.cogs)}</td>
-                    <td className={td}>{x.profit === null ? "—" : formatPrice(x.profit)}</td><td className={td}>{x.store_due === null ? "—" : formatPrice(x.store_due)}</td></tr>))}
-                </tbody>
-              </table>
-            )}
-          </section>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            <section className="rounded-2xl border border-gold/20 bg-white p-4 text-sm">
-              <h2 className="mb-2 font-bold">أفضل التصنيفات</h2>
-              {r.categories.length === 0 ? <p className="opacity-70">—</p> : <ul className="space-y-1">{r.categories.map((c) =>
-                <li key={c.name} className="flex justify-between"><span>{c.name}</span><span>{c.qty} قطعة · {formatPrice(c.revenue)}</span></li>)}</ul>}
-            </section>
-            <section className="rounded-2xl border border-gold/20 bg-white p-4 text-sm">
-              <h2 className="mb-2 font-bold">مصادر الطلبات</h2>
-              {r.sources.length === 0 ? <p className="opacity-70">—</p> : <ul className="space-y-1">{r.sources.map((s) =>
-                <li key={s.source} className="flex justify-between"><span>{sourceLabel(s.source)}</span><span>{s.orders} طلب · {formatPrice(s.revenue)}</span></li>)}</ul>}
-            </section>
-            <section className="rounded-2xl border border-gold/20 bg-white p-4 text-sm">
-              <div className="mb-2 flex justify-between"><h2 className="font-bold">المصروفات حسب النوع</h2><Link href={`/admin/expenses?${qs}`} className="text-gold-dark hover:underline print:hidden">التفاصيل</Link></div>
-              {r.expenses.length === 0 ? <p className="opacity-70">لا مصروفات مسجلة.</p> : <ul className="space-y-1">{r.expenses.map((e) =>
-                <li key={e.category} className="flex justify-between"><span>{EXPENSE_LABEL[e.category]}</span><span>{formatPrice(e.amount)} ({e.n})</span></li>)}</ul>}
-            </section>
-            <section className="rounded-2xl border border-gold/20 bg-white p-4 text-sm">
-              <h2 className="mb-2 font-bold">منتجات منشورة لم تُبع في الفترة</h2>
-              {r.unsold.length === 0 ? <p className="opacity-70">كل المنتجات المنشورة بيع منها شيء.</p> : <ul className="space-y-1">{r.unsold.map((u) =>
-                <li key={u.id}><Link href={`/admin/products/${u.id}`} className="hover:text-gold-dark">{u.name}</Link></li>)}</ul>}
-            </section>
+          <p className="text-xs text-[var(--a-muted-ink)]">{fill(R.netNote, { n: f.money(k.discounts) })} {R.cogs}: {f.money(k.cogs)}.</p>
+          <Card title={R.daily}>
+            {r.daily.every((d) => +d.revenue === 0) ? <EmptyState title={R.noSales} />
+              : <BarChart series={r.daily.map((d) => ({ t: String(d.day).slice(0, 10), orders: +d.orders, revenue: +d.revenue, profit: +d.profit }))} unit="day" metric="revenue" label={R.daily} color={CHART.current} />}
+          </Card>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card title={R.categories}>
+              {r.categories.length === 0 ? <p className="text-sm text-[var(--a-muted-ink)]">—</p> : <ul className="space-y-2 text-sm">{r.categories.map((c) =>
+                <li key={c.name} className="flex justify-between gap-3"><span>{c.name}</span><span className="tabular-nums"><b>{f.money(c.revenue)}</b> <span className="text-[var(--a-muted-ink)]">· {f.number(c.qty)} {t.common.items}</span></span></li>)}</ul>}
+            </Card>
+            <Card title={R.sources}>
+              {r.sources.length === 0 ? <p className="text-sm text-[var(--a-muted-ink)]">—</p> : <ul className="space-y-2 text-sm">{r.sources.map((s) =>
+                <li key={s.source} className="flex justify-between gap-3"><span>{sourceLabel(s.source)}</span><span className="tabular-nums"><b>{f.money(s.revenue)}</b> <span className="text-[var(--a-muted-ink)]">· {f.number(s.orders)} {t.common.orders}</span></span></li>)}</ul>}
+            </Card>
           </div>
         </>
       )}
+
+      {type === "orders" && k && (
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+          <StatCard t={t} f={f} label={R.created} value={f.number(k.created_orders)} current={+k.created_orders} previous={+p!.created_orders} icon={<ShoppingBag className={ico} />} href={`/admin/orders?${qs}`} />
+          <StatCard t={t} f={f} label={R.delivered} value={f.number(k.created_delivered)} current={+k.created_delivered} previous={+p!.created_delivered} icon={<CircleCheck className={ico} />} href={`/admin/orders?${qs}&status=delivered`} hint={`${R.completion}: ${rate(k.created_delivered, k.created_orders)}`} />
+          <StatCard t={t} f={f} label={R.cancelled} value={f.number(k.created_cancelled)} current={+k.created_cancelled} previous={+p!.created_cancelled} good="down" icon={<Ban className={ico} />} href={`/admin/orders?${qs}&status=cancelled`} hint={`${R.cancellation}: ${rate(k.created_cancelled, k.created_orders)}`} />
+          <StatCard t={t} f={f} label={R.aov} value={f.money(k.avg_order)} current={+k.avg_order} previous={+p!.avg_order} icon={<Receipt className={ico} />} />
+          {r && <Card title={t.dashboard.ordersChart} className="col-span-2 md:col-span-4"><BarChart series={r.daily.map((d) => ({ t: String(d.day).slice(0, 10), orders: +d.orders, revenue: +d.revenue, profit: +d.profit }))} unit="day" metric="orders" label={t.dashboard.ordersChart} /></Card>}
+        </section>
+      )}
+
+      {type === "products" && r && (
+        <>
+          <Card title={R.sold} bodyClass="">
+            {r.products.length === 0 ? <EmptyState title={R.noSales} /> : (
+              <div className="overflow-x-auto">
+                <table className="a-table min-w-[44rem]">
+                  <thead><tr><th scope="col">{R.product}</th><th scope="col">{R.qty}</th><th scope="col">{R.sales}</th><th scope="col">{R.cost}</th><th scope="col">{R.profit}</th><th scope="col">{R.due}</th></tr></thead>
+                  <tbody>{r.products.map((x) => (
+                    <tr key={`${x.product_id}-${x.name}`}><td>{x.product_id ? <Link href={`/admin/products/${x.product_id}`} className="hover:text-[var(--a-accent-ink)]">{x.name}</Link> : x.name}</td>
+                      <td className="tabular-nums">{f.number(x.qty)}</td><td className="font-semibold tabular-nums">{f.money(x.revenue)}</td>
+                      <td className="tabular-nums">{x.cogs === null ? "—" : f.money(x.cogs)}</td><td className="tabular-nums">{x.profit === null ? "—" : f.money(x.profit)}</td>
+                      <td className="tabular-nums">{x.store_due === null ? "—" : f.money(x.store_due)}</td></tr>))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+          <Card title={R.unsold}>
+            {r.unsold.length === 0 ? <p className="text-sm text-[var(--a-muted-ink)]">{R.allSold}</p>
+              : <ul className="flex flex-wrap gap-2">{r.unsold.map((u) => <li key={u.id}><Link href={`/admin/products/${u.id}`} className="a-chip">{u.name}</Link></li>)}</ul>}
+          </Card>
+        </>
+      )}
+
+      {type === "expenses" && r && k && (
+        <Card title={R.byType} action={<Link href={`/admin/expenses?${qs}`} className="text-xs font-semibold text-[var(--a-accent-ink)] hover:underline print:hidden">{R.details}</Link>}>
+          {r.expenses.length === 0 ? <p className="text-sm text-[var(--a-muted-ink)]">{R.noExpenses}</p> : (
+            <table className="a-table">
+              <thead><tr><th scope="col">{R.type}</th><th scope="col">{R.count}</th><th scope="col">{R.amount}</th></tr></thead>
+              <tbody>{r.expenses.map((e) => <tr key={e.category}><td>{expLabel(e.category)}</td><td className="tabular-nums">{f.number(e.n)}</td><td className="font-semibold tabular-nums">{f.money(e.amount)}</td></tr>)}</tbody>
+              <tfoot><tr className="font-bold"><td className="px-4 py-3">{t.common.total}</td><td /><td className="px-4 py-3 tabular-nums">{f.money(k.expenses)}</td></tr></tfoot>
+            </table>
+          )}
+        </Card>
+      )}
+
+      {type === "customers" && (
+        <Card title={R.topCustomers} bodyClass="">
+          {(() => {
+            const rows = ((customers.data as { rows?: { id: string; name: string; phone: string; orders_count: number; store_count: number; total_spent: number; last_purchase_at: string | null }[] } | null)?.rows ?? []);
+            return rows.length === 0 ? <EmptyState title={t.customers.empty} /> : (
+              <div className="overflow-x-auto">
+                <table className="a-table min-w-[40rem]">
+                  <thead><tr><th scope="col">#</th><th scope="col">{t.customers.name}</th><th scope="col">{t.customers.phone}</th><th scope="col">{t.customers.orders}</th><th scope="col">{t.customers.spent}</th><th scope="col">{t.customers.lastPurchase}</th></tr></thead>
+                  <tbody>{rows.map((c, i) => (
+                    <tr key={c.id}><td className="tabular-nums text-[var(--a-muted-ink)]">{i + 1}</td><td><Link href={`/admin/customers/${c.id}`} className="font-semibold hover:text-[var(--a-accent-ink)]">{c.name}</Link></td>
+                      <td dir="ltr" className="text-end tabular-nums rtl:text-start">{c.phone}</td><td className="tabular-nums">{f.number(c.orders_count + c.store_count)}</td>
+                      <td className="font-semibold tabular-nums">{f.money(c.total_spent)}</td><td className="text-[var(--a-muted-ink)]">{f.date(c.last_purchase_at)}</td></tr>))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
+        </Card>
+      )}
+
+      {type === "inventory" && (() => {
+        type V = { id: string; name: string; price_override: number | null; is_active: boolean; products: { name: string; price: number | null }; inventory: { on_hand: number; reserved: number }[]; variant_costs: { unit_cost: number } | { unit_cost: number }[] | null };
+        const vs = ((inventory.data ?? []) as unknown as V[]).filter((v) => v.is_active);
+        const cost = (v: V) => (Array.isArray(v.variant_costs) ? v.variant_costs[0]?.unit_cost : v.variant_costs?.unit_cost);
+        const qty = (v: V) => v.inventory.reduce((a, i) => a + i.on_hand, 0);
+        const sell = vs.reduce((a, v) => a + qty(v) * Number(v.price_override ?? v.products.price ?? 0), 0);
+        const withCost = vs.filter((v) => cost(v) !== undefined && cost(v) !== null);
+        const costVal = withCost.reduce((a, v) => a + qty(v) * Number(cost(v)), 0);
+        const missing = vs.filter((v) => qty(v) > 0 && (cost(v) === undefined || cost(v) === null)).length;
+        return (
+          <section className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+            <StatCard t={t} f={f} label={t.inv.skus} value={f.number(vs.length)} icon={<ShoppingBag className={ico} />} href="/admin/inventory" />
+            <StatCard t={t} f={f} label={t.inv.onHand} value={f.number(vs.reduce((a, v) => a + qty(v), 0))} icon={<ShoppingBag className={ico} />} />
+            <StatCard t={t} f={f} label={R.stockValue} value={f.money(sell)} icon={<Coins className={ico} />} />
+            <StatCard t={t} f={f} label={R.stockCost} value={f.money(costVal)} icon={<Coins className={ico} />} tone={missing ? "warn" : undefined} hint={missing ? `${f.number(missing)} ${R.costMissing}` : undefined} />
+          </section>
+        );
+      })()}
     </div>
   );
 }

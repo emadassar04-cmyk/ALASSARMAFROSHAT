@@ -249,3 +249,124 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* =====================================================================
+   لوحة الإدارة (Premium Admin): هوية مستقلة داخل .admin-ui فقط — لا تؤثر على المتجر.
+   إعادة تعريف متغيرات الألوان هنا تجعل كل صفحات الإدارة القديمة تتبع الهوية الجديدة تلقائياً.
+   النصوص الصغيرة تستخدم درجات أغمق قليلاً من الهوية لتحقيق تباين ≥ 4.5:1:
+   #777777 على الأبيض = 4.48 ⇒ نستخدم #6b6b6b للنص الصغير، و#D94848 = 4.22 ⇒ #b83a3a للنص.
+   ===================================================================== */
+.admin-ui {
+  --a-bg: #f7f6f2;
+  --a-sidebar: #171a1f;
+  --a-sidebar-2: #20242b;
+  --a-accent: #b89555;
+  --a-accent-2: #d7c5a1;
+  --a-accent-ink: #8a6b2e;   /* ذهبي كنص على الأبيض: 4.97:1 */
+  --a-card: #ffffff;
+  --a-text: #202124;
+  --a-muted: #777777;        /* نص ثانوي كبير فقط */
+  --a-muted-ink: #6b6b6b;    /* نص ثانوي صغير: 5.33:1 */
+  --a-line: #e9e6df;
+  --a-success: #16865b;
+  --a-danger: #d94848;
+  --a-danger-ink: #b83a3a;
+  --a-warning: #a8691b;
+  --a-radius: 14px;
+  --a-radius-sm: 10px;
+  --a-shadow: 0 1px 2px rgb(23 26 31 / 0.04), 0 4px 16px -6px rgb(23 26 31 / 0.08);
+  --a-shadow-lg: 0 2px 6px rgb(23 26 31 / 0.06), 0 22px 48px -18px rgb(23 26 31 / 0.25);
+
+  /* ربط الأسماء القديمة بالهوية الجديدة */
+  --background: var(--a-bg);
+  --warm-white: var(--a-bg);
+  --foreground: var(--a-text);
+  --charcoal: var(--a-sidebar);
+  --gold: var(--a-accent);
+  --gold-ink: var(--a-accent-ink);
+  --gold-dark: var(--a-accent-ink);
+  --gold-soft: var(--a-accent-2);
+  --cream: #f3efe6;
+  --beige: #f3efe6;
+  --border: var(--a-line);
+  --muted: var(--a-muted);
+  --muted-ink: var(--a-muted-ink);
+  --success: var(--a-success);
+  --danger: var(--a-danger-ink);
+  --warning: var(--a-warning);
+  /* الخطوط: Cairo للعربية، Inter للإنجليزية (مع Cairo احتياطاً للحروف العربية) */
+  --font-alexandria: var(--font-cairo);
+  font-family: var(--font-cairo), system-ui, sans-serif;
+  background: var(--a-bg);
+  color: var(--a-text);
+  font-feature-settings: "tnum" 1;
+}
+.admin-ui:lang(en) {
+  --font-alexandria: var(--font-inter), var(--font-cairo);
+  font-family: var(--font-inter), var(--font-cairo), system-ui, sans-serif;
+}
+.admin-ui h1, .admin-ui h2, .admin-ui h3 { font-weight: 700; letter-spacing: -0.01em; }
+.admin-ui :focus-visible { outline: 2px solid var(--a-accent-ink); outline-offset: 2px; }
+.admin-ui ::selection { background: #efe6d3; }
+/* حاويات التمرير الأفقي تحتوي عناصرها المطلقة (مثل نصوص قارئ الشاشة) حتى لا تمد الصفحة في الجوال */
+.admin-ui .overflow-x-auto, .admin-ui .overflow-auto { position: relative; }
+
+@layer components {
+  .a-card {
+    background: var(--a-card);
+    border: 1px solid var(--a-line);
+    border-radius: var(--a-radius);
+    box-shadow: var(--a-shadow);
+  }
+  .a-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+    min-height: 2.5rem; padding: 0.5rem 1rem; border-radius: var(--a-radius-sm);
+    font-size: 0.875rem; font-weight: 600; white-space: nowrap;
+    transition: background-color 160ms, border-color 160ms, color 160ms, box-shadow 160ms, transform 160ms;
+  }
+  .a-btn:active { transform: translateY(1px); }
+  .a-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .a-btn-primary { background: var(--a-sidebar); color: #fff; }
+  .a-btn-primary:hover:not(:disabled) { background: #2b3038; }
+  .a-btn-accent { background: var(--a-accent); color: var(--a-sidebar); }
+  .a-btn-accent:hover:not(:disabled) { background: #c6a668; }
+  .a-btn-ghost { background: var(--a-card); color: var(--a-text); border: 1px solid var(--a-line); }
+  .a-btn-ghost:hover:not(:disabled) { border-color: #d5cfc2; background: #fcfbf8; }
+  .a-btn-danger { background: var(--a-card); color: var(--a-danger-ink); border: 1px solid #f0c9c9; }
+  .a-btn-danger:hover:not(:disabled) { background: #fdf3f3; }
+  .a-input {
+    min-height: 2.5rem; width: 100%; border: 1px solid var(--a-line); border-radius: var(--a-radius-sm);
+    background: var(--a-card); padding: 0.45rem 0.8rem; font-size: 0.875rem; color: var(--a-text);
+    transition: border-color 160ms, box-shadow 160ms;
+  }
+  .a-input::placeholder { color: var(--a-muted); }
+  .a-input:focus { outline: none; border-color: var(--a-accent); box-shadow: 0 0 0 3px rgb(184 149 85 / 0.2); }
+  .a-chip {
+    display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.25rem; padding: 0.35rem 0.85rem;
+    border-radius: 999px; border: 1px solid var(--a-line); background: var(--a-card);
+    font-size: 0.8125rem; font-weight: 500; color: var(--a-muted-ink); white-space: nowrap;
+    transition: background-color 160ms, color 160ms, border-color 160ms;
+  }
+  .a-chip:hover { color: var(--a-text); border-color: #d5cfc2; }
+  .a-chip[aria-current="true"], .a-chip[aria-pressed="true"] { background: var(--a-sidebar); border-color: var(--a-sidebar); color: #fff; }
+  .a-table { width: 100%; font-size: 0.875rem; border-collapse: separate; border-spacing: 0; }
+  .a-table th {
+    text-align: start; font-weight: 600; font-size: 0.75rem; color: var(--a-muted-ink);
+    padding: 0.7rem 1rem; background: #faf9f6; border-bottom: 1px solid var(--a-line); white-space: nowrap;
+  }
+  .a-table td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1eee8; vertical-align: middle; }
+  .a-table tbody tr { transition: background-color 120ms; }
+  .a-table tbody tr:hover { background: #fcfbf8; }
+  .a-table tbody tr:last-child td { border-bottom: 0; }
+  .a-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--a-muted-ink); margin-bottom: 0.35rem; }
+}
+
+/* حركة دقيقة: ظهور البطاقات، وتتوقف مع «تقليل الحركة» */
+@media (prefers-reduced-motion: no-preference) {
+  .a-rise { animation: a-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+  @keyframes a-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+@media print {
+  .admin-ui { background: #fff; }
+  .a-card { box-shadow: none; }
+}

@@ -267,6 +267,34 @@ await check("الفروع: صفحة «فروعنا» بالفرعين والعن
   assert((await homeMap.getAttribute("src")).includes(encodeURIComponent("31.418326,34.349009")), "home map pin");
 });
 
+await check("العروض والإضافة السريعة: منتج مخفّض حقيقي، وزر إضافة للسلة من البطاقة للمنتج ذي الخيار الواحد", async () => {
+  await page.goto(url("/"));
+  await page.getByRole("heading", { name: "عروض مختارة" }).waitFor();
+  const offers = page.locator('section[aria-labelledby="s-offers"] article');
+  await offers.first().waitFor();
+  assert(await offers.filter({ hasText: "بطانية شتوية ناعمة" }).count() === 1, "discounted blanket in offers");
+  assert(await offers.filter({ hasText: "مخدة فندقية" }).count() === 0, "no fake offers");
+  // منتج بعدة خيارات لا يظهر عليه زر الإضافة السريعة
+  assert(await page.getByRole("button", { name: "إضافة سجادة تركية كلاسيك للسلة" }).count() === 0, "multi-variant has no quick add");
+  await page.goto(url("/products"));
+  const before = Number((await page.getByRole("link", { name: /^السلة \(\d+\)$/ }).getAttribute("aria-label")).match(/\d+/)[0]);
+  await page.getByRole("button", { name: "إضافة مخدة فندقية للسلة" }).click();
+  await page.getByRole("link", { name: `السلة (${before + 1})` }).waitFor();
+});
+
+await check("حملة السحب: قسم في الرئيسية + صفحة بالجائزة والعدّاد والشروط، دون أرقام مخترعة", async () => {
+  await page.goto(url("/"));
+  const sec = page.locator('section[aria-labelledby="s-campaign"]');
+  await sec.waitFor();
+  assert((await sec.textContent()).includes("جائزة تجريبية لبيئة الاختبار"), "prize");
+  assert(!(await sec.textContent()).includes("مشاركة حتى الآن"), "no participant count when zero");
+  await page.goto(url("/campaign"));
+  await page.getByRole("heading", { level: 1, name: "تسوّق واربح مع العصار" }).waitFor();
+  await page.getByRole("timer").waitFor();
+  await page.getByRole("heading", { name: "الشروط والأحكام" }).waitFor();
+  assert(await page.locator("aside li").count() === 2, "terms list");
+});
+
 await check("لا أخطاء JavaScript في المتصفح", async () => {
   const real = consoleErrors.filter((e) => !/favicon|404 \(Not Found\)/.test(e));
   assert(real.length === 0, real.join(" | "));

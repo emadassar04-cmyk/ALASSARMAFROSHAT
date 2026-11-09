@@ -4,6 +4,8 @@ import { AvailabilityBadge } from "./AvailabilityBadge";
 import { Price } from "./Price";
 import { ProductImage } from "./ProductImage";
 import { SaveButtons } from "./SaveButtons";
+import { QuickAdd } from "./QuickAdd";
+import { isPurchasable } from "@/lib/catalog-types";
 
 // نسبة الخصم محسوبة من السعرين الفعليين فقط
 function discountPercent(p: Card) {
@@ -30,6 +32,11 @@ export function ProductCard({ product, priority = false }: { product: Card; prio
         <div className="absolute top-3 left-3">
           <SaveButtons product={{ id: product.id, slug: product.slug }} name={product.name} compact />
         </div>
+        {product.quick_variant_id && product.price !== null && isPurchasable(product.availability) && (
+          <div className="absolute bottom-3 left-3">
+            <QuickAdd variantId={product.quick_variant_id} productId={product.id} name={product.name} price={product.price} />
+          </div>
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-1.5 px-0.5 pt-3.5">
         {product.category && <span className="text-[0.75rem] text-muted-ink">{product.category.name}</span>}

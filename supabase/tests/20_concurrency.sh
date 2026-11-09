@@ -29,7 +29,7 @@ order_sql() { # $1 = phone suffix, $2 = variant, $3 = qty
   cat <<SQL
 set role service_role;
 select set_config('request.jwt.claims', '{"role":"service_role"}', false);
-select public.place_order('{"customer_name":"عميل $1","phone":"05990$1","fulfillment":"pickup",
+select public.place_order('{"customer_name":"عميل $1","phone":"0599$1","fulfillment":"pickup",
   "payment_method":"cash_in_store","terms_accepted":true,
   "items":[{"variant_id":"$2","quantity":$3}]}')->>'order_number';
 SQL

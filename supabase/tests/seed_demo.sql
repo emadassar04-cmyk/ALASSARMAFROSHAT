@@ -54,3 +54,9 @@ update public.store_policies set title = 'سياسة الخصوصية',
   body = E'نص تجريبي لسياسة الخصوصية في بيئة الاختبار.\n\n## البيانات التي نجمعها\n- الاسم ورقم الهاتف\n- العنوان',
   is_published = true where slug = 'privacy';
 update public.store_settings set ga_measurement_id = 'G-TEST12345', meta_pixel_id = '1234567890123456';
+
+-- الـ MVP (اختبار فقط): حملة سحب منشورة جارية (جائزة تجريبية، لا تُنشر في الإنتاج)
+insert into public.campaigns (slug, title, prize, terms, start_at, end_at, status)
+values ('test-campaign', 'تسوّق واربح مع العصار', 'جائزة تجريبية لبيئة الاختبار',
+        E'- كل شراء مؤهل خلال فترة الحملة يمنح مشاركة واحدة في السحب.\n- المشتريات الملغاة لا تُحتسب.',
+        now() - interval '1 day', now() + interval '10 days', 'published');

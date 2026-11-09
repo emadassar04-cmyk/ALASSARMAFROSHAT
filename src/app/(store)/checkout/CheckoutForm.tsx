@@ -119,6 +119,10 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
           <label className="block space-y-1.5 text-sm"><span className="font-medium">رقم الهاتف (WhatsApp) *</span>
             <input required type="tel" inputMode="tel" autoComplete="tel" dir="ltr" maxLength={20} value={form.phone}
               onChange={(e) => set("phone", e.target.value)} placeholder="0599123456" aria-invalid={invalid("phone")} className={`${field} text-right`} /></label>
+          <p className="text-xs leading-5 text-muted-ink">
+            نستخدم رقم جوالك لتأكيد طلبك، ولربط مشترياتك من المتجر الإلكتروني والفرعين، وللمشاركة في حملات السحب وفق شروطها.
+            لا نرسل لك عروضاً إلا إذا وافقت على ذلك أدناه.
+          </p>
         </fieldset>
 
         <fieldset className="space-y-3 panel p-5 sm:p-6 [&>*:not(legend)]:clear-both">

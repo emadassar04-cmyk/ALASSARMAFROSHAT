@@ -39,6 +39,7 @@ await check("السلة ← إتمام الطلب: الملخص من الخاد�
   await page.getByRole("link", { name: "إتمام الطلب" }).click();
   await page.getByRole("heading", { name: "إتمام الطلب" }).waitFor();
   await page.locator("form aside").filter({ hasText: "90" }).waitFor();
+  await page.getByText("ولربط مشترياتك من المتجر الإلكتروني والفرعين").waitFor();
 });
 
 await check("مناطق التوصيل تظهر برسومها ويُحتسب التوصيل", async () => {

@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { headers } from "next/headers";
 import { updateTag } from "next/cache";
 import { createServiceClient } from "@/lib/supabase/admin";
+import { canonicalPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
 
 export type PlaceOrderInput = {
@@ -50,7 +51,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   // 1) الحد من التكرار: 5 طلبات لكل جهاز/شبكة و3 لكل رقم هاتف خلال 10 دقائق
   const h = await headers();
   const ip = h.get("x-real-ip") ?? h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const phone = String(input.phone ?? "").replace(/\D/g, "");
+  // نفس الرقم بأي صيغة يُحتسب مرة واحدة في حد التكرار
+  const phone = canonicalPhone(input.phone) ?? String(input.phone ?? "").replace(/\D/g, "");
   const ipLimit = Number(process.env.ORDER_RATE_LIMIT_PER_IP) || 5;
   const [{ data: ipOk }, { data: phoneOk }] = await Promise.all([
     service.rpc("rate_limit_hit", { p_key: `order:ip:${hash(ip)}`, p_limit: ipLimit, p_window_seconds: 600 }),

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/staff";
 import { formatPrice } from "@/lib/format";
@@ -21,9 +22,20 @@ const ATTENTION = ["received", "awaiting_confirmation", "confirmed", "preparing"
 
 export default async function AdminHome() {
   const staff = await requireStaff();
+  // موظف الفرع (تسجيل المبيعات فقط) يذهب مباشرة إلى صفحة التسجيل
+  if (!staff.permissions.includes("orders.read")) {
+    redirect(staff.permissions.includes("sales.record") ? "/admin/sales" : "/admin/login?error=not_staff");
+  }
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("admin_dashboard");
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Gaza" }).format(await Promise.resolve(new Date()));
+  const [{ data, error }, { data: sales }] = await Promise.all([
+    supabase.rpc("admin_dashboard"),
+    staff.permissions.includes("sales.review")
+      ? supabase.rpc("purchases_summary", { p_from: `${today.slice(0, 8)}01`, p_to: today })
+      : Promise.resolve({ data: null }),
+  ]);
   const d = data as Dashboard | null;
+  const store = sales as { store_pending: { count: number; amount: number }; store_approved: { count: number; amount: number } } | null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -31,6 +43,18 @@ export default async function AdminHome() {
         <h1 className="text-2xl font-bold">لوحة المعلومات</h1>
         <p className="text-sm opacity-70">مرحباً {staff.full_name ?? ""}</p>
       </div>
+      {store && (
+        <section aria-label="مبيعات الفروع" className="grid gap-3 sm:grid-cols-2">
+          <Link href="/admin/purchases?source=store&status=pending" className={`rounded-2xl border p-4 ${store.store_pending.count ? "border-amber-300 bg-amber-50" : "border-gold/20 bg-white"}`}>
+            <p className="text-sm opacity-80">مبيعات فروع بانتظار اعتمادك</p>
+            <p className="mt-1 text-xl font-bold">{store.store_pending.count} عملية · {formatPrice(store.store_pending.amount)}</p>
+          </Link>
+          <Link href="/admin/purchases?source=store&status=completed" className="rounded-2xl border border-gold/20 bg-white p-4">
+            <p className="text-sm opacity-80">مبيعات الفروع المعتمدة هذا الشهر (منفصلة عن أرباح الطلبات)</p>
+            <p className="mt-1 text-xl font-bold">{store.store_approved.count} عملية · {formatPrice(store.store_approved.amount)}</p>
+          </Link>
+        </section>
+      )}
       {error || !d ? <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-800">تعذر تحميل لوحة المعلومات.</p> : (
         <>
           {(d.pending_transfers > 0 || d.expiring_soon > 0 || d.low_stock.length > 0) && (

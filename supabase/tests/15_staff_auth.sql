@@ -30,8 +30,8 @@ select tests.throws('select public.record_staff_login()', 'forbidden', 'لا ي�
 
 select set_config('request.jwt.claims',
   '{"role":"authenticated","sub":"00000000-0000-0000-0000-0000000000f1","aal":"aal2"}', false);
-select tests.ok((select jsonb_array_length(c->'permissions') = 8 and c->>'role' = 'owner'
-  from public.my_staff_context() c), 'بعد الخطوة الثانية: المدير يملك الصلاحيات الثماني');
+select tests.ok((select jsonb_array_length(c->'permissions') = 12 and c->>'role' = 'owner'
+  from public.my_staff_context() c), 'بعد الخطوة الثانية: المدير يملك كل الصلاحيات (12)');
 select public.record_staff_login('test-agent');
 
 select set_config('request.jwt.claims',

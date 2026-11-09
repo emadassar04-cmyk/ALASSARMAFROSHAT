@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ArrowLeft, CreditCard, MessageCircle, Ruler, RotateCcw, Store, Truck } from "lucide-react";
-import { getBestSellers, getBranches, getCategories, getCheckoutOptions, getPolicies, getStoreSettings, searchProducts } from "@/lib/catalog";
+import { ArrowLeft, CreditCard, Gift, MessageCircle, Ruler, RotateCcw, Store, Truck } from "lucide-react";
+import { getBestSellers, getBranches, getCampaign, getCategories, getCheckoutOptions, getOffers, getPolicies, getStoreSettings, searchProducts } from "@/lib/catalog";
 import type { Category, ProductCard as Card } from "@/lib/catalog-types";
 import { categoryImage } from "@/lib/category-images";
 import { whatsappLink } from "@/lib/format";
@@ -11,6 +11,7 @@ import { JsonLd } from "@/components/store/JsonLd";
 import { BranchCards, branchLd } from "@/components/store/Branches";
 import { ProductGrid, ProductGridSkeleton } from "@/components/store/ProductCard";
 import { Flourish, Wave } from "@/components/store/Dividers";
+import { Countdown } from "@/components/store/Countdown";
 import heroImage from "@/assets/home/hero-living-room.webp";
 import editorialImage from "@/assets/home/editorial-living.webp";
 import aboutImage from "@/assets/home/about-living.webp";
@@ -171,6 +172,60 @@ async function FeaturedAndNew() {
       <EditorialSection />
       <ProductsBlock id="s-new" kicker="جديد المتجر" title="وصل حديثاً" href="/products?sort=newest" items={fresh} />
     </>
+  );
+}
+
+// عروض: منتجات عليها خصم فعلي الآن فقط (لا عروض مخترعة)
+async function OffersSection() {
+  const items = await getOffers(8);
+  if (!items.length) return null;
+  const shown = items.slice(0, items.length >= 8 ? 8 : items.length >= 4 ? 4 : items.length);
+  return (
+    <>
+      <Flourish className="pt-6" />
+      <ProductsBlock id="s-offers" kicker="خصومات حقيقية" title="عروض مختارة" href="/products?sort=price_asc" items={shown} />
+    </>
+  );
+}
+
+// حملة السحب: تظهر فقط إن وُجدت حملة منشورة حالية/قادمة، أو فائز سابق
+async function CampaignSection() {
+  const { current, last_winner } = await getCampaign();
+  if (!current && !last_winner) return null;
+  return (
+    <section aria-labelledby="s-campaign" className="py-10 md:py-14">
+      <div className="shell">
+        <div className="reveal relative overflow-hidden rounded-[var(--radius-card)] bg-charcoal px-6 py-10 text-warm-white sm:px-10 md:py-12">
+          <svg aria-hidden="true" viewBox="0 0 400 400" className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 text-gold/15" fill="none" stroke="currentColor" strokeWidth="1.2">
+            <path d="M200 200m-40 0a40 40 0 1 0 80 0a60 60 0 1 0 -120 0a80 80 0 1 0 160 0a100 100 0 1 0 -200 0a120 120 0 1 0 240 0" />
+          </svg>
+          <div className="relative grid items-center gap-8 lg:grid-cols-[1.3fr_1fr]">
+            <div>
+              <p className="kicker text-gold-soft"><Gift aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />{current ? "حملة هذا الشهر" : "الفائز السابق"}</p>
+              <h2 id="s-campaign" className="mt-3 text-title">{current?.title ?? last_winner!.title}</h2>
+              {current ? (
+                <>
+                  <p className="mt-3 text-lg text-gold-soft">الجائزة: {current.prize}</p>
+                  <p className="mt-3 max-w-xl leading-8 text-on-dark-muted">
+                    {current.description ?? "اشترِ من متجرنا الإلكتروني أو من أحد فرعينا برقم جوالك، وكل شراء مؤهل يمنحك فرصة في السحب."}
+                  </p>
+                </>
+              ) : (
+                <p className="mt-3 text-lg text-on-dark-muted">مبروك لـ <strong className="text-warm-white">{last_winner!.winner}</strong> — الجائزة: {last_winner!.prize}</p>
+              )}
+              <Link href="/campaign" className="btn btn-gold mt-6">{current ? "التفاصيل والشروط" : "تفاصيل الحملة"}</Link>
+            </div>
+            {current && (
+              <div className="space-y-4">
+                <Countdown start={current.start_at} end={current.end_at} tone="light" />
+                {current.entries > 0 && <p className="text-sm text-on-dark-muted">{current.entries} مشاركة حتى الآن</p>}
+                {last_winner && <p className="text-sm text-on-dark-muted">الفائز السابق: {last_winner.winner}</p>}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -381,6 +436,8 @@ export default function Home() {
         <EmptyCatalogNotice />
         <FeaturedAndNew />
       </Suspense>
+      <Suspense fallback={null}><OffersSection /></Suspense>
+      <Suspense fallback={null}><CampaignSection /></Suspense>
       <Suspense fallback={null}><TrustSection /></Suspense>
       <Suspense fallback={null}><BestSellers /></Suspense>
       <Suspense fallback={null}><BrandIntro /></Suspense>

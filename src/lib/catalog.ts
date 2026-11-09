@@ -3,7 +3,7 @@ import { createClient as createSupabase } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import { DEFAULT_SITE_URL } from "./site";
-import type { Branch, Category, DeliveryZone, Facets, PaymentMethod, Policy, ProductDetail, SearchParams, SearchResult, SitemapData, StoreSettings } from "./catalog-types";
+import type { Branch, CampaignInfo, Category, DeliveryZone, Facets, PaymentMethod, Policy, ProductDetail, SearchParams, SearchResult, SitemapData, StoreSettings } from "./catalog-types";
 
 // عميل عام بلا جلسة: الكتالوج بيانات عامة وقابلة للتخزين المؤقت
 function publicClient() {
@@ -88,6 +88,22 @@ export async function getBranches(): Promise<Branch[]> {
   cacheTag("settings");
   cacheLife("hours");
   return rpc<Branch[]>("catalog_branches");
+}
+
+// عروض: منتجات عليها خصم فعلي الآن
+export async function getOffers(limit = 8): Promise<SearchResult["items"]> {
+  "use cache";
+  cacheTag("catalog");
+  cacheLife("minutes");
+  return rpc<SearchResult["items"]>("catalog_offers", { p_limit: limit });
+}
+
+// حملة السحب الحالية/القادمة + آخر فائز (بيانات عامة فقط)
+export async function getCampaign(): Promise<CampaignInfo> {
+  "use cache";
+  cacheTag("campaign");
+  cacheLife("minutes");
+  return rpc<CampaignInfo>("catalog_campaign");
 }
 
 export async function getCheckoutOptions(): Promise<{ zones: DeliveryZone[]; methods: PaymentMethod[] }> {

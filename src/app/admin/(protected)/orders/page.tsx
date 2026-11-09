@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { canonicalPhone } from "@/lib/phone";
 import { requireStaff } from "@/lib/staff";
 import { formatPrice } from "@/lib/format";
 import { ORDER_STATUS_LABEL, PAYMENT_STATUS_LABEL } from "@/lib/catalog-types";
@@ -41,7 +42,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
   if (q) {
     const safe = q.replace(/[%_,()]/g, "");
     query = /^\d+$/.test(safe) || safe.toUpperCase().startsWith("ALS")
-      ? query.or(`order_number.ilike.%${safe}%,customer_phone.ilike.%${safe.replace(/\D/g, "")}%`)
+      ? query.or(`order_number.ilike.%${safe}%,customer_phone.ilike.%${(canonicalPhone(safe) ?? safe).replace(/\D/g, "")}%`)
       : query.ilike("customer_name", `%${safe}%`);
   }
   const [{ data, error }, now] = await Promise.all([query, requestTime()]);

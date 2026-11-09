@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { MapPin, MessageCircle, Ruler } from "lucide-react";
+import { Gift, MapPin, MessageCircle, Ruler } from "lucide-react";
 import { Logo } from "@/components/store/Logo";
 import { Wave } from "@/components/store/Dividers";
 import { SearchBox } from "@/components/store/SearchBox";
@@ -10,7 +10,7 @@ import { WhatsAppFloat } from "@/components/store/WhatsAppFloat";
 import { SourceTracker } from "@/components/store/SourceTracker";
 import { Toaster } from "@/components/store/Toaster";
 import { Analytics } from "@/components/store/Analytics";
-import { getBranches, getCategories, getPolicies, getStoreSettings } from "@/lib/catalog";
+import { getBranches, getCampaign, getCategories, getPolicies, getStoreSettings } from "@/lib/catalog";
 import { whatsappLink } from "@/lib/format";
 import { POLICY_PATHS } from "@/lib/site";
 import { displayPhone, telHref } from "@/lib/maps";
@@ -21,7 +21,7 @@ async function topCategories() {
 
 // شريط الأقسام (للشاشات الكبيرة): يمرر أفقياً عند الحاجة ولا يلتصق بالأعلى
 async function CategoryNav() {
-  const categories = await topCategories();
+  const [categories, campaign] = await Promise.all([topCategories(), getCampaign()]);
   return (
     <ul className="no-scrollbar flex items-center gap-7 overflow-x-auto whitespace-nowrap text-[0.9rem]">
       <li><Link href="/products" className="block py-3 font-medium text-charcoal transition-colors hover:text-gold-ink">كل المنتجات</Link></li>
@@ -30,7 +30,14 @@ async function CategoryNav() {
           <Link href={`/category/${encodeURIComponent(c.slug)}`} className="block py-3 text-muted-ink transition-colors hover:text-charcoal">{c.name}</Link>
         </li>
       ))}
-      <li className="ms-auto">
+      {campaign.current && (
+        <li className="ms-auto">
+          <Link href="/campaign" className="flex items-center gap-1.5 py-3 font-medium text-gold-ink transition-colors hover:text-charcoal">
+            <Gift aria-hidden="true" strokeWidth={1.6} className="h-4 w-4" />تسوّق واربح
+          </Link>
+        </li>
+      )}
+      <li className={campaign.current ? "" : "ms-auto"}>
         <Link href="/branches" className="flex items-center gap-1.5 py-3 text-muted-ink transition-colors hover:text-charcoal">
           <MapPin aria-hidden="true" strokeWidth={1.6} className="h-4 w-4" />فروعنا
         </Link>
@@ -71,6 +78,7 @@ async function PolicyLinks() {
     <ul className="space-y-2.5">
       {links.map((l) => <li key={l.href}><Link href={l.href} className="transition-colors hover:text-warm-white">{l.title}</Link></li>)}
       <li><Link href="/branches" className="transition-colors hover:text-warm-white">فروعنا</Link></li>
+      <li><Link href="/campaign" className="transition-colors hover:text-warm-white">تسوّق واربح</Link></li>
       <li><Link href="/special-order" className="transition-colors hover:text-warm-white">طلب حسب المقاس</Link></li>
       <li><Link href="/track" className="transition-colors hover:text-warm-white">طلباتي</Link></li>
     </ul>

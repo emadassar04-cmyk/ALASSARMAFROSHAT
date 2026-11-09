@@ -1,3 +1,5 @@
+import { internationalPhone } from "./phone";
+
 const ils = new Intl.NumberFormat("ar", {
   style: "currency",
   currency: "ILS",
@@ -17,9 +19,9 @@ export function formatPrice(value: number | string | null | undefined): string {
   return Number.isInteger(n) ? ils.format(n) : ils2.format(n);
 }
 
-// رابط WhatsApp بنص مسبق (الرقم بصيغة دولية بلا رموز)
+// رابط WhatsApp بنص مسبق. يقبل الرقم المحلي (0599…) أو الدولي ويحوّله للصيغة الدولية
 export function whatsappLink(number: string | null | undefined, text: string): string | null {
-  const digits = (number ?? "").replace(/\D/g, "");
+  const digits = internationalPhone(number);
   if (!digits) return null;
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }

@@ -13,6 +13,8 @@ export type ProductCard = {
   image: { url: string; alt: string } | null;
   category: { slug: string; name: string } | null;
   created_at: string;
+  // الخيار الوحيد للمنتج القابل للإضافة مباشرة من البطاقة (null: منتج بعدة خيارات أو حسب المقاس)
+  quick_variant_id?: string | null;
 };
 
 export type Variant = {
@@ -156,4 +158,12 @@ export const ORDER_STATUS_LABEL: Record<string, string> = {
 
 export const PAYMENT_STATUS_LABEL: Record<string, string> = {
   unpaid: "لم يُدفع بعد", awaiting_review: "بانتظار مراجعة التحويل", paid: "مدفوع", rejected: "تحويل مرفوض", refunded: "مسترد",
+};
+
+export type CampaignInfo = {
+  current: null | {
+    slug: string; title: string; description: string | null; prize: string; prize_image_url: string | null;
+    terms: string; start_at: string; end_at: string; min_amount: number | null; entries: number;
+  };
+  last_winner: null | { title: string; prize: string; winner: string; drawn_at: string };
 };

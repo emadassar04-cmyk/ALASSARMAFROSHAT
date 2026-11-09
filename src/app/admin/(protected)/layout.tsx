@@ -9,6 +9,25 @@ export const instant = false;
 
 export const metadata: Metadata = { title: "لوحة الإدارة", robots: { index: false, follow: false } };
 
+const NAV: { href: string; label: string; perm?: string; strong?: boolean }[] = [
+  { href: "/admin", label: "الرئيسية", perm: "orders.read" },
+  { href: "/admin/sales", label: "تسجيل بيع", perm: "sales.record", strong: true },
+  { href: "/admin/orders", label: "الطلبات", perm: "orders.read" },
+  { href: "/admin/purchases", label: "المشتريات", perm: "sales.review" },
+  { href: "/admin/products", label: "المنتجات", perm: "catalog.manage" },
+  { href: "/admin/inventory", label: "المخزون والجرد", perm: "inventory.manage" },
+  { href: "/admin/reports", label: "التقارير", perm: "finance.read" },
+  { href: "/admin/expenses", label: "المصروفات", perm: "finance.manage" },
+  { href: "/admin/coupons", label: "الكوبونات", perm: "catalog.manage" },
+  { href: "/admin/customers", label: "العملاء", perm: "orders.read" },
+  { href: "/admin/campaigns", label: "حملة السحب", perm: "campaigns.manage" },
+  { href: "/admin/staff", label: "الموظفون", perm: "staff.manage" },
+  { href: "/admin/settings/delivery", label: "التوصيل والدفع", perm: "settings.manage" },
+  { href: "/admin/settings/branches", label: "الفروع", perm: "settings.manage" },
+  { href: "/admin/settings/marketing", label: "التسويق والسياسات", perm: "settings.manage" },
+  { href: "/admin/settings/integrations", label: "التكاملات", perm: "settings.manage" },
+];
+
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const staff = await requireStaff();
   return (
@@ -20,18 +39,10 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <p className="text-xs opacity-70">{staff.full_name ?? staff.email} · {staff.role_name}</p>
         </div>
         <nav aria-label="أقسام الإدارة" className="flex flex-wrap gap-x-4 gap-y-1 text-sm print:hidden">
-          <Link href="/admin" className="hover:text-gold-dark">الرئيسية</Link>
-          <Link href="/admin/orders" className="hover:text-gold-dark">الطلبات</Link>
-          <Link href="/admin/products" className="hover:text-gold-dark">المنتجات</Link>
-          <Link href="/admin/inventory" className="hover:text-gold-dark">المخزون والجرد</Link>
-          <Link href="/admin/reports" className="hover:text-gold-dark">التقارير</Link>
-          <Link href="/admin/expenses" className="hover:text-gold-dark">المصروفات</Link>
-          <Link href="/admin/coupons" className="hover:text-gold-dark">الكوبونات</Link>
-          <Link href="/admin/customers" className="hover:text-gold-dark">العملاء</Link>
-          <Link href="/admin/settings/delivery" className="hover:text-gold-dark">التوصيل والدفع</Link>
-          <Link href="/admin/settings/branches" className="hover:text-gold-dark">الفروع</Link>
-          <Link href="/admin/settings/marketing" className="hover:text-gold-dark">التسويق والسياسات</Link>
-          <Link href="/admin/settings/integrations" className="hover:text-gold-dark">التكاملات</Link>
+          {/* كل موظف يرى ما تسمح به صلاحياته فقط (والتحقق الفعلي في الخادم وقاعدة البيانات) */}
+          {NAV.filter((l) => !l.perm || staff.permissions.includes(l.perm)).map((l) => (
+            <Link key={l.href} href={l.href} className={`hover:text-gold-dark ${l.strong ? "font-bold text-gold-dark" : ""}`}>{l.label}</Link>
+          ))}
           <Link href="/" target="_blank" className="hover:text-gold-dark">المتجر ↗</Link>
         </nav>
         <form action={signOut}>

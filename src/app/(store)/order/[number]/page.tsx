@@ -22,10 +22,10 @@ async function OrderView({ params, searchParams }: PageProps<"/order/[number]">)
 
   if (!order) {
     return (
-      <div className="rounded-2xl border border-dashed border-gold/40 bg-white p-10 text-center">
-        <h1 className="text-xl font-bold">لم نجد هذا الطلب</h1>
-        <p className="mt-2 opacity-70">تأكد من فتح الرابط الكامل الذي ظهر بعد إرسال الطلب.</p>
-        <Link href="/track" className="mt-4 inline-block text-gold-dark underline">طلباتي على هذا الجهاز</Link>
+      <div className="rounded-[var(--radius-card)] border border-dashed border-gold/50 bg-white p-10 text-center">
+        <h1 className="text-title">لم نجد هذا الطلب</h1>
+        <p className="mt-2 text-muted-ink">تأكد من فتح الرابط الكامل الذي ظهر بعد إرسال الطلب.</p>
+        <Link href="/track" className="mt-4 inline-block text-gold-ink underline">طلباتي على هذا الجهاز</Link>
       </div>
     );
   }
@@ -39,23 +39,23 @@ async function OrderView({ params, searchParams }: PageProps<"/order/[number]">)
   return (
     <div className="space-y-6">
       {isNew && (
-        <div role="status" className="rounded-2xl bg-emerald-50 p-5 text-emerald-900">
-          <h1 className="text-xl font-bold">تم استلام طلبك ✓</h1>
+        <div role="status" className="rounded-[var(--radius-card)] border border-success/25 bg-success/8 p-5 text-charcoal">
+          <h1 className="text-title">تم استلام طلبك ✓</h1>
           <p className="mt-1">رقم الطلب: <strong dir="ltr">{order.order_number}</strong>. سنتواصل معك عبر WhatsApp لتأكيده.</p>
           <p className="mt-1 text-sm">احفظ هذه الصفحة لمتابعة حالة طلبك (محفوظة أيضاً في «طلباتي» على هذا الجهاز).</p>
         </div>
       )}
-      {!isNew && <h1 className="text-2xl font-bold">الطلب <span dir="ltr">{order.order_number}</span></h1>}
+      {!isNew && <h1 className="text-title">الطلب <span dir="ltr">{order.order_number}</span></h1>}
 
-      <section className="rounded-2xl border border-gold/20 bg-white p-5">
-        <h2 className="mb-1 font-bold">حالة الطلب</h2>
-        <p className="mb-4 text-gold-dark">{ORDER_STATUS_LABEL[order.status]}</p>
+      <section className="panel p-5">
+        <h2 className="mb-1 font-semibold">حالة الطلب</h2>
+        <p className="mb-4 text-gold-ink">{ORDER_STATUS_LABEL[order.status]}</p>
         {order.status !== "cancelled" && (
           <ol className="grid grid-cols-5 gap-1 text-center text-xs">
             {flow.map((s) => (
               <li key={s} className="space-y-1">
                 <span className={`mx-auto block h-2 rounded-full ${reached.has(s) ? "bg-gold" : "bg-beige"}`} />
-                <span className={reached.has(s) ? "" : "opacity-50"}>{ORDER_STATUS_LABEL[s].replace("تم ", "")}</span>
+                <span className={reached.has(s) ? "" : "text-muted-ink"}>{ORDER_STATUS_LABEL[s].replace("تم ", "")}</span>
               </li>
             ))}
           </ol>
@@ -63,13 +63,13 @@ async function OrderView({ params, searchParams }: PageProps<"/order/[number]">)
       </section>
 
       {order.payment_method === "bank_transfer" && order.payment_status === "awaiting_review" && (
-        <p className="rounded-2xl bg-beige p-4 text-sm">
+        <p className="rounded-[var(--radius-card)] bg-cream p-4 text-sm">
           اخترت الدفع بالتحويل البنكي: سنرسل لك بيانات الحساب عبر WhatsApp. لا يُعتمد الدفع إلا بعد مراجعة التحويل.
         </p>
       )}
 
-      <section className="rounded-2xl border border-gold/20 bg-white p-5">
-        <h2 className="mb-3 font-bold">المنتجات</h2>
+      <section className="panel p-5">
+        <h2 className="mb-3 font-semibold">المنتجات</h2>
         <ul className="space-y-2 text-sm">
           {order.items.map((i, n) => (
             <li key={n} className="flex justify-between gap-2">
@@ -78,30 +78,30 @@ async function OrderView({ params, searchParams }: PageProps<"/order/[number]">)
             </li>
           ))}
         </ul>
-        <dl className="mt-4 space-y-1 border-t border-gold/20 pt-3 text-sm">
+        <dl className="mt-4 space-y-1 border-t border-border pt-3 text-sm">
           <div className="flex justify-between"><dt>المنتجات</dt><dd>{formatPrice(order.subtotal)}</dd></div>
-          {Number(order.discount) > 0 && <div className="flex justify-between text-emerald-700"><dt>الخصم</dt><dd>− {formatPrice(order.discount)}</dd></div>}
+          {Number(order.discount) > 0 && <div className="flex justify-between text-success"><dt>الخصم</dt><dd>− {formatPrice(order.discount)}</dd></div>}
           <div className="flex justify-between"><dt>التوصيل</dt><dd>{order.fulfillment === "pickup" ? "استلام من المحل" : formatPrice(order.delivery_fee)}</dd></div>
-          <div className="flex justify-between text-base font-bold"><dt>الإجمالي</dt><dd>{formatPrice(order.total)}</dd></div>
-          <div className="flex justify-between opacity-70"><dt>الدفع</dt><dd>{PAYMENT_LABEL[order.payment_method]} — {PAYMENT_STATUS_LABEL[order.payment_status]}</dd></div>
+          <div className="flex justify-between text-base font-semibold"><dt>الإجمالي</dt><dd>{formatPrice(order.total)}</dd></div>
+          <div className="flex justify-between text-muted-ink"><dt>الدفع</dt><dd>{PAYMENT_LABEL[order.payment_method]} — {PAYMENT_STATUS_LABEL[order.payment_status]}</dd></div>
         </dl>
       </section>
 
       {wa && (
         <a href={wa} target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-3 font-medium text-white">
+          className="btn btn-whatsapp h-12">
           <WhatsAppIcon className="h-5 w-5" /> تواصل معنا بخصوص هذا الطلب
         </a>
       )}
-      <p className="text-center text-xs opacity-60">لتعديل العنوان أو المقاسات أو إلغاء الطلب قبل بدء التجهيز، تواصل معنا عبر WhatsApp.</p>
+      <p className="text-center text-xs text-muted-ink">لتعديل العنوان أو المقاسات أو إلغاء الطلب قبل بدء التجهيز، تواصل معنا عبر WhatsApp.</p>
     </div>
   );
 }
 
 export default function OrderPage(props: PageProps<"/order/[number]">) {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
-      <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-white" />}><OrderView {...props} /></Suspense>
+    <div className="shell max-w-3xl py-10">
+      <Suspense fallback={<div className="skeleton h-80 rounded-[var(--radius-card)]" />}><OrderView {...props} /></Suspense>
     </div>
   );
 }

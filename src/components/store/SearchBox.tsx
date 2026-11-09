@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { ProductCard } from "@/lib/catalog-types";
 import { formatPrice } from "@/lib/format";
+import { Search } from "lucide-react";
 
 // بحث فوري مع اقتراحات (صورة + سعر) أثناء الكتابة
 export function SearchBox() {
@@ -63,17 +64,15 @@ export function SearchBox() {
         aria-controls={listId}
         aria-autocomplete="list"
         maxLength={100}
-        className="w-full rounded-full border border-gold/30 bg-white py-2.5 ps-4 pe-11 text-sm focus:border-gold focus:outline-none"
+        className="h-11 w-full rounded-full border border-border bg-cream/70 ps-5 pe-12 text-[0.9rem] transition-colors placeholder:text-muted hover:border-[#ddd2bf] focus:border-gold focus:bg-white focus:outline-none focus:ring-3 focus:ring-gold/15 [&::-webkit-search-cancel-button]:hidden"
       />
-      <button type="submit" aria-label="بحث" className="absolute inset-y-0 end-0 flex w-11 items-center justify-center text-gold-dark">
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
-        </svg>
+      <button type="submit" aria-label="بحث" className="absolute inset-y-0 end-1 flex w-10 items-center justify-center text-charcoal">
+        <Search aria-hidden="true" strokeWidth={1.7} className="h-[1.15rem] w-[1.15rem]" />
       </button>
       {showList && (
-        <ul id={listId} role="listbox" className="absolute inset-x-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-gold/20 bg-white shadow-lg">
+        <ul id={listId} role="listbox" className="absolute inset-x-0 top-full z-40 mt-2 overflow-hidden rounded-[var(--radius-card)] border border-border bg-white shadow-lift">
           {visible.length === 0 ? (
-            <li className="p-4 text-center text-sm opacity-70">لا توجد اقتراحات. اضغط Enter للبحث.</li>
+            <li className="p-4 text-center text-sm text-muted-ink">لا توجد اقتراحات. اضغط Enter للبحث.</li>
           ) : (
             visible.map((p, i) => (
               <li key={p.id} role="option" aria-selected={i === active}>
@@ -81,16 +80,16 @@ export function SearchBox() {
                   href={`/product/${encodeURIComponent(p.slug)}`}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setOpen(false)}
-                  className={`flex items-center gap-3 p-2.5 ${i === active ? "bg-beige" : "hover:bg-beige/60"}`}
+                  className={`flex items-center gap-3 px-3 py-2.5 ${i === active ? "bg-cream" : "hover:bg-cream/70"}`}
                 >
                   {p.image ? (
                     // eslint-disable-next-line @next/next/no-img-element -- صورة مصغرة صغيرة في القائمة
-                    <img src={p.image.url} alt="" loading="lazy" className="h-11 w-11 rounded-lg object-cover" />
+                    <img src={p.image.url} alt="" loading="lazy" className="h-12 w-12 rounded-lg object-cover" />
                   ) : (
-                    <span className="h-11 w-11 rounded-lg bg-beige" aria-hidden="true" />
+                    <span className="h-12 w-12 rounded-lg bg-cream" aria-hidden="true" />
                   )}
                   <span className="flex-1 text-sm">{p.name}</span>
-                  <span className="text-sm font-medium">{p.requires_measurement ? "حسب المقاس" : formatPrice(p.price)}</span>
+                  <span className="text-sm font-semibold tabular-nums">{p.requires_measurement ? "حسب المقاس" : formatPrice(p.price)}</span>
                 </Link>
               </li>
             ))

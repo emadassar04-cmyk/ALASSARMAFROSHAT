@@ -45,16 +45,16 @@ async function DeliveryFacts() {
   return (
     <section aria-labelledby="zones" className="mt-10 space-y-6">
       <div>
-        <h2 id="zones" className="mb-3 text-lg font-bold">مناطق التوصيل ورسومها</h2>
+        <h2 id="zones" className="mb-3 font-sans text-base font-semibold">مناطق التوصيل ورسومها</h2>
         {zones.length ? (
-          <div className="overflow-x-auto rounded-2xl border border-gold/20 bg-white">
+          <div className="overflow-x-auto panel">
             <table className="w-full text-sm">
-              <thead className="bg-beige/60 text-right">
+              <thead className="bg-cream text-right">
                 <tr><th scope="col" className="p-3">المنطقة</th><th scope="col" className="p-3">رسوم التوصيل</th><th scope="col" className="p-3">مدة التوصيل</th></tr>
               </thead>
               <tbody>
                 {zones.map((z) => (
-                  <tr key={z.id} className="border-t border-gold/10">
+                  <tr key={z.id} className="border-t border-border">
                     <td className="p-3">{z.name}</td>
                     <td className="p-3">{Number(z.fee) === 0 ? "مجاني" : formatPrice(z.fee)}</td>
                     <td className="p-3">{z.eta_text ?? "—"}</td>
@@ -63,11 +63,11 @@ async function DeliveryFacts() {
               </tbody>
             </table>
           </div>
-        ) : <p className="opacity-70">سيتم إعلان مناطق التوصيل قريباً. للاستفسار تواصل معنا عبر WhatsApp.</p>}
+        ) : <p className="text-muted-ink">سيتم إعلان مناطق التوصيل قريباً. للاستفسار تواصل معنا عبر WhatsApp.</p>}
       </div>
       {methods.length > 0 && (
         <div>
-          <h2 className="mb-3 text-lg font-bold">طرق الدفع</h2>
+          <h2 className="mb-3 font-sans text-base font-semibold">طرق الدفع</h2>
           <ul className="list-disc space-y-1 ps-6">{methods.map((m) => <li key={m.code}>{m.name_ar}</li>)}</ul>
         </div>
       )}
@@ -80,16 +80,16 @@ async function PolicyContent({ params }: { params: Promise<{ slug: string }> }) 
   if (!r) notFound();
   return (
     <article>
-      <h1 className="mb-6 text-2xl font-bold">{r.policy?.title ?? TITLES[r.slug]}</h1>
+      <h1 className="mb-8 text-title">{r.policy?.title ?? TITLES[r.slug]}</h1>
       {r.policy ? (
         <>
           <PolicyBody text={r.policy.body} />
-          <p className="mt-8 text-xs opacity-60">
+          <p className="mt-8 text-xs text-muted-ink">
             آخر تحديث: {new Date(r.policy.updated_at).toLocaleDateString("ar", { numberingSystem: "latn", timeZone: "Asia/Gaza", dateStyle: "long" })}
           </p>
         </>
       ) : (
-        <p className="rounded-2xl border border-dashed border-gold/40 bg-white p-6 opacity-80">
+        <p className="rounded-[var(--radius-card)] border border-dashed border-gold/50 bg-white p-6 text-muted-ink">
           نعمل على إعداد هذه الصفحة. لأي استفسار تواصل معنا عبر WhatsApp.
         </p>
       )}
@@ -100,8 +100,8 @@ async function PolicyContent({ params }: { params: Promise<{ slug: string }> }) 
 
 export default function PolicyPage({ params }: PageProps<"/policies/[slug]">) {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-white" />}>
+    <div className="shell max-w-3xl py-10">
+      <Suspense fallback={<div className="skeleton h-64 rounded-[var(--radius-card)]" />}>
         <PolicyContent params={params} />
       </Suspense>
     </div>

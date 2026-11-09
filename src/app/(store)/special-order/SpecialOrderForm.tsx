@@ -22,15 +22,15 @@ export function SpecialOrderForm({ whatsapp, product }: { whatsapp: string | nul
     "(سأرسل صورة مرجعية في المحادثة إن وجدت)",
   ].filter(Boolean).join("\n");
   const href = whatsappLink(whatsapp, text);
-  const field = "w-full rounded-lg border border-gold/30 bg-white px-3 py-2 focus:border-gold focus:outline-none";
+  const field = "field";
 
   return (
-    <form className="space-y-4 rounded-2xl border border-gold/20 bg-white p-5" onSubmit={(e) => { e.preventDefault(); if (href) window.open(href, "_blank", "noopener"); }}>
+    <form className="panel space-y-5 p-5 sm:p-7" onSubmit={(e) => { e.preventDefault(); if (href) window.open(href, "_blank", "noopener"); }}>
       <label className="block space-y-1 text-sm"><span>نوع المنتج</span>
         <select value={form.type} onChange={set("type")} className={field}>{TYPES.map((t) => <option key={t}>{t}</option>)}</select>
       </label>
-      <fieldset className="space-y-1 text-sm">
-        <legend>المقاس (العرض × الارتفاع أو الطول)</legend>
+      <fieldset className="space-y-1.5 text-sm">
+        <legend className="mb-1.5 font-medium">المقاس (العرض × الارتفاع أو الطول)</legend>
         <div className="flex gap-2">
           <input required inputMode="decimal" placeholder="العرض" value={form.width} onChange={set("width")} className={field} aria-label="العرض" />
           <input required inputMode="decimal" placeholder="الارتفاع / الطول" value={form.height} onChange={set("height")} className={field} aria-label="الارتفاع أو الطول" />
@@ -45,13 +45,13 @@ export function SpecialOrderForm({ whatsapp, product }: { whatsapp: string | nul
       <label className="block space-y-1 text-sm"><span>تفاصيل إضافية</span>
         <textarea rows={3} value={form.details} onChange={set("details")} className={field} placeholder="مثال: ستارة مزدوجة مع بطانة معتمة" />
       </label>
-      <p className="text-xs opacity-70">لا نعرض سعراً تقديرياً: يحدد فريقنا السعر النهائي بعد مراجعة المقاسات. يمكنك إرفاق صورة مرجعية في محادثة WhatsApp.</p>
+      <p className="text-xs text-muted-ink">لا نعرض سعراً تقديرياً: يحدد فريقنا السعر النهائي بعد مراجعة المقاسات. يمكنك إرفاق صورة مرجعية في محادثة WhatsApp.</p>
       {href ? (
-        <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-3 font-medium text-white">
+        <button className="btn btn-whatsapp w-full h-12">
           <WhatsAppIcon className="h-5 w-5" /> أرسل الطلب عبر WhatsApp
         </button>
       ) : (
-        <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">رقم WhatsApp للمتجر لم يُضبط بعد. يرجى المحاولة لاحقاً.</p>
+        <p role="status" className="rounded-[var(--radius-control)] bg-warning/10 p-3 text-sm text-warning">رقم WhatsApp للمتجر لم يُضبط بعد. يرجى المحاولة لاحقاً.</p>
       )}
     </form>
   );

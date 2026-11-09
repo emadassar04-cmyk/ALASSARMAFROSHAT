@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ListingSkeleton, ProductListing } from "@/components/store/ProductListing";
+import { PageHeader } from "@/components/store/Breadcrumbs";
 
 export const metadata: Metadata = {
   title: "كل المنتجات",
@@ -10,11 +11,14 @@ export const metadata: Metadata = {
 
 export default function ProductsPage({ searchParams }: PageProps<"/products">) {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">كل المنتجات</h1>
-      <Suspense fallback={<ListingSkeleton />}>
-        <ProductListing searchParams={searchParams} base="/products" emptyText="لا توجد منتجات مطابقة حالياً." />
-      </Suspense>
-    </div>
+    <>
+      <PageHeader title="كل المنتجات" crumbs={[{ name: "الرئيسية", href: "/" }, { name: "كل المنتجات" }]}
+        intro="السجاد والموكيت، الستائر، المراتب، البطانيات واللحف، الشراشف والمخدات — كل منتجات المتجر في مكان واحد." />
+      <div className="shell py-8 md:py-10">
+        <Suspense fallback={<ListingSkeleton />}>
+          <ProductListing searchParams={searchParams} base="/products" emptyText="لا توجد منتجات مطابقة حالياً." />
+        </Suspense>
+      </div>
+    </>
   );
 }

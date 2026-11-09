@@ -11,9 +11,9 @@ export function MyOrders() {
   const orders = useSyncExternalStore(subscribe, read, () => []);
   if (!orders.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-gold/40 bg-white p-8 text-center text-sm">
+      <div className="rounded-[var(--radius-card)] border border-dashed border-gold/50 bg-white p-8 text-center text-sm leading-7">
         <p>لا توجد طلبات محفوظة على هذا الجهاز.</p>
-        <p className="mt-2 opacity-70">إن أرسلت طلباً من جهاز آخر، افتح رابط الطلب الذي ظهر لك بعد الإرسال، أو تواصل معنا عبر WhatsApp برقم الطلب.</p>
+        <p className="mt-2 text-muted-ink">إن أرسلت طلباً من جهاز آخر، افتح رابط الطلب الذي ظهر لك بعد الإرسال، أو تواصل معنا عبر WhatsApp برقم الطلب.</p>
       </div>
     );
   }
@@ -22,9 +22,9 @@ export function MyOrders() {
       {orders.map((o) => (
         <li key={o.number}>
           <Link href={`/order/${encodeURIComponent(o.number)}?t=${o.token}`}
-            className="flex justify-between rounded-xl border border-gold/20 bg-white p-4 hover:border-gold">
+            className="panel flex justify-between p-4 transition-colors hover:border-gold">
             <span dir="ltr" className="font-medium">{o.number}</span>
-            <span className="text-sm opacity-70">{new Date(o.at).toLocaleDateString("ar", { numberingSystem: "latn" })}</span>
+            <span className="text-sm text-muted-ink">{new Date(o.at).toLocaleDateString("ar", { numberingSystem: "latn" })}</span>
           </Link>
         </li>
       ))}

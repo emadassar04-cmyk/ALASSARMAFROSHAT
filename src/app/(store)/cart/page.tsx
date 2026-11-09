@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getStoreSettings } from "@/lib/catalog";
 import { CartView } from "./CartView";
+import { PageHeader } from "@/components/store/Breadcrumbs";
 
 export const metadata: Metadata = { title: "السلة", robots: { index: false } };
 
@@ -12,9 +13,11 @@ async function Cart() {
 
 export default function CartPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">سلة التسوق</h1>
-      <Suspense fallback={<div className="h-40 animate-pulse rounded-2xl bg-white" />}><Cart /></Suspense>
-    </div>
+    <>
+      <PageHeader title="سلة التسوق" />
+      <div className="shell py-8 md:py-10">
+        <Suspense fallback={<div className="skeleton h-40 rounded-[var(--radius-card)]" />}><Cart /></Suspense>
+      </div>
+    </>
   );
 }

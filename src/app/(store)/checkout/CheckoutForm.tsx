@@ -25,7 +25,7 @@ const COUPON_REASON: Record<string, string> = {
   customer_limit_reached: "استخدمت هذا الكود من قبل",
 };
 
-const field = "w-full rounded-lg border border-gold/30 bg-white px-3 py-2.5 focus:border-gold focus:outline-none aria-[invalid=true]:border-red-500";
+const field = "field";
 
 export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; methods: PaymentMethod[]; whatsapp: string | null }) {
   const router = useRouter();
@@ -70,9 +70,9 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
 
   if (!items.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-gold/40 bg-white p-10 text-center">
+      <div className="mx-auto max-w-md py-10 text-center">
         <p>سلتك فارغة.</p>
-        <Link href="/products" className="mt-4 inline-block rounded-full bg-gold px-6 py-2.5 text-white">تصفح المنتجات</Link>
+        <Link href="/products" className="btn btn-primary mt-6">تصفح المنتجات</Link>
       </div>
     );
   }
@@ -109,38 +109,38 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
 
   const invalid = (f: string) => (error?.field === f ? true : undefined);
   return (
-    <form onSubmit={submit} className="grid gap-6 lg:grid-cols-[1fr_22rem]" noValidate>
+    <form onSubmit={submit} className="grid gap-8 lg:grid-cols-[1fr_23rem] lg:gap-12" noValidate>
       <div className="space-y-5">
-        <fieldset className="space-y-3 rounded-2xl border border-gold/20 bg-white p-5">
-          <legend className="px-1 font-bold">بياناتك</legend>
-          <label className="block space-y-1 text-sm"><span>الاسم الكامل *</span>
+        <fieldset className="space-y-3 panel p-5 sm:p-6">
+          <legend className="px-1.5 font-sans text-base font-semibold">بياناتك</legend>
+          <label className="block space-y-1.5 text-sm"><span className="font-medium">الاسم الكامل *</span>
             <input required autoComplete="name" maxLength={100} value={form.name} onChange={(e) => set("name", e.target.value)}
               aria-invalid={invalid("customer_name")} className={field} /></label>
-          <label className="block space-y-1 text-sm"><span>رقم الهاتف (WhatsApp) *</span>
+          <label className="block space-y-1.5 text-sm"><span className="font-medium">رقم الهاتف (WhatsApp) *</span>
             <input required type="tel" inputMode="tel" autoComplete="tel" dir="ltr" maxLength={20} value={form.phone}
               onChange={(e) => set("phone", e.target.value)} placeholder="0599123456" aria-invalid={invalid("phone")} className={`${field} text-right`} /></label>
         </fieldset>
 
-        <fieldset className="space-y-3 rounded-2xl border border-gold/20 bg-white p-5">
-          <legend className="px-1 font-bold">طريقة الاستلام</legend>
+        <fieldset className="space-y-3 panel p-5 sm:p-6">
+          <legend className="px-1.5 font-sans text-base font-semibold">طريقة الاستلام</legend>
           <div className="grid grid-cols-2 gap-2">
             {([["delivery", "توصيل للعنوان"], ["pickup", "استلام من المحل"]] as const).map(([v, l]) => (
-              <label key={v} className={`cursor-pointer rounded-lg border p-3 text-center text-sm ${form.fulfillment === v ? "border-gold bg-beige" : "border-gold/30"}`}>
+              <label key={v} className={`cursor-pointer rounded-[var(--radius-control)] border p-3.5 text-center text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold ${form.fulfillment === v ? "border-charcoal bg-cream font-medium" : "border-border hover:border-[#ddd2bf]"}`}>
                 <input type="radio" name="fulfillment" value={v} checked={form.fulfillment === v} onChange={() => set("fulfillment", v)} className="sr-only" />{l}
               </label>
             ))}
           </div>
           {form.fulfillment === "delivery" && (
             zones.length === 0 ? (
-              <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">التوصيل غير متاح حالياً. اختر الاستلام من المحل أو تواصل معنا.</p>
+              <p className="rounded-[var(--radius-control)] bg-warning/10 p-3 text-sm text-warning">التوصيل غير متاح حالياً. اختر الاستلام من المحل أو تواصل معنا.</p>
             ) : (
               <>
-                <label className="block space-y-1 text-sm"><span>المنطقة *</span>
+                <label className="block space-y-1.5 text-sm"><span className="font-medium">المنطقة *</span>
                   <select required value={form.zone} onChange={(e) => set("zone", e.target.value)} aria-invalid={invalid("delivery_zone_id")} className={field}>
                     <option value="">اختر المنطقة</option>
                     {zones.map((z) => <option key={z.id} value={z.id}>{z.name} — {formatPrice(z.fee)}{z.eta_text ? ` (${z.eta_text})` : ""}</option>)}
                   </select></label>
-                <label className="block space-y-1 text-sm"><span>العنوان بالتفصيل *</span>
+                <label className="block space-y-1.5 text-sm"><span className="font-medium">العنوان بالتفصيل *</span>
                   <textarea required rows={2} maxLength={500} value={form.address} onChange={(e) => set("address", e.target.value)}
                     placeholder="الحي، الشارع، علامة مميزة" aria-invalid={invalid("address")} className={field} /></label>
               </>
@@ -148,41 +148,41 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
           )}
         </fieldset>
 
-        <fieldset className="space-y-3 rounded-2xl border border-gold/20 bg-white p-5">
-          <legend className="px-1 font-bold">طريقة الدفع</legend>
+        <fieldset className="space-y-3 panel p-5 sm:p-6">
+          <legend className="px-1.5 font-sans text-base font-semibold">طريقة الدفع</legend>
           {allowedMethods.map((m) => (
-            <label key={m.code} className={`block cursor-pointer rounded-lg border p-3 text-sm ${payment === m.code ? "border-gold bg-beige" : "border-gold/30"}`}>
+            <label key={m.code} className={`block cursor-pointer rounded-[var(--radius-control)] border p-3.5 text-sm transition-colors ${payment === m.code ? "border-charcoal bg-cream" : "border-border hover:border-[#ddd2bf]"}`}>
               <span className="flex items-center gap-2">
-                <input type="radio" name="payment" value={m.code} checked={payment === m.code} onChange={() => set("payment", m.code)} className="accent-[var(--gold)]" />
+                <input type="radio" name="payment" value={m.code} checked={payment === m.code} onChange={() => set("payment", m.code)} className="h-4 w-4 accent-[var(--charcoal)]" />
                 <span className="font-medium">{m.name_ar}</span>
               </span>
-              {payment === m.code && m.instructions && <span className="mt-1 block opacity-80">{m.instructions}</span>}
+              {payment === m.code && m.instructions && <span className="mt-1.5 block leading-6 text-muted-ink">{m.instructions}</span>}
             </label>
           ))}
-          <p className="text-xs opacity-60">لا يوجد دفع إلكتروني بالبطاقة.</p>
+          <p className="text-xs text-muted-ink">لا يوجد دفع إلكتروني بالبطاقة.</p>
         </fieldset>
 
-        <label className="block space-y-1 text-sm"><span>ملاحظات على الطلب (اختياري)</span>
+        <label className="block space-y-1.5 text-sm"><span className="font-medium">ملاحظات على الطلب (اختياري)</span>
           <textarea rows={2} maxLength={1000} value={form.notes} onChange={(e) => set("notes", e.target.value)} className={field} /></label>
 
         <div className="space-y-2 text-sm">
           <label className="flex items-start gap-2">
-            <input type="checkbox" checked={form.terms} onChange={(e) => set("terms", e.target.checked)} aria-invalid={invalid("terms_accepted")} className="mt-1 accent-[var(--gold)]" />
-            <span>
-              أوافق على <Link href="/policies/delivery" target="_blank" className="text-gold-dark underline">سياسة التوصيل</Link>
-              {" "}و<Link href="/policies/returns" target="_blank" className="text-gold-dark underline">سياسة الاستبدال والإرجاع</Link>
-              {" "}و<Link href="/policies/privacy" target="_blank" className="text-gold-dark underline">سياسة الخصوصية</Link>. *
+            <input type="checkbox" checked={form.terms} onChange={(e) => set("terms", e.target.checked)} aria-invalid={invalid("terms_accepted")} className="mt-1 h-4 w-4 accent-[var(--charcoal)]" />
+            <span className="leading-6">
+              أوافق على <Link href="/policies/delivery" target="_blank" className="text-gold-ink underline underline-offset-4">سياسة التوصيل</Link>
+              {" "}و<Link href="/policies/returns" target="_blank" className="text-gold-ink underline underline-offset-4">سياسة الاستبدال والإرجاع</Link>
+              {" "}و<Link href="/policies/privacy" target="_blank" className="text-gold-ink underline underline-offset-4">سياسة الخصوصية</Link>. *
             </span>
           </label>
           <label className="flex items-start gap-2">
-            <input type="checkbox" checked={form.marketing} onChange={(e) => set("marketing", e.target.checked)} className="mt-1 accent-[var(--gold)]" />
-            <span>أوافق على استلام العروض عبر WhatsApp (اختياري، ويمكن الإلغاء في أي وقت).</span>
+            <input type="checkbox" checked={form.marketing} onChange={(e) => set("marketing", e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--charcoal)]" />
+            <span className="leading-6">أوافق على استلام العروض عبر WhatsApp (اختياري، ويمكن الإلغاء في أي وقت).</span>
           </label>
         </div>
       </div>
 
-      <aside className="h-fit space-y-4 rounded-2xl border border-gold/20 bg-white p-5 lg:sticky lg:top-32">
-        <h2 className="font-bold">ملخص الطلب</h2>
+      <aside className="panel h-fit space-y-4 p-6 lg:sticky lg:top-28">
+        <h2 className="font-sans text-base font-semibold">ملخص الطلب</h2>
         <ul className="space-y-2 text-sm">
           {items.map((i) => {
             const l = byVariant.get(i.variantId);
@@ -190,40 +190,40 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
             return (
               <li key={i.variantId} className="flex justify-between gap-2">
                 <span>{l?.product.name ?? "…"} × {i.qty}
-                  {q?.problem && <span className="block text-xs text-red-700">{PROBLEM[q.problem]}</span>}</span>
-                <span>{q?.line_total != null ? formatPrice(q.line_total) : ""}</span>
+                  {q?.problem && <span className="block text-xs text-danger">{PROBLEM[q.problem]}</span>}</span>
+                <span className="tabular-nums">{q?.line_total != null ? formatPrice(q.line_total) : ""}</span>
               </li>
             );
           })}
         </ul>
         {problems.length > 0 && (
-          <p role="alert" className="rounded-lg bg-red-50 p-2 text-xs text-red-800">
+          <p role="alert" className="rounded-[var(--radius-control)] bg-danger/8 p-2.5 text-xs text-danger">
             بعض المنتجات تحتاج تعديلاً. <Link href="/cart" className="underline">عدّل السلة</Link>
           </p>
         )}
         <div className="flex gap-2">
           <input value={form.coupon} onChange={(e) => set("coupon", e.target.value.toUpperCase())} placeholder="كود الخصم" maxLength={32}
-            aria-label="كود الخصم" aria-invalid={invalid("coupon_code")} className={`${field} py-2 text-sm`} dir="ltr" />
-          <button type="button" onClick={() => setAppliedCoupon(form.coupon.trim())} className="rounded-lg border border-gold px-3 text-sm text-gold-dark">تطبيق</button>
+            aria-label="كود الخصم" aria-invalid={invalid("coupon_code")} className={`${field} text-sm`} dir="ltr" />
+          <button type="button" onClick={() => setAppliedCoupon(form.coupon.trim())} className="btn btn-outline shrink-0 !px-4">تطبيق</button>
         </div>
         {quote?.coupon && (
-          <p role="status" className={`text-xs ${quote.coupon.valid ? "text-emerald-700" : "text-red-700"}`}>
+          <p role="status" className={`text-xs ${quote.coupon.valid ? "text-success" : "text-danger"}`}>
             {quote.coupon.valid ? `تم تطبيق ${quote.coupon.code}` : COUPON_REASON[quote.coupon.reason ?? ""] ?? "الكود غير صالح"}
           </p>
         )}
-        <dl className="space-y-1 border-t border-gold/20 pt-3 text-sm">
+        <dl className="space-y-2 border-t border-border pt-4 text-sm tabular-nums">
           <div className="flex justify-between"><dt>المنتجات</dt><dd>{quote ? formatPrice(quote.subtotal) : "…"}</dd></div>
           {!!quote?.discount && Number(quote.discount) > 0 && (
-            <div className="flex justify-between text-emerald-700"><dt>الخصم</dt><dd>− {formatPrice(quote.discount)}</dd></div>)}
+            <div className="flex justify-between text-success"><dt>الخصم</dt><dd>− {formatPrice(quote.discount)}</dd></div>)}
           <div className="flex justify-between"><dt>التوصيل</dt>
             <dd>{form.fulfillment === "pickup" ? "مجاني" : form.zone ? formatPrice(quote?.delivery_fee) : "اختر المنطقة"}</dd></div>
-          <div className="flex justify-between border-t border-gold/20 pt-2 text-base font-bold"><dt>الإجمالي</dt><dd>{quote ? formatPrice(quote.total) : "…"}</dd></div>
+          <div className="flex justify-between border-t border-border pt-3 text-base font-semibold"><dt>الإجمالي</dt><dd>{quote ? formatPrice(quote.total) : "…"}</dd></div>
         </dl>
-        {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error.message}</p>}
-        <button disabled={!canSubmit} className="w-full rounded-lg bg-gold px-4 py-3 font-medium text-white hover:bg-gold-dark disabled:opacity-50">
+        {error && <p role="alert" className="rounded-[var(--radius-control)] bg-danger/8 p-3 text-sm text-danger">{error.message}</p>}
+        <button disabled={!canSubmit} className="btn btn-primary h-13 w-full text-base">
           {pending ? "جارٍ إرسال الطلب…" : "إرسال الطلب"}
         </button>
-        <p className="text-xs opacity-70">
+        <p className="text-xs leading-5 text-muted-ink">
           نحجز لك المنتجات لمدة {!quote || quote.reservation_minutes === 120 ? "ساعتين" : `${quote.reservation_minutes} دقيقة`}، ونتواصل معك عبر WhatsApp لتأكيد الطلب.
         </p>
       </aside>

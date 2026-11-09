@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { GitCompareArrows } from "lucide-react";
 import { compare, MAX_COMPARE, useStore } from "@/lib/store/local-store";
 import { useProducts } from "@/lib/store/use-catalog";
 import { AVAILABILITY_LABEL, type ProductDetail } from "@/lib/catalog-types";
@@ -11,13 +12,15 @@ export function CompareTable() {
   const products = useProducts(list.map((p) => p.slug));
   if (!list.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-gold/40 bg-white p-10 text-center">
-        <p>أضف حتى {MAX_COMPARE} منتجات للمقارنة بالضغط على زر «قارن».</p>
-        <Link href="/products" className="mt-4 inline-block text-gold-dark underline">تصفح المنتجات</Link>
+      <div className="mx-auto max-w-md py-10 text-center">
+        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-cream text-gold-ink"><GitCompareArrows aria-hidden="true" strokeWidth={1.4} className="h-7 w-7" /></span>
+        <p className="mt-5 font-display text-xl">لا توجد منتجات للمقارنة</p>
+        <p className="mt-2 text-sm text-muted-ink">أضف حتى {MAX_COMPARE} منتجات بالضغط على أيقونة المقارنة في بطاقة المنتج.</p>
+        <Link href="/products" className="btn btn-primary mt-6">تصفح المنتجات</Link>
       </div>
     );
   }
-  if (!products) return <div className="h-40 animate-pulse rounded-2xl bg-white" aria-busy="true" />;
+  if (!products) return <div className="skeleton h-40 rounded-[var(--radius-card)]" aria-busy="true" />;
 
   const rows: [string, (p: ProductDetail) => React.ReactNode][] = [
     ["السعر", (p) => (p.requires_measurement ? "حسب المقاس" : formatPrice(p.price))],
@@ -30,17 +33,17 @@ export function CompareTable() {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[36rem] border-separate border-spacing-2 text-sm">
+      <table className="w-full min-w-[36rem] border-collapse text-sm">
         <thead>
           <tr>
-            <th scope="col" className="w-28" />
+            <th scope="col" className="w-32" />
             {products.map((p) => (
-              <th key={p.id} scope="col" className="align-top font-normal">
-                <Link href={`/product/${encodeURIComponent(p.slug)}`} className="block space-y-2">
-                  <ProductImage src={p.image?.url} alt={p.name} sizes="200px" className="aspect-square w-full rounded-xl" />
-                  <span className="block font-medium">{p.name}</span>
+              <th key={p.id} scope="col" className="px-3 pb-5 align-top font-normal">
+                <Link href={`/product/${encodeURIComponent(p.slug)}`} className="block space-y-3">
+                  <ProductImage src={p.image?.url} alt={p.name} sizes="240px" className="aspect-[4/5] w-full rounded-[var(--radius-card)]" />
+                  <span className="block font-medium text-charcoal">{p.name}</span>
                 </Link>
-                <button type="button" onClick={() => compare.toggle({ id: p.id, slug: p.slug })} className="mt-1 text-xs text-red-700 hover:underline">إزالة</button>
+                <button type="button" onClick={() => compare.toggle({ id: p.id, slug: p.slug })} className="mt-2 text-xs text-muted-ink underline-offset-4 hover:text-danger hover:underline">إزالة</button>
               </th>
             ))}
           </tr>
@@ -48,13 +51,13 @@ export function CompareTable() {
         <tbody>
           {rows.map(([label, render]) => (
             <tr key={label}>
-              <th scope="row" className="rounded-lg bg-beige p-2 text-start font-medium">{label}</th>
-              {products.map((p) => <td key={p.id} className="rounded-lg bg-white p-2">{render(p)}</td>)}
+              <th scope="row" className="border-t border-border p-3 text-start font-medium text-muted-ink">{label}</th>
+              {products.map((p) => <td key={p.id} className="border-t border-border p-3">{render(p)}</td>)}
             </tr>
           ))}
         </tbody>
       </table>
-      <button type="button" onClick={() => compare.clear()} className="mt-4 text-sm underline">مسح المقارنة</button>
+      <button type="button" onClick={() => compare.clear()} className="btn btn-outline mt-6">مسح المقارنة</button>
     </div>
   );
 }

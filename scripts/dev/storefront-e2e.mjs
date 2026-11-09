@@ -35,7 +35,7 @@ page.on("pageerror", (e) => consoleErrors.push(e.message));
 
 await check("الرئيسية: العنوان والتصنيفات السبعة وأقسام المنتجات", async () => {
   await page.goto(url("/"));
-  assert((await page.locator("h1").first().textContent()).includes("فخامة"), "h1");
+  assert((await page.locator("h1").first().textContent()).includes("كل تفاصيل بيتك"), "h1");
   await page.getByRole("heading", { name: "منتجات مميزة" }).waitFor();
   assert(await page.locator('section[aria-labelledby="cats"] li').count() === 7, "7 categories");
   assert(await page.locator("article").count() >= 4, "product cards");

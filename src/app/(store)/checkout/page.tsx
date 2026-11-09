@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getCheckoutOptions, getStoreSettings } from "@/lib/catalog";
 import { CheckoutForm } from "./CheckoutForm";
+import { PageHeader } from "@/components/store/Breadcrumbs";
 
 export const metadata: Metadata = { title: "إتمام الطلب", robots: { index: false } };
 
@@ -12,9 +13,11 @@ async function Checkout() {
 
 export default function CheckoutPage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">إتمام الطلب</h1>
-      <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-white" />}><Checkout /></Suspense>
-    </div>
+    <>
+      <PageHeader title="إتمام الطلب" crumbs={[{ name: "السلة", href: "/cart" }, { name: "إتمام الطلب" }]} />
+      <div className="shell py-8 md:py-10">
+        <Suspense fallback={<div className="skeleton h-96 rounded-[var(--radius-card)]" />}><Checkout /></Suspense>
+      </div>
+    </>
   );
 }

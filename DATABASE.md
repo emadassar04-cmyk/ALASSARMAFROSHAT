@@ -21,6 +21,12 @@
 | `0014_finance` | `expenses` (إلغاء لا حذف)، `stocktakes`، `finance_report`، `admin_dashboard`، `set_customer_tier` |
 | `0015_marketing_policies` | `store_policies` (3 صفحات ثابتة، لا نشر لنص فارغ أو فيه خانات `[ ]`)، معرّفات GA4/Meta Pixel/Search Console في `store_settings`، `catalog_policies`، `catalog_sitemap`، `catalog_branches` |
 | `0016_branches_locations` | الفروع: المدينة والإحداثيات وترتيب العرض + قيود (رابط https، صيغة الهاتف، الإحداثيات معاً)؛ بيانات فرعي دير البلح (الرئيسي) والنصيرات؛ `catalog_branches` بالحقول الجديدة. المخزون والطلبات تبقى على الفرع الرئيسي |
+| `0017_branch_map_pins` | الإحداثيات الدقيقة للفرعين من روابط Google Maps التي أرسلها المالك |
+| `0018_customer_identity` | هوية العميل الموحدة برقم الجوال: صيغة واحدة `05XXXXXXXX` (`private.canonical_phone`)، تحويل العملاء والطلبات الموجودة بعد فحص التكرار، قيد `customers_phone_canonical`. الرقم **مُعرّف فقط وليس إثبات هوية** |
+| `0019_store_purchases` | مبيعات الفروع: صلاحيات `sales.record` / `sales.review` / `staff.manage` / `campaigns.manage`؛ جدول `store_purchases` (مُرسل ← معتمد / مرفوض / ملغى، مع سبب إلزامي للرفض والإلغاء)؛ `record_store_purchase` بمعرّف طلب فريد ضد التكرار + تنبيه «عملية مشابهة خلال دقيقتين»؛ المراجعة والتصحيح والاعتماد الجماعي؛ إدارة الموظفين |
+| `0020_unified_purchases` | سجل مشتريات موحد (طلبات الموقع + مبيعات الفروع) `admin_purchases` و`purchases_summary` — للمدير فقط |
+| `0021_campaigns` | حملة «تسوّق واربح»: `campaigns` و`campaign_entries` (فرصة واحدة لكل عملية: طلب «تم التسليم» أو بيع فرع «معتمد»، وتُلغى الفرصة عند الإلغاء/الرفض)؛ السحب بعد انتهاء الحملة فقط ومرة واحدة؛ إعلان الفائز برقم مخفي؛ `catalog_campaign` للواجهة |
+| `0022_storefront_offers` | `catalog_offers` (خصم فعلي ضمن فترته فقط) و`quick_variant_id` لزر «أضف للسلة» من البطاقة |
 
 ## تعريفات التقارير المالية
 - البيع يُحتسب عند **تأكيد** الطلب (بتوقيت فلسطين) ويُستبعد إن أُلغي لاحقاً.

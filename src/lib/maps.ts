@@ -33,7 +33,8 @@ export function displayPhone(phone: string) {
 export function coordsFromMapsUrl(url: string): { lat: number; lng: number } | null {
   const tries = [
     /!3d(-?\d{1,2}\.\d+)!4d(-?\d{1,3}\.\d+)/,                       // موقع المكان نفسه
-    /[?&](?:q|query|ll|destination|daddr)=(-?\d{1,2}\.\d+),\s*(-?\d{1,3}\.\d+)/,
+    /[?&](?:q|query|ll|destination|daddr)=(-?\d{1,2}\.\d+),\s*\+?(-?\d{1,3}\.\d+)/,
+    /\/maps\/(?:search|place|dir)\/(?:[^/]*\/)?(-?\d{1,2}\.\d+),[\s+]*(-?\d{1,3}\.\d+)/, // ‎/maps/search/31.41,+34.34 (الروابط المختصرة من التطبيق)
     /@(-?\d{1,2}\.\d+),(-?\d{1,3}\.\d+)/,                          // مركز الخريطة
   ];
   const decoded = decodeURIComponent(url);

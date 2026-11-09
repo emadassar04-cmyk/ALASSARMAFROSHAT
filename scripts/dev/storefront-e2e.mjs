@@ -247,11 +247,13 @@ await check("الفروع: صفحة «فروعنا» بالفرعين والعن
   assert(first.includes("فرع دير البلح") && first.includes("الفرع الرئيسي") && first.includes("دوار البركة"), first);
   assert((await cards.nth(1).textContent()).includes("مقابل Ooredoo"), "nuseirat address");
   assert(await page.locator('main a[href="tel:+970594793301"]').count() >= 2, "tel links");
-  const dir = await page.getByRole("link", { name: "الاتجاهات" }).first().getAttribute("href");
-  assert(dir.startsWith("https://www.google.com/maps/"), dir);
   await page.locator("main iframe[title^='موقع']").first().waitFor({ state: "attached" });
+  const dir = await page.getByRole("link", { name: "الاتجاهات" }).first().getAttribute("href");
+  assert(dir === "https://maps.app.goo.gl/FtsQN71RsBLmkqxD6", dir);
+  const src = await page.locator("main iframe[title^='موقع']").first().getAttribute("src");
+  assert(src.includes(encodeURIComponent("31.418326,34.349009")), src);
   const ld = (await page.locator('script[type="application/ld+json"]').allTextContents()).map((t) => JSON.parse(t));
-  assert(ld.some((d) => d["@graph"]?.length === 2 && d["@graph"][0].address.addressLocality === "دير البلح"), "branches ld");
+  assert(ld.some((d) => d["@graph"]?.length === 2 && d["@graph"][0].address.addressLocality === "دير البلح" && d["@graph"][1].geo?.latitude === 31.450171), "branches ld");
   await page.goto(url("/"));
   await page.getByRole("heading", { name: "فروعنا" }).waitFor();
   // في الرئيسية الخريطة لا تُحمَّل إلا عند الطلب

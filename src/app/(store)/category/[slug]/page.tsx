@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ListingSkeleton, ProductListing } from "@/components/store/ProductListing";
-import { getCategories } from "@/lib/catalog";
+import { getCategories, getStoreSettings } from "@/lib/catalog";
+import { JsonLd, breadcrumbLd } from "@/components/store/JsonLd";
 
 async function findCategory(params: Promise<{ slug: string }>) {
   const { slug } = await params;
@@ -17,14 +18,19 @@ export async function generateMetadata({ params }: PageProps<"/category/[slug]">
     title: c.name,
     description: c.description ?? `تسوق ${c.name} من مفروشات العصار في دير البلح والنصيرات.`,
     alternates: { canonical: `/category/${encodeURIComponent(c.slug)}` },
+    openGraph: { title: c.name, url: `/category/${encodeURIComponent(c.slug)}`, images: c.image_url ? [{ url: c.image_url, alt: c.name }] : undefined },
   };
 }
 
 async function CategoryContent({ params, searchParams }: PageProps<"/category/[slug]">) {
-  const c = await findCategory(params);
+  const [c, settings] = await Promise.all([findCategory(params), getStoreSettings()]);
   if (!c) notFound();
   return (
     <>
+      <JsonLd data={breadcrumbLd(settings.site_url, [
+        { name: "الرئيسية", path: "/" },
+        { name: c.name, path: `/category/${encodeURIComponent(c.slug)}` },
+      ])} />
       <h1 className="mb-2 text-2xl font-bold">{c.name}</h1>
       {c.description && <p className="mb-6 opacity-70">{c.description}</p>}
       <ProductListing searchParams={searchParams} base={`/category/${encodeURIComponent(c.slug)}`}

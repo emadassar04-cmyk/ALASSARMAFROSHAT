@@ -19,6 +19,7 @@
 | `0012_checkout` | `quote_order` (ملخص بلا كتابة)، `rate_limit_hit`، تعليمات الدفع |
 | `0013_telegram_notifications` | مفاتيح تكامل مجزأة، `notification_deliveries` لكل قناة، نصوص Telegram، التقرير اليومي |
 | `0014_finance` | `expenses` (إلغاء لا حذف)، `stocktakes`، `finance_report`، `admin_dashboard`، `set_customer_tier` |
+| `0015_marketing_policies` | `store_policies` (3 صفحات ثابتة، لا نشر لنص فارغ أو فيه خانات `[ ]`)، معرّفات GA4/Meta Pixel/Search Console في `store_settings`، `catalog_policies`، `catalog_sitemap`، `catalog_branches` |
 
 ## تعريفات التقارير المالية
 - البيع يُحتسب عند **تأكيد** الطلب (بتوقيت فلسطين) ويُستبعد إن أُلغي لاحقاً.
@@ -62,6 +63,7 @@
 المنتجات والتصنيفات والوسائط النشطة، ومناطق التوصيل، ووسائل الدفع والحسابات البنكية المفعلة، والإعدادات العامة.
 التوفر عبر `get_variant_availability` يعيد تصنيفاً فقط (`in_stock`/`limited`/`out_of_stock`/`made_to_order`/`coming_soon`/`unavailable`).
 التتبع عبر `track_order(رقم الطلب، الرمز السري)`؛ الرمز يُخزَّن مجزأً (sha256).
+السياسات المنشورة فقط (المسودات للموظفين). معرّفات GA4 وMeta Pixel عامة بطبيعتها (تظهر في كود الصفحة).
 **لا يصل الزائر إطلاقاً إلى:** التكاليف، الكميات، الطلبات، بنود الطلبات، العملاء، الكوبونات، السجلات.
 
 ## صندوق الأحداث (لـ n8n)
@@ -71,5 +73,5 @@
 
 ## جداول لم تُنشأ بعد (مراحل لاحقة)
 stocktakes/stocktake_items، expenses، returns، reviews، wishlists، carts، conversations/messages،
-notification_logs، analytics_events، abandoned_cart_events، content_sections، banners، store_policies،
+notification_logs، analytics_events، abandoned_cart_events، content_sections، banners،
 integration_settings، العروض المتدرجة (اشترِ أكثر ووفر أكثر).

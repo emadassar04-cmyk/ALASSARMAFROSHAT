@@ -5,10 +5,9 @@ import { Suspense } from "react";
 import { getProduct, getStoreSettings } from "@/lib/catalog";
 import { AVAILABILITY_LABEL } from "@/lib/catalog-types";
 import { ProductGrid } from "@/components/store/ProductCard";
+import { JsonLd, breadcrumbLd } from "@/components/store/JsonLd";
 import { Gallery } from "./Gallery";
 import { BuyBox } from "./BuyBox";
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://alassarnumber1.vercel.app";
 
 async function load(params: Promise<{ slug: string }>) {
   const { slug } = await params;
@@ -24,14 +23,16 @@ export async function generateMetadata({ params }: PageProps<"/product/[slug]">)
     title: p.seo_title ?? p.name,
     description,
     alternates: { canonical: `/product/${encodeURIComponent(p.slug)}` },
-    openGraph: { title: p.name, description, type: "website", images: image ? [{ url: image }] : undefined },
+    openGraph: { title: p.name, description, type: "website", url: `/product/${encodeURIComponent(p.slug)}`, images: image ? [{ url: image, alt: p.name }] : undefined },
   };
 }
 
 async function ProductContent({ params }: { params: Promise<{ slug: string }> }) {
   const [p, settings] = await Promise.all([load(params), getStoreSettings()]);
   if (!p) notFound();
-  const url = `${SITE}/product/${encodeURIComponent(p.slug)}`;
+  const site = settings.site_url;
+  const path = `/product/${encodeURIComponent(p.slug)}`;
+  const url = `${site}${path}`;
 
   // بيانات منظمة لمحركات البحث (بلا سعر لمنتجات القياس)
   const jsonLd = {
@@ -41,6 +42,8 @@ async function ProductContent({ params }: { params: Promise<{ slug: string }> })
     description: p.description ?? undefined,
     image: p.media.filter((m) => m.kind === "image").map((m) => m.url),
     category: p.category?.name,
+    url,
+    brand: { "@type": "Brand", name: "مفروشات العصار" },
     ...(p.price !== null && !p.requires_measurement && {
       offers: {
         "@type": "Offer",
@@ -55,7 +58,12 @@ async function ProductContent({ params }: { params: Promise<{ slug: string }> })
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <JsonLd data={jsonLd} />
+      <JsonLd data={breadcrumbLd(site, [
+        { name: "الرئيسية", path: "/" },
+        ...p.breadcrumbs.map((b) => ({ name: b.name, path: `/category/${encodeURIComponent(b.slug)}` })),
+        { name: p.name, path },
+      ])} />
       <nav aria-label="مسار التصفح" className="mb-4 text-sm opacity-70">
         <ol className="flex flex-wrap gap-1">
           <li><Link href="/" className="hover:underline">الرئيسية</Link> /</li>

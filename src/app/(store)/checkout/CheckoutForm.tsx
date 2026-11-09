@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { trackEvent } from "@/lib/analytics";
 import { cart, useStore } from "@/lib/store/local-store";
 import { useCartLines } from "@/lib/store/use-catalog";
 import { readSource, saveMyOrder } from "@/lib/store/my-orders";
@@ -60,6 +61,13 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
     // eslint-disable-next-line react-hooks/exhaustive-deps -- quoteKey يجمع كل المدخلات
   }, [quoteKey]);
 
+  // حدث "بدء إتمام الطلب" مرة واحدة عند فتح الصفحة والسلة غير فارغة
+  const hasItems = items.length > 0;
+  useEffect(() => {
+    if (hasItems) trackEvent("begin_checkout", { items: items.map((i) => ({ id: i.variantId, name: "", quantity: i.qty })) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- مرة واحدة عند الفتح
+  }, [hasItems]);
+
   if (!items.length) {
     return (
       <div className="rounded-2xl border border-dashed border-gold/40 bg-white p-10 text-center">
@@ -70,6 +78,10 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
   }
 
   const byVariant = new Map((lines ?? []).map((l) => [l.variant_id, l]));
+  const analyticsItems = items.map((i) => {
+    const l = byVariant.get(i.variantId);
+    return { id: l?.product.id ?? i.variantId, name: l?.product.name ?? "", price: quote?.lines.find((q) => q.variant_id === i.variantId)?.unit_price ?? null, quantity: i.qty };
+  });
   const problems = quote?.lines.filter((l) => l.problem) ?? [];
   const canSubmit = !!quote && problems.length === 0 && !pending;
 
@@ -89,6 +101,7 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
         return;
       }
       saveMyOrder({ number: res.order_number, token: res.tracking_token, at: new Date().toISOString() });
+      trackEvent("purchase", { transaction_id: res.order_number, value: quote?.total ?? null, items: analyticsItems });
       cart.clear();
       router.push(`/order/${encodeURIComponent(res.order_number)}?t=${res.tracking_token}&new=1`);
     });
@@ -155,7 +168,11 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
         <div className="space-y-2 text-sm">
           <label className="flex items-start gap-2">
             <input type="checkbox" checked={form.terms} onChange={(e) => set("terms", e.target.checked)} aria-invalid={invalid("terms_accepted")} className="mt-1 accent-[var(--gold)]" />
-            <span>أوافق على شروط الاستخدام وسياسة الخصوصية وسياسة الإرجاع. *</span>
+            <span>
+              أوافق على <Link href="/policies/delivery" target="_blank" className="text-gold-dark underline">سياسة التوصيل</Link>
+              {" "}و<Link href="/policies/returns" target="_blank" className="text-gold-dark underline">سياسة الاستبدال والإرجاع</Link>
+              {" "}و<Link href="/policies/privacy" target="_blank" className="text-gold-dark underline">سياسة الخصوصية</Link>. *
+            </span>
           </label>
           <label className="flex items-start gap-2">
             <input type="checkbox" checked={form.marketing} onChange={(e) => set("marketing", e.target.checked)} className="mt-1 accent-[var(--gold)]" />

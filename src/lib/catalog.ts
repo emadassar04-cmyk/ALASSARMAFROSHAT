@@ -2,7 +2,8 @@ import "server-only";
 import { createClient as createSupabase } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
-import type { Category, DeliveryZone, Facets, PaymentMethod, ProductDetail, SearchParams, SearchResult, StoreSettings } from "./catalog-types";
+import { DEFAULT_SITE_URL } from "./site";
+import type { Branch, Category, DeliveryZone, Facets, PaymentMethod, Policy, ProductDetail, SearchParams, SearchResult, SitemapData, StoreSettings } from "./catalog-types";
 
 // عميل عام بلا جلسة: الكتالوج بيانات عامة وقابلة للتخزين المؤقت
 function publicClient() {
@@ -58,12 +59,35 @@ export async function getStoreSettings(): Promise<StoreSettings> {
   cacheLife("hours");
   const { data } = await publicClient()
     .from("store_settings")
-    .select("store_name, whatsapp_number, contact_phone, is_published, maintenance_mode")
+    .select("store_name, whatsapp_number, contact_phone, is_published, maintenance_mode, site_url, ga_measurement_id, meta_pixel_id, google_site_verification")
     .single();
   return (data as StoreSettings | null) ?? {
     store_name: "مفروشات العصار – دير البلح – النصيرات",
     whatsapp_number: null, contact_phone: null, is_published: false, maintenance_mode: false,
+    site_url: DEFAULT_SITE_URL, ga_measurement_id: null, meta_pixel_id: null, google_site_verification: null,
   };
+}
+
+// السياسات المنشورة فقط (للتذييل وصفحات /policies)
+export async function getPolicies(): Promise<Policy[]> {
+  "use cache";
+  cacheTag("policies");
+  cacheLife("hours");
+  return rpc<Policy[]>("catalog_policies");
+}
+
+export async function getSitemapData(): Promise<SitemapData> {
+  "use cache";
+  cacheTag("catalog", "policies");
+  cacheLife("hours");
+  return rpc<SitemapData>("catalog_sitemap");
+}
+
+export async function getBranches(): Promise<Branch[]> {
+  "use cache";
+  cacheTag("settings");
+  cacheLife("hours");
+  return rpc<Branch[]>("catalog_branches");
 }
 
 export async function getCheckoutOptions(): Promise<{ zones: DeliveryZone[]; methods: PaymentMethod[] }> {

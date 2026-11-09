@@ -16,7 +16,7 @@ const ANON_RPC = /^(catalog_[a-z_]+|get_variant_availability|quote_order|track_o
 const SERVICE_KEY = process.env.LOCAL_SERVICE_KEY ?? "local-service-key";
 const SERVICE_RPC = /^(place_order|rate_limit_hit)$/;
 const TABLES = {
-  store_settings: "select store_name, whatsapp_number, contact_phone, is_published, maintenance_mode from public.store_settings",
+  store_settings: "select store_name, whatsapp_number, contact_phone, is_published, maintenance_mode, site_url, ga_measurement_id, meta_pixel_id, google_site_verification from public.store_settings",
   delivery_zones: "select id, name, fee, eta_text, sort_order from public.delivery_zones where is_active order by sort_order, name",
   payment_methods: "select code, name_ar, instructions, sort_order from public.payment_methods where is_enabled order by sort_order",
 };

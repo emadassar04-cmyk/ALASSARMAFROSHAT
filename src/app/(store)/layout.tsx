@@ -5,7 +5,9 @@ import { SearchBox } from "@/components/store/SearchBox";
 import { HeaderCounters } from "@/components/store/HeaderCounters";
 import { WhatsAppFloat } from "@/components/store/WhatsAppFloat";
 import { SourceTracker } from "@/components/store/SourceTracker";
-import { getCategories, getStoreSettings } from "@/lib/catalog";
+import { Analytics } from "@/components/store/Analytics";
+import { getCategories, getPolicies, getStoreSettings } from "@/lib/catalog";
+import { POLICY_PATHS } from "@/lib/site";
 
 async function CategoryNav() {
   const categories = (await getCategories()).filter((c) => !c.parent_id);
@@ -15,6 +17,21 @@ async function CategoryNav() {
       {categories.map((c) => (
         <li key={c.id}><Link href={`/category/${encodeURIComponent(c.slug)}`} className="hover:text-gold-dark">{c.name}</Link></li>
       ))}
+    </ul>
+  );
+}
+
+// روابط السياسات: التوصيل دائماً (فيه المناطق والرسوم الفعلية)، والباقي بعد نشره من الإدارة
+async function PolicyLinks() {
+  const published = await getPolicies();
+  const links = [
+    { href: POLICY_PATHS.delivery, title: published.find((p) => p.slug === "delivery")?.title ?? "التوصيل والدفع" },
+    ...published.filter((p) => p.slug !== "delivery").map((p) => ({ href: POLICY_PATHS[p.slug], title: p.title })),
+  ];
+  return (
+    <ul className="space-y-1.5">
+      {links.map((l) => <li key={l.href}><Link href={l.href} className="hover:text-gold-dark">{l.title}</Link></li>)}
+      <li><Link href="/special-order" className="hover:text-gold-dark">طلب حسب المقاس</Link></li>
     </ul>
   );
 }
@@ -40,7 +57,7 @@ export default function StoreLayout({ children }: LayoutProps<"/">) {
       </header>
       <main id="main" className="flex-1">{children}</main>
       <footer className="mt-16 border-t border-gold/20 bg-beige/60">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:grid-cols-2">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:grid-cols-3">
           <div className="space-y-2">
             <Logo />
             <p className="opacity-70">مفروشات منزلية فاخرة: سجاد، ستائر، مراتب، بطانيات، شراشف ومخدات.</p>
@@ -55,11 +72,16 @@ export default function StoreLayout({ children }: LayoutProps<"/">) {
               <li><Link href="/track" className="hover:text-gold-dark">طلباتي</Link></li>
             </ul>
           </div>
+          <div>
+            <h2 className="mb-2 font-bold">معلومات</h2>
+            <Suspense fallback={null}><PolicyLinks /></Suspense>
+          </div>
         </div>
         <p className="pb-6 text-center text-xs opacity-60">© مفروشات العصار – دير البلح – النصيرات</p>
       </footer>
       <Suspense fallback={null}><FloatingWhatsApp /></Suspense>
       <SourceTracker />
+      <Suspense fallback={null}><Analytics /></Suspense>
     </>
   );
 }

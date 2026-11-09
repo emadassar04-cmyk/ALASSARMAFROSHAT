@@ -1,9 +1,10 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { ProductDetail } from "@/lib/catalog-types";
 import { isPurchasable } from "@/lib/catalog-types";
 import { cart, MAX_QTY } from "@/lib/store/local-store";
+import { trackEvent } from "@/lib/analytics";
 import { formatPrice, whatsappLink } from "@/lib/format";
 import { AvailabilityBadge } from "@/components/store/AvailabilityBadge";
 import { Price } from "@/components/store/Price";
@@ -27,6 +28,11 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
     ? `مرحباً، أريد طلب «${product.name}» حسب المقاس.\nالمقاسات: \nالمواصفات: \nالرابط: ${url}`
     : `مرحباً، أستفسر عن «${product.name}»${variant ? ` (${variantLabel(variant)})` : ""} بسعر ${formatPrice(variant?.price ?? product.price)}.\nهل يمكن التفاوض على السعر؟\nالرابط: ${url}`;
   const wa = whatsappLink(whatsapp, waText);
+
+  // حدث "مشاهدة منتج" مرة واحدة لكل منتج
+  useEffect(() => {
+    trackEvent("view_item", { value: product.price, items: [{ id: product.id, name: product.name, price: product.price }] });
+  }, [product.id, product.name, product.price]);
 
   return (
     <div className="space-y-5">
@@ -74,7 +80,12 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
               className="w-full rounded-lg border border-gold/30 px-3 py-2" />
           </label>
           <button type="button" disabled={!canBuy}
-            onClick={() => { cart.add(variantId, qty, notes.trim() || undefined); setAdded(true); }}
+            onClick={() => {
+              cart.add(variantId, qty, notes.trim() || undefined);
+              setAdded(true);
+              const price = variant?.price ?? null;
+              trackEvent("add_to_cart", { value: price !== null ? price * qty : null, items: [{ id: product.id, name: product.name, price, quantity: qty }] });
+            }}
             className="w-full rounded-lg bg-gold px-4 py-3 font-medium text-white hover:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-50">
             {canBuy ? "أضف إلى السلة" : "غير متوفر حالياً"}
           </button>

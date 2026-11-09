@@ -18,7 +18,10 @@ const url = (p) => BASE + encodeURI(p);
 const one = async (sql, params) => (await db.query(sql, params)).rows[0];
 
 const browser = await chromium.launch();
-const page = await (await browser.newContext({ locale: "ar", viewport: { width: 1280, height: 1000 } })).newPage();
+const context = await browser.newContext({ locale: "ar", viewport: { width: 1280, height: 1000 } });
+// مكتبات Google/Meta تُعترض (معرّفات تجريبية في بيانات الاختبار) — لا اتصال خارجي
+await context.route(/googletagmanager\.com|connect\.facebook\.net/, (r) => r.fulfill({ status: 200, contentType: "text/javascript", body: "" }));
+const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 
@@ -78,7 +81,7 @@ await check("طلب صحيح (توصيل + تحويل بنكي + كوبون) ←
   await page.getByLabel("الاسم الكامل *").fill("سامي الاختبار");
   await page.getByLabel("رقم الهاتف (WhatsApp) *").fill("0599 555 101");
   await page.getByLabel("العنوان بالتفصيل *").fill("النصيرات، شارع صلاح الدين، قرب المسجد");
-  await page.getByText("أوافق على شروط الاستخدام").click();
+  await page.getByLabel("أوافق على سياسة التوصيل").check();
   await page.getByRole("button", { name: "إرسال الطلب" }).click();
   await page.getByRole("heading", { name: "تم استلام طلبك ✓" }).waitFor({ timeout: 15000 }).catch(async () => {
     throw new Error(`no confirmation; alerts: ${JSON.stringify(await page.getByRole("alert").allTextContents())}`);
@@ -87,6 +90,17 @@ await check("طلب صحيح (توصيل + تحويل بنكي + كوبون) ←
   assert(/\/order\/ALS-\d+\?t=[0-9a-f]{64}/.test(decodeURI(orderUrl)), orderUrl);
   await page.getByText("سنرسل لك بيانات الحساب عبر WhatsApp").waitFor();
   assert((await page.locator("main").textContent()).includes("96"), "total on confirmation");
+});
+
+await check("التحليلات: حدث الشراء يُرسل مرة واحدة برقم الطلب والمبلغ من الخادم", async () => {
+  const r = await page.evaluate(() => ({
+    ga: (window.dataLayer ?? []).map((a) => Array.from(a)).filter((a) => a[0] === "event" && ["begin_checkout", "purchase"].includes(a[1])),
+    fb: (window.fbq?.queue ?? []).map((a) => Array.from(a)).filter((a) => a[1] === "Purchase"),
+  }));
+  const purchases = r.ga.filter((a) => a[1] === "purchase");
+  assert(r.ga.some((a) => a[1] === "begin_checkout"), "begin_checkout");
+  assert(purchases.length === 1 && /^ALS-\d+$/.test(purchases[0][2].transaction_id) && Number(purchases[0][2].value) === 96, JSON.stringify(purchases));
+  assert(r.fb.length === 1 && Number(r.fb[0][2].value) === 96 && r.fb[0][3]?.eventID === purchases[0][2].transaction_id, JSON.stringify(r.fb));
 });
 
 await check("قاعدة البيانات: الطلب والحجز والخصم والمصدر صحيحة", async () => {
@@ -117,7 +131,7 @@ await check("استلام من المحل + دفع في المحل", async () =>
   await page.getByText("الدفع نقداً في المحل").click();
   await page.getByLabel("الاسم الكامل *").fill("هدى الاختبار");
   await page.getByLabel("رقم الهاتف (WhatsApp) *").fill("0599555202");
-  await page.getByText("أوافق على شروط الاستخدام").click();
+  await page.getByLabel("أوافق على سياسة التوصيل").check();
   await page.getByRole("button", { name: "إرسال الطلب" }).click();
   await page.getByRole("heading", { name: "تم استلام طلبك ✓" }).waitFor({ timeout: 15000 });
   const o = await one("select fulfillment, payment_method, total::text, delivery_fee::text from public.orders order by created_at desc limit 1");
@@ -145,7 +159,7 @@ await check("الحد من التكرار: الطلب الرابع بنفس ال
     await page.getByText("الدفع نقداً في المحل").click();
     await page.getByLabel("الاسم الكامل *").fill("محاولة متكررة");
     await page.getByLabel("رقم الهاتف (WhatsApp) *").fill(phone);
-    await page.getByText("أوافق على شروط الاستخدام").click();
+    await page.getByLabel("أوافق على سياسة التوصيل").check();
     await page.getByRole("button", { name: "إرسال الطلب" }).click();
     if (i < 4) await page.getByRole("heading", { name: "تم استلام طلبك ✓" }).waitFor({ timeout: 15000 });
     else await page.getByRole("alert").filter({ hasText: "طلبات كثيرة" }).waitFor({ timeout: 15000 });

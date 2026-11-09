@@ -1,8 +1,36 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { getBestSellers, getCategories, searchProducts } from "@/lib/catalog";
+import { getBestSellers, getBranches, getCategories, getStoreSettings, searchProducts } from "@/lib/catalog";
+import { JsonLd } from "@/components/store/JsonLd";
 import { ProductGrid, ProductGridSkeleton } from "@/components/store/ProductCard";
 import type { SearchParams } from "@/lib/catalog-types";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
+// بيانات المحل لمحركات البحث: من إعدادات المتجر والفروع في قاعدة البيانات فقط
+async function StoreJsonLd() {
+  const [s, branches] = await Promise.all([getStoreSettings(), getBranches()]);
+  const phone = s.contact_phone ?? s.whatsapp_number;
+  return (
+    <JsonLd data={{
+      "@context": "https://schema.org",
+      "@type": "HomeGoodsStore",
+      name: s.store_name,
+      url: `${s.site_url}/`,
+      ...(phone && { telephone: `+${phone.replace(/\D/g, "")}` }),
+      currenciesAccepted: "ILS",
+      areaServed: { "@type": "Place", name: "قطاع غزة" },
+      department: branches.map((b) => ({
+        "@type": "HomeGoodsStore",
+        name: b.name,
+        ...(b.phone && { telephone: b.phone }),
+        ...(b.map_url && { hasMap: b.map_url }),
+        address: { "@type": "PostalAddress", addressCountry: "PS", ...(b.address && { streetAddress: b.address }) },
+      })),
+    }} />
+  );
+}
 
 async function CategoriesGrid() {
   const categories = (await getCategories()).filter((c) => !c.parent_id);
@@ -66,6 +94,7 @@ async function EmptyCatalogNotice() {
 export default function Home() {
   return (
     <>
+      <Suspense fallback={null}><StoreJsonLd /></Suspense>
       <section className="bg-gradient-to-b from-beige to-background">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 px-4 py-14 text-center md:py-20">
           <p className="text-sm tracking-wide text-gold-dark">دير البلح – النصيرات</p>

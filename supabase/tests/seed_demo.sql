@@ -48,3 +48,9 @@ where i.variant_id = v.id;
 insert into public.delivery_zones (name, fee, eta_text, sort_order) values
   ('دير البلح', 10, 'خلال يوم', 1), ('النصيرات', 15, 'خلال يوم', 2), ('الزوايدة', 20, 'خلال يومين', 3);
 insert into public.coupons (code, kind, value) values ('WELCOME10', 'percent', 10);
+
+-- المرحلة 7 (اختبار فقط): سياسة خصوصية منشورة، ومعرّفات تحليلات تجريبية (تُعترض طلباتها في الاختبار ولا تصل لـ Google/Meta)
+update public.store_policies set title = 'سياسة الخصوصية',
+  body = E'نص تجريبي لسياسة الخصوصية في بيئة الاختبار.\n\n## البيانات التي نجمعها\n- الاسم ورقم الهاتف\n- العنوان',
+  is_published = true where slug = 'privacy';
+update public.store_settings set ga_measurement_id = 'G-TEST12345', meta_pixel_id = '1234567890123456';

@@ -25,6 +25,9 @@ const url = (path) => BASE + encodeURI(path);
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ locale: "ar", viewport: { width: 1280, height: 900 } });
+// معرّفات التحليلات في بيانات الاختبار تجريبية: نعترض مكتبات Google/Meta ونرد بملف فارغ،
+// فتبقى الأحداث في قوائم الانتظار (dataLayer / fbq.queue) ونفحصها دون أي اتصال خارجي
+await ctx.route(/googletagmanager\.com|connect\.facebook\.net/, (r) => r.fulfill({ status: 200, contentType: "text/javascript", body: "" }));
 const page = await ctx.newPage();
 const consoleErrors = [];
 page.on("console", (m) => m.type() === "error" && consoleErrors.push(m.text()));
@@ -87,7 +90,7 @@ await check("صفحة المنتج: سعر الخصم والسعر قبل الخ
   const buy = page.locator("main");
   assert((await buy.textContent()).includes("380"), "sale price");
   assert(await page.locator("s", { hasText: "450" }).count() > 0, "compare-at");
-  const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+  const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').first().textContent());
   assert(ld.offers?.priceCurrency === "ILS" && Number(ld.offers.price) === 380, "json-ld offer");
 });
 
@@ -140,7 +143,7 @@ await check("منتج حسب المقاس: بلا سعر تقديري ومع ط�
   await page.goto(url("/product/ستارة-مخمل-ملكية"));
   await page.getByText("السعر حسب المقاس").first().waitFor();
   assert(await page.getByRole("button", { name: "أضف إلى السلة" }).count() === 0, "no add to cart");
-  const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+  const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').first().textContent());
   assert(!ld.offers, "no offer for measured product");
   await page.getByRole("link", { name: "أرسل المقاسات واطلب عرض سعر" }).click();
   await page.getByRole("heading", { name: "طلب منتج حسب المقاس" }).waitFor();
@@ -174,6 +177,62 @@ await check("منتج غير موجود: صفحة عربية + noindex لمحر�
   await page.goto(url("/product/غير-موجود"));
   await page.getByRole("heading", { name: "الصفحة غير موجودة" }).waitFor();
   assert(await page.locator('meta[name="robots"][content*="noindex"]').count() > 0, "noindex meta");
+});
+
+await check("التحليلات: أحداث مشاهدة المنتج والإضافة للسلة تصل إلى GA وMeta Pixel دون بيانات شخصية", async () => {
+  await page.goto(url("/product/سجادة-تركية-كلاسيك"));
+  await page.getByRole("button", { name: "أضف إلى السلة" }).click();
+  await page.waitForFunction(() => (window.fbq?.queue ?? []).some((a) => a[1] === "AddToCart"), null, { timeout: 8000 });
+  const r = await page.evaluate(() => ({
+    ga: (window.dataLayer ?? []).map((a) => Array.from(a)).filter((a) => a[0] === "event").map((a) => a[1]),
+    gaConfig: (window.dataLayer ?? []).map((a) => Array.from(a)).some((a) => a[0] === "config" && a[1] === "G-TEST12345"),
+    fb: (window.fbq?.queue ?? []).map((a) => Array.from(a)),
+  }));
+  assert(r.gaConfig, "GA config");
+  assert(r.ga.includes("view_item") && r.ga.includes("add_to_cart"), `GA events: ${r.ga}`);
+  const names = r.fb.map((a) => a[1]);
+  assert(names.includes("1234567890123456") && names.includes("PageView") && names.includes("ViewContent") && names.includes("AddToCart"), `Pixel: ${names}`);
+  assert(!/phone|customer|address/i.test(JSON.stringify(r)), "no personal data in analytics");
+});
+
+await check("SEO: عنوان الصفحة بصيغة موحدة وبيانات منظمة لمسار التصفح وللمحل", async () => {
+  await page.goto(url("/product/سجادة-تركية-كلاسيك"));
+  assert((await page.title()) === "سجادة تركية كلاسيك | مفروشات العصار", `title: ${await page.title()}`);
+  const lds = await page.locator('script[type="application/ld+json"]').allTextContents();
+  const crumbs = lds.map((t) => JSON.parse(t)).find((d) => d["@type"] === "BreadcrumbList");
+  assert(crumbs && crumbs.itemListElement.length >= 3 && crumbs.itemListElement.at(-1).name === "سجادة تركية كلاسيك", "breadcrumb ld");
+  assert(await page.locator('meta[property="og:url"]').count() > 0, "og:url");
+  await page.goto(url("/"));
+  const home = (await page.locator('script[type="application/ld+json"]').allTextContents()).map((t) => JSON.parse(t));
+  assert(home.some((d) => d["@type"] === "HomeGoodsStore" && d.department?.length >= 1), "store ld");
+  assert(/^https:\/\/[^/]+\/?$/.test(await page.locator('link[rel="canonical"]').getAttribute("href")), "home canonical");
+});
+
+await check("robots.txt: يمنع الإدارة والسلة والطلبات ويشير لخريطة الموقع", async () => {
+  const t = await (await fetch(BASE + "/robots.txt")).text();
+  for (const p of ["/admin", "/checkout", "/order", "/cart"]) assert(t.includes(`Disallow: ${p}`), `missing ${p}`);
+  assert(/Sitemap: https:\/\/.+\/sitemap\.xml/.test(t), "sitemap line");
+});
+
+await check("sitemap.xml: المنتجات والتصنيفات والسياسات المنشورة فقط، دون الإدارة", async () => {
+  const x = decodeURI(await (await fetch(BASE + "/sitemap.xml")).text());
+  assert(x.includes("/product/سجادة-تركية-كلاسيك") && x.includes("/category/") && x.includes("/products"), "pages");
+  assert(x.includes("/policies/privacy") && !x.includes("/policies/returns"), "published policies only");
+  assert(!x.includes("/admin") && !x.includes("/checkout"), "private pages");
+});
+
+await check("السياسات: المنشورة تظهر في التذييل، وغير المنشورة «قيد الإعداد» وغير مفهرسة، والتوصيل يعرض المناطق", async () => {
+  await page.goto(url("/"));
+  await page.locator("footer").getByRole("link", { name: "سياسة الخصوصية" }).click();
+  await page.getByRole("heading", { level: 1, name: "سياسة الخصوصية" }).waitFor();
+  await page.getByRole("heading", { level: 2, name: "البيانات التي نجمعها" }).waitFor();
+  assert(await page.locator("article li").count() === 2, "list items");
+  await page.goto(url("/policies/returns"));
+  await page.getByText("نعمل على إعداد هذه الصفحة").waitFor();
+  assert(await page.locator('meta[name="robots"][content*="noindex"]').count() > 0, "noindex draft");
+  await page.goto(url("/policies/delivery"));
+  await page.getByRole("heading", { name: "مناطق التوصيل ورسومها" }).waitFor();
+  assert(await page.locator("table tbody tr").count() >= 1, "zones");
 });
 
 await check("لا أخطاء JavaScript في المتصفح", async () => {

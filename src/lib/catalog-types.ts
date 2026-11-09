@@ -81,7 +81,22 @@ export type StoreSettings = {
   contact_phone: string | null;
   is_published: boolean;
   maintenance_mode: boolean;
+  site_url: string;
+  ga_measurement_id: string | null;
+  meta_pixel_id: string | null;
+  google_site_verification: string | null;
 };
+
+export type PolicySlug = "delivery" | "returns" | "privacy";
+export type Policy = { slug: PolicySlug; title: string; body: string; updated_at: string };
+
+export type SitemapData = {
+  products: { slug: string; updated_at: string }[];
+  categories: { slug: string; updated_at: string }[];
+  policies: { slug: PolicySlug; updated_at: string }[];
+};
+
+export type Branch = { name: string; address: string | null; phone: string | null; map_url: string | null };
 
 export type CartLine = {
   variant_id: string;

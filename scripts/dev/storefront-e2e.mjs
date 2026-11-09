@@ -28,6 +28,8 @@ const ctx = await browser.newContext({ locale: "ar", viewport: { width: 1280, he
 // معرّفات التحليلات في بيانات الاختبار تجريبية: نعترض مكتبات Google/Meta ونرد بملف فارغ،
 // فتبقى الأحداث في قوائم الانتظار (dataLayer / fbq.queue) ونفحصها دون أي اتصال خارجي
 await ctx.route(/googletagmanager\.com|connect\.facebook\.net/, (r) => r.fulfill({ status: 200, contentType: "text/javascript", body: "" }));
+// خرائط Google تُعترض أيضاً (لا اتصال خارجي في الاختبار)
+await ctx.route(/maps\.google\.com/, (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<p>map</p>" }));
 const page = await ctx.newPage();
 const consoleErrors = [];
 page.on("console", (m) => m.type() === "error" && consoleErrors.push(m.text()));
@@ -233,6 +235,29 @@ await check("السياسات: المنشورة تظهر في التذييل، �
   await page.goto(url("/policies/delivery"));
   await page.getByRole("heading", { name: "مناطق التوصيل ورسومها" }).waitFor();
   assert(await page.locator("table tbody tr").count() >= 1, "zones");
+});
+
+await check("الفروع: صفحة «فروعنا» بالفرعين والعناوين والاتصال والاتجاهات والخرائط، وقسم الفروع في الرئيسية", async () => {
+  await page.goto(url("/branches"));
+  await page.getByRole("heading", { level: 1, name: "فروعنا" }).waitFor();
+  const cards = page.locator("main li.panel");
+  await cards.nth(1).waitFor();
+  assert(await cards.count() === 2, `two branches, got ${await cards.count()}`);
+  const first = await cards.first().textContent();
+  assert(first.includes("فرع دير البلح") && first.includes("الفرع الرئيسي") && first.includes("دوار البركة"), first);
+  assert((await cards.nth(1).textContent()).includes("مقابل Ooredoo"), "nuseirat address");
+  assert(await page.locator('main a[href="tel:+970594793301"]').count() >= 2, "tel links");
+  const dir = await page.getByRole("link", { name: "الاتجاهات" }).first().getAttribute("href");
+  assert(dir.startsWith("https://www.google.com/maps/"), dir);
+  await page.locator("main iframe[title^='موقع']").first().waitFor({ state: "attached" });
+  const ld = (await page.locator('script[type="application/ld+json"]').allTextContents()).map((t) => JSON.parse(t));
+  assert(ld.some((d) => d["@graph"]?.length === 2 && d["@graph"][0].address.addressLocality === "دير البلح"), "branches ld");
+  await page.goto(url("/"));
+  await page.getByRole("heading", { name: "فروعنا" }).waitFor();
+  // في الرئيسية الخريطة لا تُحمَّل إلا عند الطلب
+  assert(await page.locator("iframe").count() === 0, "no map iframe before click");
+  await page.getByRole("button", { name: "عرض الخريطة" }).first().click();
+  await page.locator("iframe[title^='موقع']").first().waitFor({ state: "attached" });
 });
 
 await check("لا أخطاء JavaScript في المتصفح", async () => {

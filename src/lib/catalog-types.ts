@@ -96,7 +96,17 @@ export type SitemapData = {
   policies: { slug: PolicySlug; updated_at: string }[];
 };
 
-export type Branch = { name: string; address: string | null; phone: string | null; map_url: string | null };
+export type Branch = {
+  id: string;
+  name: string;
+  city: string | null;
+  address: string | null;
+  phone: string | null;
+  map_url: string | null;
+  lat: number | null;
+  lng: number | null;
+  is_main: boolean;
+};
 
 export type CartLine = {
   variant_id: string;

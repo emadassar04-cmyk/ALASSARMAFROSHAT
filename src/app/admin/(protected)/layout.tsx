@@ -29,6 +29,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <Link href="/admin/coupons" className="hover:text-gold-dark">الكوبونات</Link>
           <Link href="/admin/customers" className="hover:text-gold-dark">العملاء</Link>
           <Link href="/admin/settings/delivery" className="hover:text-gold-dark">التوصيل والدفع</Link>
+          <Link href="/admin/settings/branches" className="hover:text-gold-dark">الفروع</Link>
           <Link href="/admin/settings/marketing" className="hover:text-gold-dark">التسويق والسياسات</Link>
           <Link href="/admin/settings/integrations" className="hover:text-gold-dark">التكاملات</Link>
           <Link href="/" target="_blank" className="hover:text-gold-dark">المتجر ↗</Link>

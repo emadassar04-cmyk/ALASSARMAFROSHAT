@@ -8,6 +8,7 @@ import type { Category, ProductCard as Card } from "@/lib/catalog-types";
 import { categoryImage } from "@/lib/category-images";
 import { whatsappLink } from "@/lib/format";
 import { JsonLd } from "@/components/store/JsonLd";
+import { BranchCards, branchLd } from "@/components/store/Branches";
 import { ProductGrid, ProductGridSkeleton } from "@/components/store/ProductCard";
 import { Flourish, Wave } from "@/components/store/Dividers";
 import heroImage from "@/assets/home/hero-living-room.webp";
@@ -47,13 +48,7 @@ async function StoreJsonLd() {
         ...(phone && { telephone: `+${phone.replace(/\D/g, "")}` }),
         currenciesAccepted: "ILS",
         areaServed: { "@type": "Place", name: "قطاع غزة" },
-        department: branches.map((b) => ({
-          "@type": "HomeGoodsStore",
-          name: b.name,
-          ...(b.phone && { telephone: b.phone }),
-          ...(b.map_url && { hasMap: b.map_url }),
-          address: { "@type": "PostalAddress", addressCountry: "PS", ...(b.address && { streetAddress: b.address }) },
-        })),
+        department: branches.map(branchLd),
       }} />
     </>
   );
@@ -321,6 +316,24 @@ async function TrustSection() {
   );
 }
 
+// فروعنا: بطاقات بخرائط تُحمَّل عند الطلب (لا تؤثر على سرعة الصفحة)
+async function BranchesSection() {
+  const branches = await getBranches();
+  if (!branches.length) return null;
+  return (
+    <>
+      <Wave from="white" to="cream" />
+      <section aria-labelledby="s-branches" className="bg-cream py-12 md:py-16">
+        <div className="shell">
+          <SectionHead id="s-branches" kicker="زورونا" title="فروعنا" href="/branches" linkLabel="كل التفاصيل والخرائط" />
+          <BranchCards branches={branches} />
+        </div>
+      </section>
+      <Wave from="cream" to="white" flip />
+    </>
+  );
+}
+
 export default function Home() {
   return (
     <>
@@ -371,6 +384,7 @@ export default function Home() {
       <Suspense fallback={null}><TrustSection /></Suspense>
       <Suspense fallback={null}><BestSellers /></Suspense>
       <Suspense fallback={null}><BrandIntro /></Suspense>
+      <Suspense fallback={null}><BranchesSection /></Suspense>
     </>
   );
 }

@@ -20,6 +20,7 @@
 | `0013_telegram_notifications` | مفاتيح تكامل مجزأة، `notification_deliveries` لكل قناة، نصوص Telegram، التقرير اليومي |
 | `0014_finance` | `expenses` (إلغاء لا حذف)، `stocktakes`، `finance_report`، `admin_dashboard`، `set_customer_tier` |
 | `0015_marketing_policies` | `store_policies` (3 صفحات ثابتة، لا نشر لنص فارغ أو فيه خانات `[ ]`)، معرّفات GA4/Meta Pixel/Search Console في `store_settings`، `catalog_policies`، `catalog_sitemap`، `catalog_branches` |
+| `0016_branches_locations` | الفروع: المدينة والإحداثيات وترتيب العرض + قيود (رابط https، صيغة الهاتف، الإحداثيات معاً)؛ بيانات فرعي دير البلح (الرئيسي) والنصيرات؛ `catalog_branches` بالحقول الجديدة. المخزون والطلبات تبقى على الفرع الرئيسي |
 
 ## تعريفات التقارير المالية
 - البيع يُحتسب عند **تأكيد** الطلب (بتوقيت فلسطين) ويُستبعد إن أُلغي لاحقاً.

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { MessageCircle, Ruler } from "lucide-react";
+import { MapPin, MessageCircle, Ruler } from "lucide-react";
 import { Logo } from "@/components/store/Logo";
 import { Wave } from "@/components/store/Dividers";
 import { SearchBox } from "@/components/store/SearchBox";
@@ -13,6 +13,7 @@ import { Analytics } from "@/components/store/Analytics";
 import { getBranches, getCategories, getPolicies, getStoreSettings } from "@/lib/catalog";
 import { whatsappLink } from "@/lib/format";
 import { POLICY_PATHS } from "@/lib/site";
+import { displayPhone, telHref } from "@/lib/maps";
 
 async function topCategories() {
   return (await getCategories()).filter((c) => !c.parent_id);
@@ -30,6 +31,11 @@ async function CategoryNav() {
         </li>
       ))}
       <li className="ms-auto">
+        <Link href="/branches" className="flex items-center gap-1.5 py-3 text-muted-ink transition-colors hover:text-charcoal">
+          <MapPin aria-hidden="true" strokeWidth={1.6} className="h-4 w-4" />فروعنا
+        </Link>
+      </li>
+      <li>
         <Link href="/special-order" className="flex items-center gap-1.5 py-3 text-gold-ink transition-colors hover:text-charcoal">
           <Ruler aria-hidden="true" strokeWidth={1.6} className="h-4 w-4" />طلب حسب المقاس
         </Link>
@@ -64,6 +70,7 @@ async function PolicyLinks() {
   return (
     <ul className="space-y-2.5">
       {links.map((l) => <li key={l.href}><Link href={l.href} className="transition-colors hover:text-warm-white">{l.title}</Link></li>)}
+      <li><Link href="/branches" className="transition-colors hover:text-warm-white">فروعنا</Link></li>
       <li><Link href="/special-order" className="transition-colors hover:text-warm-white">طلب حسب المقاس</Link></li>
       <li><Link href="/track" className="transition-colors hover:text-warm-white">طلباتي</Link></li>
     </ul>
@@ -83,11 +90,12 @@ async function FooterContact() {
         </a>
       )}
       {branches.length > 0 && (
-        <ul className="space-y-1.5">
+        <ul className="space-y-3">
           {branches.map((b) => (
-            <li key={b.name}>
-              {b.name}{b.address ? ` — ${b.address}` : ""}
-              {b.phone && <> · <a href={`tel:${b.phone.replace(/[^\d+]/g, "")}`} dir="ltr" className="hover:text-warm-white">{b.phone}</a></>}
+            <li key={b.id} className="leading-6">
+              <Link href="/branches" className="font-medium text-warm-white hover:text-gold-soft">{b.name}{b.is_main ? " (الرئيسي)" : ""}</Link>
+              {(b.city || b.address) && <span className="block">{[b.city, b.address].filter(Boolean).join(" – ")}</span>}
+              {b.phone && <a href={telHref(b.phone)} dir="ltr" className="tabular-nums hover:text-warm-white">{displayPhone(b.phone)}</a>}
             </li>
           ))}
         </ul>

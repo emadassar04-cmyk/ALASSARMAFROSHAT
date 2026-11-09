@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, GitCompareArrows, Heart, Menu, PackageCheck, Ruler, X } from "lucide-react";
+import { ChevronLeft, GitCompareArrows, Heart, MapPin, Menu, PackageCheck, Ruler, X } from "lucide-react";
 import { useStore } from "@/lib/store/local-store";
 
 type Cat = { slug: string; name: string; product_count: number };
@@ -53,6 +53,7 @@ export function MobileMenu({ categories }: { categories: Cat[] }) {
               ))}
             </ul>
             <ul className="mt-6 space-y-1 text-[0.95rem]">
+              <li><Link href="/branches" className="flex items-center gap-3 py-2.5"><MapPin aria-hidden="true" strokeWidth={1.6} className="h-5 w-5 text-gold-ink" />فروعنا</Link></li>
               <li><Link href="/special-order" className="flex items-center gap-3 py-2.5"><Ruler aria-hidden="true" strokeWidth={1.6} className="h-5 w-5 text-gold-ink" />طلب حسب المقاس</Link></li>
               <li><Link href="/wishlist" className="flex items-center gap-3 py-2.5"><Heart aria-hidden="true" strokeWidth={1.6} className="h-5 w-5 text-gold-ink" />المفضلة{s.wishlist.length > 0 && ` (${s.wishlist.length})`}</Link></li>
               <li><Link href="/compare" className="flex items-center gap-3 py-2.5"><GitCompareArrows aria-hidden="true" strokeWidth={1.6} className="h-5 w-5 text-gold-ink" />المقارنة{s.compare.length > 0 && ` (${s.compare.length})`}</Link></li>

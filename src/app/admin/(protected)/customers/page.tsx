@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { Coins, Search, ShoppingBag, UserPlus, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -17,7 +19,7 @@ type Row = {
 };
 type Res = { total: number; page: number; page_size: number; summary: { customers: number; buyers: number; new_30d: number; total_spent: number }; rows: Row[] };
 
-export default async function CustomersPage({ searchParams }: PageProps<"/admin/customers">) {
+async function CustomersPageContent({ searchParams }: PageProps<"/admin/customers">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   const sp = await searchParams;
@@ -120,4 +122,9 @@ export default async function CustomersPage({ searchParams }: PageProps<"/admin/
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function CustomersPage(props: PageProps<"/admin/customers">) {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><CustomersPageContent {...props} /></Suspense>;
 }

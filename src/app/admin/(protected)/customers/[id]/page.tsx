@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Coins, Mail, MessageCircle, Phone, ShoppingBag, Store } from "lucide-react";
@@ -18,7 +20,7 @@ type Customer = {
   store_purchases: { id: string; amount: number; status: string; created_at: string; branch: string }[] | null;
 };
 
-export default async function CustomerPage({ params }: PageProps<"/admin/customers/[id]">) {
+async function CustomerPageContent({ params }: PageProps<"/admin/customers/[id]">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   const { id } = await params;
@@ -109,4 +111,9 @@ export default async function CustomerPage({ params }: PageProps<"/admin/custome
       </div>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function CustomerPage(props: PageProps<"/admin/customers/[id]">) {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><CustomerPageContent {...props} /></Suspense>;
 }

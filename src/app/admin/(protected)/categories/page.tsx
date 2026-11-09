@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { ExternalLink, FolderTree, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -10,7 +12,7 @@ export const instant = false;
 
 type Row = Required<Cat> & { products: { count: number }[] };
 
-export default async function CategoriesPage() {
+async function CategoriesPageContent() {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   const supabase = await createClient();
@@ -58,4 +60,9 @@ export default async function CategoriesPage() {
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function CategoriesPage() {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><CategoriesPageContent /></Suspense>;
 }

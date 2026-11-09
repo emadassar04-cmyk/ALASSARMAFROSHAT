@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/staff";
 import { getDict, fmt } from "@/lib/admin/i18n";
@@ -6,7 +8,7 @@ import { KeyGenerator } from "./KeyGenerator";
 
 export const instant = false;
 
-export default async function IntegrationsPage() {
+async function IntegrationsPageContent() {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale), S = t.set;
   const supabase = await createClient();
@@ -35,4 +37,9 @@ export default async function IntegrationsPage() {
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function IntegrationsPage() {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><IntegrationsPageContent /></Suspense>;
 }

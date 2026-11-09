@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { Ban, CircleCheck, Coins, Download, FileSpreadsheet, Receipt, ShoppingBag, TrendingUp, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -14,7 +16,7 @@ export const instant = false;
 const TYPES = ["sales", "profits", "orders", "products", "customers", "inventory", "expenses"] as const;
 type Type = (typeof TYPES)[number];
 
-export default async function ReportsPage({ searchParams }: PageProps<"/admin/reports">) {
+async function ReportsPageContent({ searchParams }: PageProps<"/admin/reports">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale), R = t.rep;
   if (!can(staff, "finance.read")) return <p className="a-card p-4">{R.needFinance}</p>;
@@ -182,4 +184,9 @@ export default async function ReportsPage({ searchParams }: PageProps<"/admin/re
       })()}
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function ReportsPage(props: PageProps<"/admin/reports">) {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><ReportsPageContent {...props} /></Suspense>;
 }

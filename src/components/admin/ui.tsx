@@ -61,7 +61,7 @@ export function StatCard({ label, value, current, previous, good = "up", icon, h
       </div>
     </>
   );
-  const cls = `a-card a-rise block p-4 transition-[box-shadow,border-color] ${tone === "warn" ? "border-[#ecd9b8]" : ""}`;
+  const cls = `a-card block p-4 transition-[box-shadow,border-color] ${tone === "warn" ? "border-[#ecd9b8]" : ""}`;
   return href ? <Link href={href} className={`${cls} hover:border-[#d9d2c4] hover:shadow-[var(--a-shadow-lg)]`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 

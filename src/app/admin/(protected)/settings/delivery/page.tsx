@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/staff";
 import { getDict } from "@/lib/admin/i18n";
@@ -6,7 +8,7 @@ import { PaymentToggle, ZoneForm } from "./Forms";
 
 export const instant = false;
 
-export default async function DeliverySettings() {
+async function DeliverySettingsContent() {
   const staff = await requireStaff();
   const t = getDict(staff.locale), S = t.set;
   const supabase = await createClient();
@@ -28,4 +30,9 @@ export default async function DeliverySettings() {
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function DeliverySettings() {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><DeliverySettingsContent /></Suspense>;
 }

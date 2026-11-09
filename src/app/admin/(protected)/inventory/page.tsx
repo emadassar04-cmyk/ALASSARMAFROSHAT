@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { Boxes, PackageCheck, PackageX, Search, TriangleAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -12,7 +14,7 @@ type Row = { id: string; name: string; color: string | null; size: string | null
   products: { id: string; name: string; status: string; availability_mode: string; low_stock_threshold: number };
   inventory: { on_hand: number; reserved: number }[] };
 
-export default async function InventoryPage({ searchParams }: PageProps<"/admin/inventory">) {
+async function InventoryPageContent({ searchParams }: PageProps<"/admin/inventory">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   const canManage = can(staff, "inventory.manage");
@@ -132,4 +134,9 @@ export default async function InventoryPage({ searchParams }: PageProps<"/admin/
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function InventoryPage(props: PageProps<"/admin/inventory">) {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><InventoryPageContent {...props} /></Suspense>;
 }

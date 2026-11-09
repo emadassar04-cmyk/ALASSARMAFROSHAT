@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, MessageCircle, Printer } from "lucide-react";
@@ -15,7 +17,7 @@ type Item = { id: string; product_name_snapshot: string; variant_snapshot: Recor
   quantity: number; unit_price_snapshot: string; unit_cost_snapshot: string | null; discount_amount: string; net_line_amount: string;
   manager_profit_amount: string | null; store_due_amount: string | null };
 
-export default async function OrderDetail({ params }: PageProps<"/admin/orders/[id]">) {
+async function OrderDetailContent({ params }: PageProps<"/admin/orders/[id]">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   const { id } = await params;
@@ -152,4 +154,9 @@ export default async function OrderDetail({ params }: PageProps<"/admin/orders/[
       </div>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function OrderDetail(props: PageProps<"/admin/orders/[id]">) {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><OrderDetailContent {...props} /></Suspense>;
 }

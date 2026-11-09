@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -8,7 +10,7 @@ import { BranchForm } from "./Forms";
 
 export const instant = false;
 
-export default async function BranchesSettings() {
+async function BranchesSettingsContent() {
   const staff = await requireStaff();
   const t = getDict(staff.locale), S = t.set;
   const supabase = await createClient();
@@ -22,4 +24,9 @@ export default async function BranchesSettings() {
       {(data ?? []).map((b) => <BranchForm key={b.id} branch={{ ...b, lat: b.lat === null ? null : Number(b.lat), lng: b.lng === null ? null : Number(b.lng) }} />)}
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function BranchesSettings() {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><BranchesSettingsContent /></Suspense>;
 }

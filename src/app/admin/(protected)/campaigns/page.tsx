@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ExternalLink, Gift, Plus } from "lucide-react";
@@ -16,7 +18,7 @@ type Row = {
 };
 const TONE: Record<string, string> = { draft: "submitted", published: "approved", drawn: "confirmed", archived: "voided" };
 
-export default async function CampaignsPage() {
+async function CampaignsPageContent() {
   const staff = await requireStaff();
   if (!can(staff, "campaigns.manage")) redirect("/admin");
   const t = getDict(staff.locale), f = fmt(staff.locale), C = t.camp;
@@ -58,4 +60,9 @@ export default async function CampaignsPage() {
       </details>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function CampaignsPage() {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><CampaignsPageContent /></Suspense>;
 }

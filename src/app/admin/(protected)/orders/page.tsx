@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { Download, LayoutGrid, List, Search, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -14,7 +16,7 @@ type ListResult = { total: number; page: number; page_size: number; status_count
 
 async function requestTime() { return Date.now(); }
 
-export default async function OrdersPage({ searchParams }: PageProps<"/admin/orders">) {
+async function OrdersPageContent({ searchParams }: PageProps<"/admin/orders">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   const sp = await searchParams;
@@ -179,4 +181,9 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
       )}
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function OrdersPage(props: PageProps<"/admin/orders">) {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><OrdersPageContent {...props} /></Suspense>;
 }

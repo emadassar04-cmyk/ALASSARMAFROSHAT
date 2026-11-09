@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff, can } from "@/lib/staff";
@@ -16,7 +18,7 @@ type Roles = {
   roles: { code: string; name: string; name_en: string | null; locked: boolean; members: number; permissions: string[] }[];
 };
 
-export default async function StaffPage() {
+async function StaffPageContent() {
   const staff = await requireStaff();
   if (!can(staff, "staff.manage")) redirect("/admin");
   const t = getDict(staff.locale), f = fmt(staff.locale);
@@ -70,4 +72,9 @@ export default async function StaffPage() {
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function StaffPage() {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><StaffPageContent /></Suspense>;
 }

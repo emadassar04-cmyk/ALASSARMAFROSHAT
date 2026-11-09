@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { History, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -24,7 +26,7 @@ function diff(a: Record<string, unknown> | null, b: Record<string, unknown> | nu
 }
 const show = (v: unknown) => (v === undefined || v === null ? "—" : typeof v === "object" ? JSON.stringify(v) : String(v));
 
-export default async function ActivityPage({ searchParams }: PageProps<"/admin/activity">) {
+async function ActivityPageContent({ searchParams }: PageProps<"/admin/activity">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   const sp = await searchParams;
@@ -105,4 +107,9 @@ export default async function ActivityPage({ searchParams }: PageProps<"/admin/a
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function ActivityPage(props: PageProps<"/admin/activity">) {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><ActivityPageContent {...props} /></Suspense>;
 }

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ClipboardCheck, Plus } from "lucide-react";
@@ -18,7 +20,7 @@ const GROUP_TONE: Record<string, string> = { pending: "submitted", completed: "a
 
 const gazaToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Gaza" }).format(new Date());
 
-export default async function PurchasesPage({ searchParams }: PageProps<"/admin/purchases">) {
+async function PurchasesPageContent({ searchParams }: PageProps<"/admin/purchases">) {
   const staff = await requireStaff();
   if (!can(staff, "sales.review")) redirect("/admin");
   const t = getDict(staff.locale), f = fmt(staff.locale), P = t.pur;
@@ -109,4 +111,9 @@ export default async function PurchasesPage({ searchParams }: PageProps<"/admin/
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function PurchasesPage(props: PageProps<"/admin/purchases">) {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><PurchasesPageContent {...props} /></Suspense>;
 }

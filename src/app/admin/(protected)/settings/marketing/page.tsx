@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/staff";
 import type { PolicySlug } from "@/lib/catalog-types";
@@ -8,7 +10,7 @@ import { MarketingForm, PolicyForm } from "./Forms";
 
 export const instant = false;
 
-export default async function MarketingSettings() {
+async function MarketingSettingsContent() {
   const staff = await requireStaff();
   const t = getDict(staff.locale), S = t.set;
   const supabase = await createClient();
@@ -43,4 +45,9 @@ export default async function MarketingSettings() {
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function MarketingSettings() {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><MarketingSettingsContent /></Suspense>;
 }

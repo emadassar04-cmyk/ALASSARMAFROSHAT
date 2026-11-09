@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/staff";
@@ -9,7 +11,7 @@ import { PageHeader } from "@/components/admin/ui";
 
 export const instant = false;
 
-export default async function NewProduct() {
+async function NewProductContent() {
   const staff = await requireStaff();
   const P = getDict(staff.locale).pf;
   const supabase = await createClient();
@@ -25,4 +27,9 @@ export default async function NewProduct() {
         units={(units ?? []).map((u) => ({ id: u.id, name: u.name_ar }))} />
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function NewProduct() {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><NewProductContent /></Suspense>;
 }

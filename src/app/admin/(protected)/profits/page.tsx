@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { TriangleAlert, CircleCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -24,7 +26,7 @@ function Row({ label, value, sign, strong, muted, note, f }: { label: string; va
   );
 }
 
-export default async function ProfitsPage({ searchParams }: PageProps<"/admin/profits">) {
+async function ProfitsPageContent({ searchParams }: PageProps<"/admin/profits">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   const range = parseRange(await searchParams);
@@ -119,4 +121,9 @@ export default async function ProfitsPage({ searchParams }: PageProps<"/admin/pr
       )}
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function ProfitsPage(props: PageProps<"/admin/profits">) {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><ProfitsPageContent {...props} /></Suspense>;
 }

@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -26,6 +26,12 @@ export type ShellItem = { href: string; label: string; icon: NavIcon; group: str
 export type ShellUser = { name: string; email: string; role: string };
 
 const COOKIE = "admin-nav";
+
+// مؤشر صغير على الرابط المضغوط حتى يكتمل الانتقال (ويُظهر شريط التقدم العلوي عبر CSS)
+function Pending() {
+  const { pending } = useLinkStatus();
+  return pending ? <span data-nav-pending aria-hidden="true" className="ms-auto h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-[var(--a-accent)]" /> : null;
+}
 
 function activeHref(path: string, items: ShellItem[]) {
   return items.map((i) => i.href).filter((h) => (h === "/admin" ? path === "/admin" : path === h || path.startsWith(h + "/")))
@@ -80,6 +86,7 @@ export function AdminShell({ items, groups, user, collapsed: initialCollapsed, n
                       {current && <span aria-hidden="true" className="absolute inset-y-2 start-0 w-[3px] rounded-full bg-[var(--a-accent)]" />}
                       <Icon aria-hidden="true" strokeWidth={1.7} className={`h-[1.15rem] w-[1.15rem] shrink-0 ${current ? "text-[var(--a-accent)]" : i.strong ? "text-[var(--a-accent-2)]" : ""}`} />
                       {compact ? <span className="sr-only">{i.label}</span> : <span className="truncate">{i.label}</span>}
+                      <Pending />
                     </Link>
                   </li>
                 );
@@ -138,7 +145,8 @@ export function AdminShell({ items, groups, user, collapsed: initialCollapsed, n
       </dialog>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-[var(--a-line)] bg-[var(--a-bg)]/90 backdrop-blur-md print:hidden">
+        <header className="sticky top-0 z-30 border-b border-[var(--a-line)] bg-[var(--a-bg)] print:hidden">
+          <div aria-hidden="true" className="nav-progress" />
           <div className="flex h-[4.25rem] items-center gap-2 px-4 sm:gap-3 sm:px-6">
             <button type="button" onClick={() => setOpen(true)} aria-label={t.nav.openMenu}
               className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[var(--a-line)] bg-white lg:hidden">

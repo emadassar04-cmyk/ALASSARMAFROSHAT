@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/staff";
@@ -8,7 +10,7 @@ import { SaleForm } from "./SaleForm";
 export const instant = false;
 
 
-export default async function SalesPage() {
+async function SalesPageContent() {
   const staff = await requireStaff();
   if (!staff.permissions.includes("sales.record")) redirect("/admin");
   const t = getDict(staff.locale), f = fmt(staff.locale);
@@ -39,4 +41,9 @@ export default async function SalesPage() {
       )}
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function SalesPage() {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><SalesPageContent /></Suspense>;
 }

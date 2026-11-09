@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import Image from "next/image";
 import { ImageOff, LayoutGrid, List, Package, Plus, Search, Star } from "lucide-react";
@@ -20,7 +22,7 @@ type Row = {
 const optimizable = (u: string) => u.startsWith("https://puakwxubskwxostdtmzi.supabase.co/storage/v1/object/public/");
 const STATUS_TONE: Record<string, string> = { active: "approved", draft: "submitted", archived: "voided" };
 
-export default async function AdminProducts({ searchParams }: PageProps<"/admin/products">) {
+async function AdminProductsContent({ searchParams }: PageProps<"/admin/products">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   const sp = await searchParams;
@@ -152,4 +154,9 @@ export default async function AdminProducts({ searchParams }: PageProps<"/admin/
       )}
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function AdminProducts(props: PageProps<"/admin/products">) {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><AdminProductsContent {...props} /></Suspense>;
 }

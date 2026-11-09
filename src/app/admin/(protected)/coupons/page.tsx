@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import { Plus, TicketPercent } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/staff";
@@ -7,7 +9,7 @@ import { CouponForm, ToggleCoupon } from "./Forms";
 
 export const instant = false;
 
-export default async function CouponsPage() {
+async function CouponsPageContent() {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale), k = t.coupons;
   const supabase = await createClient();
@@ -57,4 +59,9 @@ export default async function CouponsPage() {
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function CouponsPage() {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><CouponsPageContent /></Suspense>;
 }

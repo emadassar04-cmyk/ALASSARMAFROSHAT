@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -12,7 +14,7 @@ import { PrintButton } from "@/components/admin/PrintButton";
 export const instant = false;
 
 // فاتورة قابلة للطباعة أو الحفظ PDF (من المتصفح). لا تعرض التكلفة أو الربح أبداً.
-export default async function InvoicePage({ params }: PageProps<"/admin/orders/[id]/invoice">) {
+async function InvoicePageContent({ params }: PageProps<"/admin/orders/[id]/invoice">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   const { id } = await params;
@@ -82,4 +84,9 @@ export default async function InvoicePage({ params }: PageProps<"/admin/orders/[
       </article>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function InvoicePage(props: PageProps<"/admin/orders/[id]/invoice">) {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><InvoicePageContent {...props} /></Suspense>;
 }

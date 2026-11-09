@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import { Receipt, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff, can } from "@/lib/staff";
@@ -8,7 +10,7 @@ import { ExpenseForm, VoidButton } from "./Forms";
 
 export const instant = false;
 
-export default async function ExpensesPage({ searchParams }: PageProps<"/admin/expenses">) {
+async function ExpensesPageContent({ searchParams }: PageProps<"/admin/expenses">) {
   const staff = await requireStaff();
   const t = getDict(staff.locale), f = fmt(staff.locale);
   if (!can(staff, "finance.read")) return <p className="a-card p-4">{t.exp.needFinance}</p>;
@@ -59,4 +61,9 @@ export default async function ExpensesPage({ searchParams }: PageProps<"/admin/e
       </Card>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function ExpensesPage(props: PageProps<"/admin/expenses">) {
+  return <Suspense fallback={<PageSkeleton variant="list" />}><ExpensesPageContent {...props} /></Suspense>;
 }

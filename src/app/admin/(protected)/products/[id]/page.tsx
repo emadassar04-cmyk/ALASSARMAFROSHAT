@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -13,7 +15,7 @@ import { DeleteProduct } from "../DeleteProduct";
 
 export const instant = false;
 
-export default async function EditProduct({ params, searchParams }: PageProps<"/admin/products/[id]">) {
+async function EditProductContent({ params, searchParams }: PageProps<"/admin/products/[id]">) {
   const staff = await requireStaff();
   const [{ id }, { created }] = await Promise.all([params, searchParams]);
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
@@ -80,4 +82,9 @@ export default async function EditProduct({ params, searchParams }: PageProps<"/
       </section>
     </div>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function EditProduct(props: PageProps<"/admin/products/[id]">) {
+  return <Suspense fallback={<PageSkeleton variant="form" />}><EditProductContent {...props} /></Suspense>;
 }

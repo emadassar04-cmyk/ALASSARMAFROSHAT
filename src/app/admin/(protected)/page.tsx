@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/admin/PageSkeleton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
@@ -30,7 +32,7 @@ type OrderRow = {
   created_at: string; first_item: string | null; lines: number;
 };
 
-export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
+async function AdminHomeContent({ searchParams }: PageProps<"/admin">) {
   const staff = await requireStaff();
   // موظف الفرع (تسجيل المبيعات فقط) يذهب مباشرة إلى صفحة التسجيل
   const sees = ["orders.read", "finance.read", "inventory.manage", "catalog.manage", "sales.review"].some((p) => can(staff, p));
@@ -203,4 +205,9 @@ function RecentOrders({ rows, t, f }: { rows: OrderRow[]; t: ReturnType<typeof g
       </ul>
     </>
   );
+}
+
+// الصفحة تُعرض فوراً بهيكل تحميل، ثم يتدفق المحتوى (تنقل سلس دون انتظار الخادم)
+export default function AdminHome(props: PageProps<"/admin">) {
+  return <Suspense fallback={<PageSkeleton variant="dashboard" />}><AdminHomeContent {...props} /></Suspense>;
 }

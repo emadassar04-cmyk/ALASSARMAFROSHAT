@@ -361,10 +361,13 @@
   .a-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--a-muted-ink); margin-bottom: 0.35rem; }
 }
 
-/* حركة دقيقة: ظهور البطاقات، وتتوقف مع «تقليل الحركة» */
+/* شريط تقدم رفيع أعلى الصفحة أثناء الانتقال بين الأقسام (يظهر فقط عند وجود رابط قيد التحميل) */
+.nav-progress { position: absolute; inset-inline: 0; top: 0; height: 2px; overflow: hidden; opacity: 0; transition: opacity 150ms; pointer-events: none; }
+.nav-progress::after { content: ""; position: absolute; inset-block: 0; width: 40%; background: var(--a-accent); }
+.admin-ui:has([data-nav-pending]) .nav-progress { opacity: 1; }
 @media (prefers-reduced-motion: no-preference) {
-  .a-rise { animation: a-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
-  @keyframes a-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .admin-ui:has([data-nav-pending]) .nav-progress::after { animation: nav-progress 900ms ease-in-out infinite; }
+  @keyframes nav-progress { from { inset-inline-start: -40%; } to { inset-inline-start: 100%; } }
 }
 @media print {
   .admin-ui { background: #fff; }

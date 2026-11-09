@@ -2,11 +2,10 @@ import { MapPin, Navigation, Phone } from "lucide-react";
 import type { Branch } from "@/lib/catalog-types";
 import { whatsappLink } from "@/lib/format";
 import { directionsUrl, displayPhone, embedUrl, telHref } from "@/lib/maps";
-import { MapEmbed } from "./MapEmbed";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 
-// بطاقات الفروع: خريطة (تُحمَّل عند الطلب) + العنوان + اتصال + WhatsApp + الاتجاهات. كل البيانات من قاعدة البيانات.
-export function BranchCards({ branches, autoloadMaps = false }: { branches: Branch[]; autoloadMaps?: boolean }) {
+// بطاقات الفروع: خريطة Google مباشرة (تحميل كسول) + العنوان + اتصال + WhatsApp + الاتجاهات. كل البيانات من قاعدة البيانات.
+export function BranchCards({ branches }: { branches: Branch[] }) {
   if (!branches.length) return null;
   return (
     <ul className={`grid gap-6 ${branches.length > 1 ? "md:grid-cols-2" : "max-w-2xl"}`}>
@@ -15,7 +14,9 @@ export function BranchCards({ branches, autoloadMaps = false }: { branches: Bran
         return (
           <li key={b.id} className="reveal panel flex flex-col overflow-hidden shadow-soft">
             <div className="relative aspect-[16/10] border-b border-border">
-              <MapEmbed src={embedUrl(b)} title={`موقع ${b.name} على الخريطة`} autoload={autoloadMaps} />
+              {/* تحميل كسول من المتصفح: الخريطة لا تُطلب إلا عند الاقتراب من القسم، فلا تؤثر على سرعة أعلى الصفحة */}
+              <iframe src={embedUrl(b)} title={`موقع ${b.name} على الخريطة`} loading="lazy" allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade" className="absolute inset-0 h-full w-full border-0 bg-cream" />
             </div>
             <div className="flex flex-1 flex-col gap-4 p-5 sm:p-6">
               <div className="flex flex-wrap items-center gap-2">

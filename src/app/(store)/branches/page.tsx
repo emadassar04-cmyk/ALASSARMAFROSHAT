@@ -16,7 +16,7 @@ async function BranchesContent() {
   return (
     <>
       <JsonLd data={{ "@context": "https://schema.org", "@graph": branches.map((b) => ({ ...branchLd(b), url: `${s.site_url}/branches` })) }} />
-      <BranchCards branches={branches} autoloadMaps />
+      <BranchCards branches={branches} />
     </>
   );
 }

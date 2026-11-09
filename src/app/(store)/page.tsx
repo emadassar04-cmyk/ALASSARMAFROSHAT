@@ -316,7 +316,7 @@ async function TrustSection() {
   );
 }
 
-// فروعنا: بطاقات بخرائط تُحمَّل عند الطلب (لا تؤثر على سرعة الصفحة)
+// فروعنا: بطاقات بخرائط Google مباشرة (تحميل كسول عند الاقتراب من القسم)
 async function BranchesSection() {
   const branches = await getBranches();
   if (!branches.length) return null;

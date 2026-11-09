@@ -185,6 +185,11 @@ await check("التحليلات: أحداث مشاهدة المنتج والإض
   await page.goto(url("/product/سجادة-تركية-كلاسيك"));
   await page.getByRole("button", { name: "أضف إلى السلة" }).click();
   await page.waitForFunction(() => (window.fbq?.queue ?? []).some((a) => a[1] === "AddToCart"), null, { timeout: 8000 });
+  // الأحداث تنتظر جاهزية كل أداة (حتى ربع ثانية)، فننتظر وصول حدثي GA أيضاً
+  await page.waitForFunction(() => {
+    const ev = (window.dataLayer ?? []).map((x) => Array.from(x)).filter((x) => x[0] === "event").map((x) => x[1]);
+    return ev.includes("view_item") && ev.includes("add_to_cart");
+  }, null, { timeout: 8000 }).catch(() => {});
   const r = await page.evaluate(() => ({
     ga: (window.dataLayer ?? []).map((a) => Array.from(a)).filter((a) => a[0] === "event").map((a) => a[1]),
     gaConfig: (window.dataLayer ?? []).map((a) => Array.from(a)).some((a) => a[0] === "config" && a[1] === "G-TEST12345"),
@@ -256,10 +261,10 @@ await check("الفروع: صفحة «فروعنا» بالفرعين والعن
   assert(ld.some((d) => d["@graph"]?.length === 2 && d["@graph"][0].address.addressLocality === "دير البلح" && d["@graph"][1].geo?.latitude === 31.450171), "branches ld");
   await page.goto(url("/"));
   await page.getByRole("heading", { name: "فروعنا" }).waitFor();
-  // في الرئيسية الخريطة لا تُحمَّل إلا عند الطلب
-  assert(await page.locator("iframe").count() === 0, "no map iframe before click");
-  await page.getByRole("button", { name: "عرض الخريطة" }).first().click();
-  await page.locator("iframe[title^='موقع']").first().waitFor({ state: "attached" });
+  // الخريطة ظاهرة مباشرة في الرئيسية، بتحميل كسول
+  const homeMap = page.locator("iframe[title^='موقع']").first();
+  assert(await homeMap.getAttribute("loading") === "lazy", "lazy map");
+  assert((await homeMap.getAttribute("src")).includes(encodeURIComponent("31.418326,34.349009")), "home map pin");
 });
 
 await check("لا أخطاء JavaScript في المتصفح", async () => {

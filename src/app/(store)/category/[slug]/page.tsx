@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps<"/category/[slug]">
     title: c.name,
     description: c.description ?? `تسوق ${c.name} من مفروشات العصار في دير البلح والنصيرات.`,
     alternates: { canonical: `/category/${encodeURIComponent(c.slug)}` },
-    openGraph: { title: c.name, url: `/category/${encodeURIComponent(c.slug)}`, images: c.image_url ? [{ url: c.image_url, alt: c.name }] : undefined },
+    openGraph: { title: c.name, url: `/category/${encodeURIComponent(c.slug)}`, images: [{ url: categoryImage(c.name, c.image_url), alt: c.name }] },
   };
 }
 

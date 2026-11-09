@@ -26,7 +26,7 @@ export function CouponForm({ c = {} }: { c?: CouponValues }) {
       <label className="space-y-1 text-sm"><span className="block">يبدأ (توقيت فلسطين)</span><input name="starts_at" type="datetime-local" defaultValue={toLocal(c.starts_at)} className={f} /></label>
       <label className="space-y-1 text-sm"><span className="block">ينتهي</span><input name="ends_at" type="datetime-local" defaultValue={toLocal(c.ends_at)} className={f} /></label>
       <label className="flex items-center gap-2 text-sm md:col-span-2"><input type="checkbox" name="vip_only" defaultChecked={c.vip_only} />لعملاء VIP فقط</label>
-      <button disabled={pending} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-white disabled:opacity-50 md:col-start-4">{pending ? "…" : c.id ? "حفظ" : "إنشاء الكوبون"}</button>
+      <button disabled={pending} className="rounded-lg bg-charcoal px-4 py-2 text-sm font-medium text-white disabled:opacity-50 md:col-start-4">{pending ? "…" : c.id ? "حفظ" : "إنشاء الكوبون"}</button>
       {(state.error || state.message) && <p role={state.error ? "alert" : "status"} className={`text-sm md:col-span-4 ${state.error ? "text-red-700" : "text-emerald-700"}`}>{state.error ?? state.message}</p>}
     </form>
   );

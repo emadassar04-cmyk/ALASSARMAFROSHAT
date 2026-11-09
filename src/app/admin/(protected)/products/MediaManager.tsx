@@ -79,7 +79,7 @@ export function MediaManager({ productId, productName, media }: { productId: str
                 // eslint-disable-next-line @next/next/no-img-element -- معاينة داخل لوحة الإدارة
                 ? <img src={m.url} alt={m.alt ?? ""} className="h-full w-full object-cover" />
                 : <video src={m.url} className="h-full w-full object-cover" muted />}
-              {i === 0 && <span className="absolute top-1 right-1 rounded bg-gold px-1.5 text-xs text-white">الغلاف</span>}
+              {i === 0 && <span className="absolute top-1 right-1 rounded bg-charcoal px-1.5 text-xs text-white">الغلاف</span>}
             </div>
             <div className="flex justify-between text-xs">
               <button type="button" disabled={i === 0} onClick={() => run(() => moveMedia(m.id, -1))} aria-label="تقديم" className="px-1 disabled:opacity-30">→</button>

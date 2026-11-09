@@ -54,8 +54,8 @@
   --color-beige: var(--beige);
   --color-gold-dark: var(--gold-dark);
 
-  --font-sans: var(--font-plex), system-ui, sans-serif;
-  --font-display: var(--font-alexandria), var(--font-plex), system-ui, sans-serif;
+  --font-sans: var(--font-alexandria), system-ui, sans-serif;
+  --font-display: var(--font-alexandria), system-ui, sans-serif;
 }
 
 @theme {
@@ -92,11 +92,14 @@
     background: var(--warm-white);
     color: var(--charcoal);
     font-family: var(--font-sans);
+    /* الخطوط محمّلة بوزنين فقط (400/500): لا تسميك صناعي للأوزان الأعلى */
+    font-synthesis-weight: none;
   }
   h1, h2, h3 {
     font-family: var(--font-display);
     font-weight: 500;
     text-wrap: balance;
+    font-synthesis-weight: none; /* خط العناوين بوزن واحد: لا تسميك صناعي */
   }
   ::selection { background: var(--cream); color: var(--charcoal); }
   :focus-visible {

@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: PageProps<"/product/[slug]">)
     title: p.seo_title ?? p.name,
     description,
     alternates: { canonical: `/product/${encodeURIComponent(p.slug)}` },
-    openGraph: { title: p.name, description, type: "website", url: `/product/${encodeURIComponent(p.slug)}`, images: image ? [{ url: image, alt: p.name }] : undefined },
+    openGraph: { title: p.name, description, type: "website", url: `/product/${encodeURIComponent(p.slug)}`, images: [{ url: image ?? "/opengraph-image.jpg", alt: p.name }] },
   };
 }
 

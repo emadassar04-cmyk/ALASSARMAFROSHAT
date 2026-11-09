@@ -10,7 +10,7 @@ import { formatPrice, whatsappLink } from "@/lib/format";
 import { AvailabilityBadge } from "@/components/store/AvailabilityBadge";
 import { Price } from "@/components/store/Price";
 import { SaveButtons } from "@/components/store/SaveButtons";
-import { WhatsAppIcon } from "@/components/store/WhatsAppFloat";
+import { WhatsAppIcon } from "@/components/store/WhatsAppIcon";
 
 export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; whatsapp: string | null; url: string }) {
   const [variantId, setVariantId] = useState(product.variants[0]?.id ?? "");
@@ -76,9 +76,10 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
           <div className="flex flex-wrap gap-2">
             {product.variants.map((v) => (
               <label key={v.id}
-                className={`cursor-pointer rounded-[var(--radius-control)] border px-4 py-2.5 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold ${v.id === variantId ? "border-charcoal bg-white text-charcoal" : "border-border bg-white text-muted-ink hover:border-[#ddd2bf]"} ${!isPurchasable(v.availability) ? "opacity-50" : ""}`}>
+                className={`cursor-pointer rounded-[var(--radius-control)] border px-4 py-2.5 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold ${v.id === variantId ? "border-charcoal bg-white text-charcoal" : "border-border bg-white text-muted-ink hover:border-[#ddd2bf]"} ${!isPurchasable(v.availability) ? "border-dashed bg-cream" : ""}`}>
                 <input type="radio" name="variant" value={v.id} checked={v.id === variantId} onChange={() => { setVariantId(v.id); setAdded(false); }} className="sr-only" />
                 {variantLabel(v)}{v.price !== null && !product.requires_measurement ? ` — ${formatPrice(v.price)}` : ""}
+                {!isPurchasable(v.availability) && <span className="ms-1 text-xs">(غير متوفر)</span>}
               </label>
             ))}
           </div>

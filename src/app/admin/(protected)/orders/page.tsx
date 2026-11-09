@@ -46,7 +46,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
   }
   const [{ data, error }, now] = await Promise.all([query, requestTime()]);
   const rows = (data ?? []) as Row[];
-  const tab = (v: string) => `rounded-lg px-3 py-1.5 text-sm ${view === v ? "bg-gold text-white" : "border border-gold/30 bg-white"}`;
+  const tab = (v: string) => `rounded-lg px-3 py-1.5 text-sm ${view === v ? "bg-charcoal text-white" : "border border-gold/30 bg-white"}`;
 
   return (
     <div className="mx-auto max-w-7xl space-y-4">

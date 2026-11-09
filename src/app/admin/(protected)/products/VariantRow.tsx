@@ -36,7 +36,7 @@ export function VariantRow({ productId, v, canSeeCost }: { productId: string; v?
         {!isNew && (
           <label className="flex items-center gap-1 text-xs"><input type="checkbox" name="is_active" defaultChecked={v?.is_active} className="accent-[var(--gold)]" />فعّال</label>
         )}
-        <button disabled={pending} className="rounded-md bg-gold px-3 py-1.5 text-white hover:bg-gold-dark disabled:opacity-60">
+        <button disabled={pending} className="rounded-md bg-charcoal px-3 py-1.5 text-white hover:bg-[#3d372e] disabled:opacity-60">
           {pending ? "…" : isNew ? "إضافة" : "حفظ"}
         </button>
       </div>

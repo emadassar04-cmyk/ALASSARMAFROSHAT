@@ -33,7 +33,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/admin/re
           <p className="text-sm opacity-70">من {range.from} إلى {range.to} (بتوقيت فلسطين). البيع يُحتسب عند تأكيد الطلب.</p>
         </div>
         <div className="flex flex-wrap gap-2 print:hidden">
-          <a href={`/admin/reports/export?${qs}&format=xlsx`} className="rounded-lg bg-gold px-3 py-2 text-sm text-white hover:bg-gold-dark">تصدير Excel</a>
+          <a href={`/admin/reports/export?${qs}&format=xlsx`} className="rounded-lg bg-charcoal px-3 py-2 text-sm text-white hover:bg-[#3d372e]">تصدير Excel</a>
           <a href={`/admin/reports/export?${qs}&format=csv`} className="rounded-lg border border-gold/40 bg-white px-3 py-2 text-sm hover:bg-beige">CSV</a>
           <PrintButton />
         </div>
@@ -42,7 +42,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/admin/re
       <nav aria-label="الفترة" className="flex flex-wrap items-end gap-2 print:hidden">
         {(Object.keys(PRESET_LABEL) as Preset[]).map((pr) => (
           <Link key={pr} href={`/admin/reports?preset=${pr}`} aria-current={range.preset === pr ? "page" : undefined}
-            className={`rounded-full px-3 py-1.5 text-sm ${range.preset === pr ? "bg-gold text-white" : "border border-gold/30 bg-white hover:bg-beige"}`}>{PRESET_LABEL[pr]}</Link>
+            className={`rounded-full px-3 py-1.5 text-sm ${range.preset === pr ? "bg-charcoal text-white" : "border border-gold/30 bg-white hover:bg-beige"}`}>{PRESET_LABEL[pr]}</Link>
         ))}
         <form className="flex items-end gap-2 text-sm">
           <label className="space-y-1"><span className="block text-xs opacity-70">من</span><input type="date" name="from" defaultValue={range.from} className="rounded-lg border border-gold/30 px-2 py-1.5" /></label>

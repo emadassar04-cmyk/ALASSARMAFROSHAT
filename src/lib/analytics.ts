@@ -20,8 +20,19 @@ declare global {
   }
 }
 
+// أدوات القياس تُحمَّل بعد تفاعل الصفحة؛ إن وقع الحدث قبل جاهزيتها ننتظر قليلاً (حتى 5 ثوانٍ) بدل أن يضيع.
+// إن لم تكن الأدوات مفعّلة من الإدارة أصلاً، تنتهي المحاولات بصمت.
+function whenReady(fn: () => void, tries = 0) {
+  if (window.gtag || window.fbq) return fn();
+  if (tries < 20) window.setTimeout(() => whenReady(fn, tries + 1), 250);
+}
+
 export function trackEvent(name: EventName, data: { items?: Item[]; value?: number | null; transaction_id?: string } = {}) {
   if (typeof window === "undefined") return;
+  whenReady(() => send(name, data));
+}
+
+function send(name: EventName, data: { items?: Item[]; value?: number | null; transaction_id?: string }) {
   const value = data.value ?? undefined;
   try {
     window.gtag?.("event", name, {

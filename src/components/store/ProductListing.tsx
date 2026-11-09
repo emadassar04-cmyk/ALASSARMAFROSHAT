@@ -63,7 +63,8 @@ export async function ProductListing({ searchParams, base, overrides = {}, empty
       <aside className="hidden lg:block">
         <div className="sticky top-28">{filters}</div>
       </aside>
-      <section aria-live="polite" className="min-w-0">
+      <section aria-live="polite" aria-labelledby="results-title" className="min-w-0">
+        <h2 id="results-title" className="sr-only">المنتجات</h2>
         <details className="group mb-6 rounded-[var(--radius-card)] border border-border bg-white lg:hidden">
           <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3.5 text-sm font-medium [&::-webkit-details-marker]:hidden">
             <span className="flex items-center gap-2"><SlidersHorizontal aria-hidden="true" strokeWidth={1.6} className="h-4 w-4" />تصفية وترتيب</span>

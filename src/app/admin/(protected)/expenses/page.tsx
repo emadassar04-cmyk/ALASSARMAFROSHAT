@@ -27,7 +27,7 @@ export default async function ExpensesPage({ searchParams }: PageProps<"/admin/e
       {staff.permissions.includes("finance.manage") && <ExpenseForm today={gazaToday()} />}
       <nav className="flex flex-wrap gap-2">
         {(Object.keys(PRESET_LABEL) as Preset[]).map((p) => (
-          <Link key={p} href={`/admin/expenses?preset=${p}`} className={`rounded-full px-3 py-1.5 text-sm ${range.preset === p ? "bg-gold text-white" : "border border-gold/30 bg-white"}`}>{PRESET_LABEL[p]}</Link>
+          <Link key={p} href={`/admin/expenses?preset=${p}`} className={`rounded-full px-3 py-1.5 text-sm ${range.preset === p ? "bg-charcoal text-white" : "border border-gold/30 bg-white"}`}>{PRESET_LABEL[p]}</Link>
         ))}
       </nav>
       <p className="font-medium">الإجمالي ({range.from} ← {range.to}): {formatPrice(total)}</p>

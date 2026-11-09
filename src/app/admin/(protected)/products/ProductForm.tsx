@@ -116,7 +116,7 @@ export function ProductForm({ action, values = {}, categories, units, isNew }: {
 
       {state.error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{state.error}</p>}
       {state.message && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{state.message}</p>}
-      <button disabled={pending} className="rounded-lg bg-gold px-6 py-2.5 font-medium text-white hover:bg-gold-dark disabled:opacity-60">
+      <button disabled={pending} className="rounded-lg bg-charcoal px-6 py-2.5 font-medium text-white hover:bg-[#3d372e] disabled:opacity-60">
         {pending ? "جارٍ الحفظ…" : isNew ? "إضافة المنتج" : "حفظ التغييرات"}
       </button>
     </form>

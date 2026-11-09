@@ -7,7 +7,7 @@ import { isPurchasable } from "@/lib/catalog-types";
 import { formatPrice, whatsappLink } from "@/lib/format";
 import { AvailabilityBadge } from "@/components/store/AvailabilityBadge";
 import { ProductImage } from "@/components/store/ProductImage";
-import { WhatsAppIcon } from "@/components/store/WhatsAppFloat";
+import { WhatsAppIcon } from "@/components/store/WhatsAppIcon";
 
 export function CartView({ whatsapp }: { whatsapp: string | null }) {
   const { cart: items } = useStore();

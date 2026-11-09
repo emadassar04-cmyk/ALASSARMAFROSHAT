@@ -45,7 +45,7 @@ export function StatusActions({ id, status, fulfillment }: { id: string; status:
       <div className="flex flex-wrap gap-2">
         {canConfirm && (
           <button disabled={pending} onClick={() => run(() => confirmOrder(id), "تأكيد الطلب بعد موافقة الزبون؟ سيُخصم المخزون نهائياً.")}
-            className={`${btn} bg-gold text-white hover:bg-gold-dark`}>تأكيد الطلب (وافق الزبون)</button>
+            className={`${btn} bg-charcoal text-white hover:bg-[#3d372e]`}>تأكيد الطلب (وافق الزبون)</button>
         )}
         {next.map(([s, label]) => (
           <button key={s} disabled={pending} onClick={() => run(() => setOrderStatus(id, s), `تغيير الحالة إلى «${ORDER_STATUS_LABEL[s]}»؟`)}
@@ -84,7 +84,7 @@ export function ProfitInput({ itemId, current, net, disabled }: { itemId: string
         <input value={v} onChange={(e) => setV(e.target.value)} inputMode="decimal" disabled={disabled} aria-label="ربحك من هذا البند"
           placeholder={disabled ? "بعد التأكيد" : `حتى ${net}`} className="w-24 rounded-md border border-gold/30 px-2 py-1 text-sm disabled:bg-stone-50" />
         <button disabled={disabled || pending || !v.trim()} onClick={() => run(() => setItemProfit(itemId, v))}
-          className="rounded-md bg-gold px-2 text-xs text-white disabled:opacity-40">حفظ</button>
+          className="rounded-md bg-charcoal px-2 text-xs text-white disabled:opacity-40">حفظ</button>
       </div>
       <Feedback r={result} />
     </div>

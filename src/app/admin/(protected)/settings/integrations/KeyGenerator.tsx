@@ -20,7 +20,7 @@ export function KeyGenerator({ hasKey }: { hasKey: boolean }) {
 
   return (
     <div className="space-y-3">
-      <button onClick={generate} disabled={pending} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+      <button onClick={generate} disabled={pending} className="rounded-lg bg-charcoal px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
         {pending ? "جارٍ الإنشاء…" : hasKey ? "إنشاء مفتاح جديد (يُبطل الحالي)" : "إنشاء مفتاح n8n"}
       </button>
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}

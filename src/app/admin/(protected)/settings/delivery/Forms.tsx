@@ -16,7 +16,7 @@ export function ZoneForm({ zone }: { zone?: Zone }) {
       <label className="space-y-1 text-xs"><span className="block opacity-70">مدة التوصيل</span><input name="eta_text" defaultValue={zone?.eta_text ?? ""} placeholder="خلال يوم" className={`${f} w-32`} /></label>
       <label className="space-y-1 text-xs"><span className="block opacity-70">الترتيب</span><input name="sort_order" type="number" defaultValue={zone?.sort_order ?? 0} className={`${f} w-16`} /></label>
       {zone && <label className="flex items-center gap-1 text-xs"><input type="checkbox" name="is_active" defaultChecked={zone.is_active} />فعّالة</label>}
-      <button disabled={pending} className="rounded-md bg-gold px-3 py-1.5 text-sm text-white disabled:opacity-50">{zone ? "حفظ" : "إضافة"}</button>
+      <button disabled={pending} className="rounded-md bg-charcoal px-3 py-1.5 text-sm text-white disabled:opacity-50">{zone ? "حفظ" : "إضافة"}</button>
       {state.error && <p role="alert" className="w-full text-xs text-red-700">{state.error}</p>}
       {state.ok && <p role="status" className="w-full text-xs text-emerald-700">تم الحفظ ✓</p>}
     </form>

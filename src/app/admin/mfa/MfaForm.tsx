@@ -102,7 +102,7 @@ export function MfaForm() {
       <button
         type="submit"
         disabled={busy || code.length !== 6}
-        className="w-full rounded-lg bg-gold px-4 py-3 font-medium text-white hover:bg-gold-dark disabled:opacity-60"
+        className="w-full rounded-lg bg-charcoal px-4 py-3 font-medium text-white hover:bg-[#3d372e] disabled:opacity-60"
       >
         {busy ? "جارٍ التحقق…" : "تحقق"}
       </button>

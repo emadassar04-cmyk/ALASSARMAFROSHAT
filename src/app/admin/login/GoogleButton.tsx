@@ -29,7 +29,7 @@ export function GoogleButton() {
         type="button"
         onClick={signIn}
         disabled={loading}
-        className="w-full rounded-lg bg-gold px-4 py-3 font-medium text-white transition hover:bg-gold-dark disabled:opacity-60"
+        className="w-full rounded-lg bg-charcoal px-4 py-3 font-medium text-white transition hover:bg-[#3d372e] disabled:opacity-60"
       >
         {loading ? "جارٍ التحويل إلى Google…" : "الدخول بحساب Google"}
       </button>

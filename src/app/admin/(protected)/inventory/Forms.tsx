@@ -21,7 +21,7 @@ export function StartStocktake() {
   return (
     <div className="space-y-2">
       <button disabled={pending} onClick={() => start(async () => { const r = await startStocktake(""); setErr(r.error ?? null); })}
-        className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-white disabled:opacity-50">بدء جرد جديد</button>
+        className="rounded-lg bg-charcoal px-4 py-2 text-sm font-medium text-white disabled:opacity-50">بدء جرد جديد</button>
       {err && <p role="alert" className="text-sm text-red-700">{err}</p>}
     </div>
   );
@@ -56,7 +56,7 @@ export function StocktakeActions({ id, counted }: { id: string; counted: number 
       <button disabled={pending || counted === 0} onClick={() => {
         if (!confirm(`اعتماد الجرد؟ سيُطبَّق الفرق لـ ${counted} صنفاً معدوداً على المخزون، ولا يمكن التراجع (تُسجَّل كحركات مخزون).`)) return;
         start(async () => { const r = await applyStocktake(id); setMsg(r.error ?? null); });
-      }} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-white disabled:opacity-50">اعتماد الجرد</button>
+      }} className="rounded-lg bg-charcoal px-4 py-2 text-sm font-medium text-white disabled:opacity-50">اعتماد الجرد</button>
       <button disabled={pending} onClick={() => confirm("إلغاء الجرد دون تغيير المخزون؟") && start(async () => { const r = await cancelStocktake(id); setMsg(r.error ?? null); })}
         className="rounded-lg border border-red-300 px-3 py-2 text-sm text-red-800">إلغاء الجرد</button>
       {msg && <p role="alert" className="w-full text-sm text-red-700">{msg}</p>}

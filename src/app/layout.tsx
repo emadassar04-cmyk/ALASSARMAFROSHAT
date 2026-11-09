@@ -1,29 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Alexandria, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Alexandria } from "next/font/google";
 import { getStoreSettings } from "@/lib/catalog";
 import "./globals.css";
 
-// الخطوط تُنزَّل وقت البناء وتُخدم من نطاق الموقع نفسه (لا طلبات لـ Google Fonts عند الزائر)
-// النص: IBM Plex Sans Arabic — وضوح عالٍ للحروف العربية والأرقام
-const plex = IBM_Plex_Sans_Arabic({
-  variable: "--font-plex",
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
-
-// العناوين: Alexandria بوزن واحد — حديث وأنيق
+// خط واحد للموقع كله: Alexandria — حديث وأنيق وواضح، وخفيف جداً (~12KB لكل وزن من الحروف العربية).
+// يُنزَّل وقت البناء ويُخدم من نطاق الموقع نفسه (لا طلبات لـ Google Fonts عند الزائر).
+// وزنان فقط: 400 للنص و500 للعناوين والتأكيد. الحروف اللاتينية (الأرقام) تُحمَّل عند الحاجة.
 const alexandria = Alexandria({
   variable: "--font-alexandria",
   subsets: ["arabic"],
-  weight: ["500"],
+  weight: ["400", "500"],
   display: "swap",
 });
 
 const SITE_NAME = "مفروشات العصار";
 const DESCRIPTION = "متجر مفروشات العصار في دير البلح والنصيرات: سجاد، ستائر، مراتب، بطانيات، شراشف ومخدات، مع توصيل داخل قطاع غزة.";
 
-// بيانات وصفية عامة لكل الصفحات؛ كل صفحة تضيف عنوانها ووصفها الخاص
 export const viewport: Viewport = { themeColor: "#fffefa" };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ar" dir="rtl" className={`${plex.variable} ${alexandria.variable} h-full antialiased`}>
+    <html lang="ar" dir="rtl" className={`${alexandria.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

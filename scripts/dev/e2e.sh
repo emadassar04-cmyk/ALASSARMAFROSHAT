@@ -18,7 +18,7 @@ psql -X -q -v ON_ERROR_STOP=1 -U postgres -h localhost -d alassar_test -f supaba
 npx next build > /tmp/e2e-build.log 2>&1 || { tail -30 /tmp/e2e-build.log; exit 1; }
 npx next start -p 3100 > /tmp/e2e-server.log 2>&1 &
 SERVER=$!
-trap 'kill $SERVER 2>/dev/null || true' EXIT
+trap 'kill $SERVER 2>/dev/null; pkill -f next-server 2>/dev/null || true' EXIT
 for _ in $(seq 1 40); do curl -s -o /dev/null http://localhost:3100/ && break; sleep 1; done
 
 export NODE_PATH="$(npm root -g)"

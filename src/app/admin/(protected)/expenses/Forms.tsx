@@ -15,7 +15,7 @@ export function ExpenseForm({ today }: { today: string }) {
       <label className="space-y-1 text-sm"><span className="block">المبلغ ₪</span><input name="amount" required inputMode="decimal" className={`${f} w-full`} /></label>
       <label className="space-y-1 text-sm"><span className="block">التاريخ</span><input name="spent_on" type="date" defaultValue={today} max={today} className={`${f} w-full`} /></label>
       <label className="space-y-1 text-sm"><span className="block">الوصف</span><input name="description" required minLength={2} maxLength={500} placeholder="مثال: أجرة مندوب طلب ALS-1010" className={`${f} w-full`} /></label>
-      <button disabled={pending} className="rounded-lg bg-gold px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{pending ? "…" : "إضافة"}</button>
+      <button disabled={pending} className="rounded-lg bg-charcoal px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{pending ? "…" : "إضافة"}</button>
       {(state.error || state.message) && <p role={state.error ? "alert" : "status"} className={`text-sm md:col-span-5 ${state.error ? "text-red-700" : "text-emerald-700"}`}>{state.error ?? state.message}</p>}
     </form>
   );

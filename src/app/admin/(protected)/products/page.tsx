@@ -31,7 +31,7 @@ export default async function AdminProducts({ searchParams }: PageProps<"/admin/
     <div className="mx-auto max-w-6xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">المنتجات</h1>
-        <Link href="/admin/products/new" className="rounded-lg bg-gold px-4 py-2 font-medium text-white hover:bg-gold-dark">＋ منتج جديد</Link>
+        <Link href="/admin/products/new" className="rounded-lg bg-charcoal px-4 py-2 font-medium text-white hover:bg-[#3d372e]">＋ منتج جديد</Link>
       </div>
       <form className="flex flex-wrap gap-2">
         <input name="q" defaultValue={typeof q === "string" ? q : ""} placeholder="ابحث بالاسم" className="rounded-lg border border-gold/30 px-3 py-2 text-sm" />

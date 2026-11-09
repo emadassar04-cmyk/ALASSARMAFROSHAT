@@ -111,8 +111,8 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
   return (
     <form onSubmit={submit} className="grid gap-8 lg:grid-cols-[1fr_23rem] lg:gap-12" noValidate>
       <div className="space-y-5">
-        <fieldset className="space-y-3 panel p-5 sm:p-6">
-          <legend className="px-1.5 font-sans text-base font-semibold">بياناتك</legend>
+        <fieldset className="space-y-3 panel p-5 sm:p-6 [&>*:not(legend)]:clear-both">
+          <legend className="float-start mb-1 w-full font-sans text-base font-semibold">بياناتك</legend>
           <label className="block space-y-1.5 text-sm"><span className="font-medium">الاسم الكامل *</span>
             <input required autoComplete="name" maxLength={100} value={form.name} onChange={(e) => set("name", e.target.value)}
               aria-invalid={invalid("customer_name")} className={field} /></label>
@@ -121,8 +121,8 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
               onChange={(e) => set("phone", e.target.value)} placeholder="0599123456" aria-invalid={invalid("phone")} className={`${field} text-right`} /></label>
         </fieldset>
 
-        <fieldset className="space-y-3 panel p-5 sm:p-6">
-          <legend className="px-1.5 font-sans text-base font-semibold">طريقة الاستلام</legend>
+        <fieldset className="space-y-3 panel p-5 sm:p-6 [&>*:not(legend)]:clear-both">
+          <legend className="float-start mb-1 w-full font-sans text-base font-semibold">طريقة الاستلام</legend>
           <div className="grid grid-cols-2 gap-2">
             {([["delivery", "توصيل للعنوان"], ["pickup", "استلام من المحل"]] as const).map(([v, l]) => (
               <label key={v} className={`cursor-pointer rounded-[var(--radius-control)] border p-3.5 text-center text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold ${form.fulfillment === v ? "border-charcoal bg-cream font-medium" : "border-border hover:border-[#ddd2bf]"}`}>
@@ -148,8 +148,8 @@ export function CheckoutForm({ zones, methods }: { zones: DeliveryZone[]; method
           )}
         </fieldset>
 
-        <fieldset className="space-y-3 panel p-5 sm:p-6">
-          <legend className="px-1.5 font-sans text-base font-semibold">طريقة الدفع</legend>
+        <fieldset className="space-y-3 panel p-5 sm:p-6 [&>*:not(legend)]:clear-both">
+          <legend className="float-start mb-1 w-full font-sans text-base font-semibold">طريقة الدفع</legend>
           {allowedMethods.map((m) => (
             <label key={m.code} className={`block cursor-pointer rounded-[var(--radius-control)] border p-3.5 text-sm transition-colors ${payment === m.code ? "border-charcoal bg-cream" : "border-border hover:border-[#ddd2bf]"}`}>
               <span className="flex items-center gap-2">

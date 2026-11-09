@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { whatsappLink } from "@/lib/format";
-import { WhatsAppIcon } from "@/components/store/WhatsAppFloat";
+import { WhatsAppIcon } from "@/components/store/WhatsAppIcon";
 
 const TYPES = ["ستائر", "موكيت / سجاد", "مراتب", "مفروشات أخرى"];
 const UNITS = ["سم", "متر"];

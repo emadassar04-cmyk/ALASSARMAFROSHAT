@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { getStoreSettings, trackOrder } from "@/lib/catalog";
 import { ORDER_STATUS_LABEL, PAYMENT_STATUS_LABEL } from "@/lib/catalog-types";
 import { formatPrice, whatsappLink } from "@/lib/format";
-import { WhatsAppIcon } from "@/components/store/WhatsAppFloat";
+import { WhatsAppIcon } from "@/components/store/WhatsAppIcon";
 
 export const metadata: Metadata = { title: "طلبك", robots: { index: false, follow: false } };
 

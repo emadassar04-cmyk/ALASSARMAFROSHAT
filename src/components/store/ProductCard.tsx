@@ -16,7 +16,7 @@ export function ProductCard({ product, priority = false }: { product: Card; prio
   const href = `/product/${encodeURIComponent(product.slug)}`;
   const off = discountPercent(product);
   return (
-    <article className="group relative flex flex-col">
+    <article className="reveal group relative flex flex-col">
       <div className="relative overflow-hidden rounded-[var(--radius-card)]">
         <ProductImage
           src={product.image?.url}

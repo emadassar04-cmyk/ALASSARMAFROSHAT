@@ -6,6 +6,7 @@ import { getCategories, getStoreSettings } from "@/lib/catalog";
 import Image from "next/image";
 import { JsonLd, breadcrumbLd } from "@/components/store/JsonLd";
 import { Breadcrumbs } from "@/components/store/Breadcrumbs";
+import { Wave } from "@/components/store/Dividers";
 import { categoryImage } from "@/lib/category-images";
 
 async function findCategory(params: Promise<{ slug: string }>) {
@@ -34,8 +35,8 @@ async function CategoryContent({ params, searchParams }: PageProps<"/category/[s
         { name: "الرئيسية", path: "/" },
         { name: c.name, path: `/category/${encodeURIComponent(c.slug)}` },
       ])} />
-      <div className="border-b border-border bg-cream/60">
-        <div className="shell grid items-center gap-6 py-8 md:grid-cols-[1fr_auto] md:py-10">
+      <div className="bg-cream">
+        <div className="shell grid items-center gap-6 pt-8 pb-4 md:grid-cols-[1fr_auto] md:pt-10 md:pb-6">
           <div>
             <Breadcrumbs items={[{ name: "الرئيسية", href: "/" }, { name: "كل المنتجات", href: "/products" }, { name: c.name }]} />
             <h1 className="mt-4 text-title text-charcoal">{c.name}</h1>
@@ -44,10 +45,11 @@ async function CategoryContent({ params, searchParams }: PageProps<"/category/[s
             </p>
           </div>
           <div className="relative hidden aspect-[16/10] w-72 overflow-hidden rounded-[var(--radius-card)] md:block lg:w-80">
-            <Image src={categoryImage(c.name, c.image_url)} alt="" fill sizes="320px" className="object-cover" />
+            <Image src={categoryImage(c.name, c.image_url)} alt="" fill sizes="320px" className="hero-zoom object-cover" />
           </div>
         </div>
       </div>
+      <Wave from="cream" to="white" />
       <div className="shell py-8 md:py-10">
         <ProductListing searchParams={searchParams} base={`/category/${encodeURIComponent(c.slug)}`}
           overrides={{ category: c.slug }} emptyText={`لا توجد منتجات في «${c.name}» حالياً.`} />

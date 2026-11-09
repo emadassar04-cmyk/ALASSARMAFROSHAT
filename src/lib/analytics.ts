@@ -20,35 +20,32 @@ declare global {
   }
 }
 
-// أدوات القياس تُحمَّل بعد تفاعل الصفحة؛ إن وقع الحدث قبل جاهزيتها ننتظر قليلاً (حتى 5 ثوانٍ) بدل أن يضيع.
-// إن لم تكن الأدوات مفعّلة من الإدارة أصلاً، تنتهي المحاولات بصمت.
-function whenReady(fn: () => void, tries = 0) {
-  if (window.gtag || window.fbq) return fn();
-  if (tries < 20) window.setTimeout(() => whenReady(fn, tries + 1), 250);
+// أدوات القياس تُحمَّل بعد تفاعل الصفحة؛ إن وقع الحدث قبل جاهزية أداة ننتظرها قليلاً (حتى 5 ثوانٍ) بدل أن يضيع.
+// كل أداة تُنتظر وحدها، وإن لم تكن مفعّلة من الإدارة أصلاً تنتهي المحاولات بصمت.
+function whenDefined(key: "gtag" | "fbq", fn: (f: (...args: unknown[]) => void) => void, tries = 0) {
+  const f = window[key];
+  if (f) {
+    try { fn(f); } catch { /* التحليلات لا يجب أن تكسر المتجر أبداً */ }
+    return;
+  }
+  if (tries < 20) window.setTimeout(() => whenDefined(key, fn, tries + 1), 250);
 }
 
 export function trackEvent(name: EventName, data: { items?: Item[]; value?: number | null; transaction_id?: string } = {}) {
   if (typeof window === "undefined") return;
-  whenReady(() => send(name, data));
+  const value = data.value ?? undefined;
+  whenDefined("gtag", (gtag) => gtag("event", name, {
+    currency: "ILS",
+    value,
+    transaction_id: data.transaction_id,
+    items: data.items?.map((i) => ({ item_id: i.id, item_name: i.name, price: i.price ?? undefined, quantity: i.quantity ?? 1 })),
+  }));
+  whenDefined("fbq", (fbq) => fbq("track", PIXEL_NAME[name], {
+    currency: "ILS",
+    value,
+    content_type: "product",
+    content_ids: data.items?.map((i) => i.id),
+    num_items: data.items?.reduce((n, i) => n + (i.quantity ?? 1), 0),
+  }, data.transaction_id ? { eventID: data.transaction_id } : undefined));
 }
 
-function send(name: EventName, data: { items?: Item[]; value?: number | null; transaction_id?: string }) {
-  const value = data.value ?? undefined;
-  try {
-    window.gtag?.("event", name, {
-      currency: "ILS",
-      value,
-      transaction_id: data.transaction_id,
-      items: data.items?.map((i) => ({ item_id: i.id, item_name: i.name, price: i.price ?? undefined, quantity: i.quantity ?? 1 })),
-    });
-    window.fbq?.("track", PIXEL_NAME[name], {
-      currency: "ILS",
-      value,
-      content_type: "product",
-      content_ids: data.items?.map((i) => i.id),
-      num_items: data.items?.reduce((n, i) => n + (i.quantity ?? 1), 0),
-    }, data.transaction_id ? { eventID: data.transaction_id } : undefined);
-  } catch {
-    // التحليلات لا يجب أن تكسر المتجر أبداً
-  }
-}

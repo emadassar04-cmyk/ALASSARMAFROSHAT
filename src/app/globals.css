@@ -190,6 +190,52 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
 }
 
+/* =====================================================================
+   حركة خفيفة دون JavaScript:
+   - ظهور تدريجي للأقسام عند التمرير (Scroll-driven animations)، وتعمل فقط في المتصفحات الداعمة
+   - رسم الخيط الذهبي في الفواصل الحلزونية
+   - تكبير هادئ لصورة الواجهة، وشريط أقسام متحرك
+   كلها transform/opacity فقط (لا إزاحة للتخطيط)، وتتوقف كلياً مع «تقليل الحركة».
+   ===================================================================== */
+.thread-svg { view-timeline-name: --thread; }
+.thread-draw { stroke-dasharray: 1; stroke-dashoffset: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+    }
+    .thread-draw {
+      animation: draw linear both;
+      animation-timeline: --thread;
+      animation-range: entry 0% cover 50%;
+    }
+  }
+  .hero-zoom { animation: hero-zoom 1800ms var(--ease-out-soft) both; }
+  .marquee-track { animation: marquee 45s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes hero-zoom {
+  from { transform: scale(1.06); }
+  to { transform: scale(1); }
+}
+/* الاتجاه من اليمين لليسار يناسب القراءة العربية: المحتوى مكرر مرتين فيبدو الشريط بلا نهاية */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(50%); }
+}
+
 @keyframes shimmer {
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }

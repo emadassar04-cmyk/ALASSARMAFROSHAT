@@ -9,6 +9,7 @@ import { categoryImage } from "@/lib/category-images";
 import { whatsappLink } from "@/lib/format";
 import { JsonLd } from "@/components/store/JsonLd";
 import { ProductGrid, ProductGridSkeleton } from "@/components/store/ProductCard";
+import { Flourish, Wave } from "@/components/store/Dividers";
 import heroImage from "@/assets/home/hero-living-room.webp";
 import editorialImage from "@/assets/home/editorial-living.webp";
 import aboutImage from "@/assets/home/about-living.webp";
@@ -60,7 +61,7 @@ async function StoreJsonLd() {
 
 function SectionHead({ id, kicker, title, href, linkLabel = "عرض الكل" }: { id: string; kicker: string; title: string; href?: string; linkLabel?: string }) {
   return (
-    <div className="mb-8 flex flex-wrap items-end justify-between gap-4 md:mb-10">
+    <div className="reveal mb-8 flex flex-wrap items-end justify-between gap-4 md:mb-10">
       <div>
         <p className="kicker mb-3">{kicker}</p>
         <h2 id={id} className="text-title text-charcoal">{title}</h2>
@@ -84,11 +85,36 @@ function countLabel(n: number) {
 }
 
 // ---------------------------------------------------------------------
+// شريط متحرك بأسماء الأقسام (زخرفي: النسخة المكررة للحلقة المستمرة مخفية عن قارئات الشاشة)
+// ---------------------------------------------------------------------
+function Spark() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3 w-3 shrink-0 text-gold">
+      <path d="M8 0C8.6 4.6 11.4 7.4 16 8C11.4 8.6 8.6 11.4 8 16C7.4 11.4 4.6 8.6 0 8C4.6 7.4 7.4 4.6 8 0Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+async function CategoryMarquee() {
+  const names = [...(await getCategories()).filter((c) => !c.parent_id).map((c) => c.name), "تفصيل حسب المقاس"];
+  const row = (key: string) => (
+    <ul key={key} className="flex shrink-0 items-center gap-8 pe-8">
+      {names.map((n) => <li key={n} className="flex items-center gap-8 whitespace-nowrap"><span>{n}</span><Spark /></li>)}
+    </ul>
+  );
+  return (
+    <div aria-hidden="true" className="marquee overflow-hidden border-t border-gold/20 py-3.5 text-[0.95rem] text-muted-ink">
+      <div className="marquee-track flex w-max">{row("a")}{row("b")}</div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------
 // تسوّق حسب القسم: شبكة غير متماثلة (القسم الأول بارز)، الأعداد من قاعدة البيانات
 // ---------------------------------------------------------------------
 function CategoryTile({ c, featured }: { c: Category; featured: boolean }) {
   return (
-    <li className={featured ? "col-span-2 md:col-span-3 lg:col-span-1 lg:row-span-2" : ""}>
+    <li className={`reveal ${featured ? "col-span-2 md:col-span-3 lg:col-span-1 lg:row-span-2" : ""}`}>
       <Link href={`/category/${encodeURIComponent(c.slug)}`}
         className={`group relative block h-full overflow-hidden rounded-[var(--radius-card)] bg-cream ${featured ? "aspect-[16/10] md:aspect-[21/9] lg:aspect-auto" : "aspect-[4/5] sm:aspect-[5/4]"}`}>
         <Image src={categoryImage(c.name, c.image_url)} alt="" fill
@@ -125,7 +151,7 @@ async function CategoriesSection() {
 function ProductsBlock({ id, kicker, title, href, items, tinted = false }: { id: string; kicker: string; title: string; href: string; items: Card[]; tinted?: boolean }) {
   if (!items.length) return null;
   return (
-    <section aria-labelledby={id} className={tinted ? "bg-cream/60 py-16 md:py-20" : "py-16 md:py-20"}>
+    <section aria-labelledby={id} className={tinted ? "bg-cream py-14 md:py-16" : "py-14 md:py-16"}>
       <div className="shell">
         <SectionHead id={id} kicker={kicker} title={title} href={href} />
         <ProductGrid products={items} />
@@ -145,6 +171,7 @@ async function FeaturedAndNew() {
   const fresh = rest.slice(0, rest.length >= 8 ? 8 : rest.length >= 4 ? 4 : rest.length);
   return (
     <>
+      {featured.items.length > 0 && <Flourish className="pt-4" />}
       <ProductsBlock id="s-featured" kicker="مختارات" title="منتجات مميزة" href="/products" items={featured.items} />
       <EditorialSection />
       <ProductsBlock id="s-new" kicker="جديد المتجر" title="وصل حديثاً" href="/products?sort=newest" items={fresh} />
@@ -155,7 +182,13 @@ async function FeaturedAndNew() {
 // يظهر فقط بعد وجود مبيعات مؤكدة فعلية
 async function BestSellers() {
   const items = await getBestSellers(8);
-  return <ProductsBlock id="s-best" kicker="اختيار زبائننا" title="الأكثر مبيعاً" href="/products?sort=best_selling" items={items} tinted />;
+  if (!items.length) return null;
+  return (
+    <>
+      <Flourish className="pt-6" />
+      <ProductsBlock id="s-best" kicker="اختيار زبائننا" title="الأكثر مبيعاً" href="/products?sort=best_selling" items={items} />
+    </>
+  );
 }
 
 async function EmptyCatalogNotice() {
@@ -177,7 +210,7 @@ function EditorialSection() {
   return (
     <section aria-labelledby="s-editorial" className="py-6 md:py-10">
       <div className="shell">
-        <div className="grid overflow-hidden rounded-[var(--radius-card)] bg-charcoal lg:grid-cols-[1.25fr_1fr]">
+        <div className="reveal grid overflow-hidden rounded-[var(--radius-card)] bg-charcoal lg:grid-cols-[1.25fr_1fr]">
           <div className="relative aspect-[16/10] lg:aspect-auto lg:min-h-[28rem]">
             <Image src={editorialImage} alt="غرفة معيشة بكنبة وسجادة ووسائد وستائر متناسقة" fill sizes="(min-width: 1024px) 55vw, 100vw" className="object-cover" placeholder="blur" />
           </div>
@@ -207,8 +240,8 @@ function EditorialSection() {
 async function BrandIntro() {
   const categories = (await getCategories()).filter((c) => !c.parent_id);
   return (
-    <section aria-labelledby="s-about" className="py-16 md:py-24">
-      <div className="shell grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+    <section aria-labelledby="s-about" className="py-14 md:py-20">
+      <div className="reveal shell grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div className="relative order-last aspect-[4/3] overflow-hidden rounded-[var(--radius-card)] lg:order-none lg:aspect-[5/4]">
           <Image src={aboutImage} alt="غرفة جلوس بسجادة كبيرة ومقاعد ووسائد" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" placeholder="blur" />
         </div>
@@ -260,12 +293,14 @@ async function TrustSection() {
   ].filter(Boolean) as { icon: typeof Truck; title: string; text: string; href: string; link: string; external?: boolean }[];
 
   return (
-    <section aria-labelledby="s-trust" className="-mb-20 border-t border-border bg-cream/60 py-14 md:py-16">
+    <>
+    <Wave from="white" to="cream" className="mt-6" />
+    <section aria-labelledby="s-trust" className="bg-cream py-12 md:py-14">
       <div className="shell">
         <h2 id="s-trust" className="sr-only">خدماتنا</h2>
         <ul className="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {items.slice(0, 4).map(({ icon: Icon, title, text, href, link, external }) => (
-            <li key={title} className="flex gap-4">
+            <li key={title} className="reveal flex gap-4">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/40 text-gold-ink">
                 <Icon aria-hidden="true" strokeWidth={1.5} className="h-5 w-5" />
               </span>
@@ -281,6 +316,8 @@ async function TrustSection() {
         </ul>
       </div>
     </section>
+    <Wave from="cream" to="white" flip />
+    </>
   );
 }
 
@@ -290,7 +327,7 @@ export default function Home() {
       <Suspense fallback={null}><StoreJsonLd /></Suspense>
 
       {/* الواجهة: صورة واحدة قوية لغرفة معيشة متكاملة (لا عرض شرائح) */}
-      <section aria-labelledby="hero-title" className="relative overflow-hidden bg-cream/70">
+      <section aria-labelledby="hero-title" className="relative overflow-hidden bg-cream">
         <div className="shell grid items-center gap-8 py-6 md:py-10 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:py-14">
           <div className="order-last max-w-xl pb-4 lg:order-none lg:pb-0">
             <p className="kicker mb-5">مفروشات العصار · دير البلح – النصيرات</p>
@@ -311,12 +348,14 @@ export default function Home() {
           <div className="relative -mx-4 aspect-[16/11] overflow-hidden sm:mx-0 sm:aspect-[16/10] sm:rounded-[var(--radius-card)] lg:aspect-[11/12]">
             <Image src={heroImage} alt="غرفة معيشة دافئة بكنبة ووسائد وسجادة وستائر خفيفة"
               fill preload fetchPriority="high" placeholder="blur" quality={75}
-              sizes="(min-width: 1280px) 640px, (min-width: 1024px) 52vw, 100vw" className="object-cover" />
+              sizes="(min-width: 1280px) 640px, (min-width: 1024px) 52vw, 100vw" className="hero-zoom object-cover" />
           </div>
         </div>
+        <Suspense fallback={<div className="h-12" />}><CategoryMarquee /></Suspense>
       </section>
+      <Wave from="cream" to="white" />
 
-      <section id="categories" aria-labelledby="cats" className="py-16 md:py-20">
+      <section id="categories" aria-labelledby="cats" className="pt-10 pb-6 md:pt-14">
         <div className="shell">
           <SectionHead id="cats" kicker="أقسام المتجر" title="تسوّق حسب القسم" href="/products" linkLabel="كل المنتجات" />
           <Suspense fallback={<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{Array.from({ length: 4 }, (_, i) => <div key={i} className="skeleton aspect-[4/5] rounded-[var(--radius-card)]" />)}</div>}>
@@ -328,11 +367,10 @@ export default function Home() {
       <Suspense fallback={<div className="shell py-16"><ProductGridSkeleton count={4} /></div>}>
         <EmptyCatalogNotice />
         <FeaturedAndNew />
-        <BestSellers />
       </Suspense>
-
-      <Suspense fallback={null}><BrandIntro /></Suspense>
       <Suspense fallback={null}><TrustSection /></Suspense>
+      <Suspense fallback={null}><BestSellers /></Suspense>
+      <Suspense fallback={null}><BrandIntro /></Suspense>
     </>
   );
 }

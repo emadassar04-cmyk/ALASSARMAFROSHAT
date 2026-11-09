@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { MessageCircle, Ruler } from "lucide-react";
 import { Logo } from "@/components/store/Logo";
+import { Wave } from "@/components/store/Dividers";
 import { SearchBox } from "@/components/store/SearchBox";
 import { HeaderCounters } from "@/components/store/HeaderCounters";
 import { MobileMenu } from "@/components/store/MobileMenu";
@@ -122,8 +123,9 @@ export default function StoreLayout({ children }: LayoutProps<"/">) {
         </div>
       </nav>
 
-      <main id="main" className="flex-1 pb-20">{children}</main>
+      <main id="main" className="flex-1 pb-14">{children}</main>
 
+      <Wave from="white" to="charcoal" thread={false} />
       <footer className="bg-charcoal text-[0.9rem] text-on-dark-muted">
         <div className="shell grid grid-cols-2 gap-x-6 gap-y-10 py-14 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr]">
           <div className="col-span-2 space-y-4 lg:col-span-1">

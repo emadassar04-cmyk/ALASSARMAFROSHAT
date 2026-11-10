@@ -21,6 +21,7 @@ export const ar = {
     collapse: "طيّ القائمة", expand: "توسيع القائمة", openMenu: "فتح القائمة", closeMenu: "إغلاق القائمة",
   },
   header: {
+    welcome: "أهلاً بك،", languageMenu: "اللغة", storeCard: "متجرك", storeCardSub: "فتح المتجر في نافذة جديدة",
     searchPlaceholder: "ابحث عن طلب، عميل، منتج…", searchLabel: "بحث شامل", searchEmpty: "لا نتائج مطابقة.",
     searchOrders: "الطلبات", searchCustomers: "العملاء", searchProducts: "المنتجات", searchHint: "اكتب حرفين على الأقل",
     notifications: "الإشعارات", noNotifications: "لا شيء يحتاج انتباهك الآن.", language: "English", languageLabel: "تغيير اللغة إلى الإنجليزية",
@@ -35,6 +36,9 @@ export const ar = {
     last_month: "الشهر السابق", year: "هذا العام", custom: "فترة مخصصة", compared: "مقارنة بـ",
   },
   dashboard: {
+    heroTitle: "ملخص أداء متجرك", heroSub: "مبيعاتك وطلباتك وعملاؤك في مكان واحد", heroCta: "عرض التقارير التفصيلية",
+    distribution: "توزيع الطلبات", ordersUnit: "طلب", segCompleted: "مكتملة", segProcessing: "قيد التجهيز", segNew: "جديدة",
+    segCancelled: "ملغاة", noOrders: "لا طلبات في هذه الفترة.", moreAnalytics: "تحليلات إضافية", soldUnits: "قطعة مباعة",
     title: "لوحة المعلومات", welcome: "مرحباً", subtitle: "ملخص أداء المتجر للفترة المختارة",
     kpi: {
       sales: "إجمالي المبيعات", salesHint: "الطلبات المؤكدة غير الملغاة (شامل رسوم التوصيل)",

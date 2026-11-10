@@ -35,8 +35,9 @@ select tests.throws($$select public.set_my_locale('ar')$$, 'forbidden', 'لا ت
 -- ============ 3) المشاهد: يرى الطلبات فقط ============
 select set_config('request.jwt.claims', '{"role":"authenticated","sub":"00000000-0000-0000-0000-0000000000d1","aal":"aal2"}', false);
 insert into tests.ctx select 'ov_viewer', public.admin_overview((select d from today24) - 6, (select d from today24));
-select tests.ok((select v->'finance' = 'null'::jsonb and v->'series' = 'null'::jsonb and v->'orders' ? 'current' from tests.ctx where k = 'ov_viewer'),
-  'المشاهد يرى أعداد الطلبات دون أي رقم مالي');
+select tests.ok((select v->'finance' = 'null'::jsonb and v->'series_prev' = 'null'::jsonb and v->'orders' ? 'current'
+    and not exists (select 1 from jsonb_array_elements(v->'series') x where x ? 'revenue' or x ? 'profit' or x ? 'net')
+  from tests.ctx where k = 'ov_viewer'), 'المشاهد يرى أعداد الطلبات فقط دون أي رقم مالي (ولا في المنحنيات)');
 select tests.throws($$select public.admin_activity('{}')$$, 'forbidden', 'المشاهد لا يرى سجل النشاط');
 select tests.throws($$select public.admin_roles()$$, 'forbidden', 'المشاهد لا يرى مصفوفة الصلاحيات');
 select tests.throws($$select public.delete_product(gen_random_uuid())$$, 'forbidden', 'المشاهد لا يحذف المنتجات');
@@ -66,6 +67,15 @@ select tests.ok((select sum((x->>'revenue')::numeric) = (v->'finance'->'current'
 select tests.ok((select sum((x->>'revenue')::numeric) = (v->'finance'->'current'->>'revenue')::numeric from tests.ctx, jsonb_array_elements(v->'weekdays') x where k = 'ov7' group by v),
   'مجموع أيام الأسبوع = إجمالي المبيعات');
 select tests.ok((select jsonb_array_length(public.admin_overview((select d from today24), (select d from today24))->'series') = 24), 'يوم واحد = 24 ساعة');
+-- 0024: منحنيات البطاقات تطابق أرقام البطاقات نفسها
+select tests.ok((select sum((x->>'net')::numeric) = (v->'finance'->'current'->>'manager_net')::numeric
+  from tests.ctx, jsonb_array_elements(v->'series') x where k = 'ov7' group by v), 'مجموع منحنى الصافي = صافي ربح المدير');
+select tests.ok((select sum((x->>'created')::int) = (v->'orders'->'current'->>'total')::int
+  from tests.ctx, jsonb_array_elements(v->'series') x where k = 'ov7' group by v), 'مجموع منحنى الطلبات المُنشأة = إجمالي الطلبات');
+select tests.ok((select sum((x->>'customers')::int) = (v->'orders'->'current'->>'new_customers')::int
+  from tests.ctx, jsonb_array_elements(v->'series') x where k = 'ov7' group by v), 'مجموع منحنى العملاء الجدد = العملاء الجدد');
+select tests.ok((select bool_and(x ? 'image') from tests.ctx, jsonb_array_elements(v->'top_products') x where k = 'ov7') is not false,
+  'الأكثر مبيعاً يتضمن الصورة');
 select tests.ok((select public.admin_overview((select d from today24) - 200, (select d from today24))->>'unit' = 'month'), 'فترة طويلة = بالشهر');
 select tests.throws($$select public.admin_overview(current_date, current_date - 1)$$, 'invalid_range', 'فترة مقلوبة مرفوضة');
 select tests.throws($$select public.admin_overview(current_date - 400, current_date)$$, 'invalid_range', 'أكثر من سنة مرفوضة');

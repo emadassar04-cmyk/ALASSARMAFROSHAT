@@ -85,7 +85,7 @@ async function ReportsPageContent({ searchParams }: PageProps<"/admin/reports">)
             {r.daily.every((d) => +d.revenue === 0) ? <EmptyState title={R.noSales} />
               : <BarChart series={r.daily.map((d) => ({ t: String(d.day).slice(0, 10), orders: +d.orders, revenue: +d.revenue, profit: +d.profit }))} unit="day" metric="revenue" label={R.daily} color={CHART.current} />}
           </Card>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card title={R.categories}>
               {r.categories.length === 0 ? <p className="text-sm text-[var(--a-muted-ink)]">—</p> : <ul className="space-y-2 text-sm">{r.categories.map((c) =>
                 <li key={c.name} className="flex justify-between gap-3"><span>{c.name}</span><span className="tabular-nums"><b>{f.money(c.revenue)}</b> <span className="text-[var(--a-muted-ink)]">· {f.number(c.qty)} {t.common.items}</span></span></li>)}</ul>}

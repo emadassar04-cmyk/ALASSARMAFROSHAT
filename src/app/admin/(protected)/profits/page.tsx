@@ -69,7 +69,7 @@ async function ProfitsPageContent({ searchParams }: PageProps<"/admin/profits">)
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card title={t.profits.revenue}>
           <div className="text-sm">
             <Row f={f} label={t.profits.grossSales} value={grossSales} />

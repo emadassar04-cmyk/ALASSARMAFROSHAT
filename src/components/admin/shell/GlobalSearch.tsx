@@ -49,14 +49,14 @@ export function GlobalSearch() {
   const close = () => { setOpen(false); setQ(""); };
 
   return (
-    <div ref={ref} className="relative">
-      <button ref={button} type="button" className={`${iconBtn} md:flex md:w-60 md:justify-start md:gap-2 md:overflow-hidden md:px-3 lg:w-72 md:text-sm md:text-[var(--a-muted-ink)]`}
+    <div ref={ref} className="relative md:w-full md:max-w-xl">
+      <button ref={button} type="button" className={`${iconBtn} md:flex md:h-11 md:w-full md:justify-start md:gap-2.5 md:overflow-hidden md:border-transparent md:bg-[#f5f3ee] md:px-4 md:text-sm md:text-[var(--a-muted-ink)] md:hover:bg-[#efece5]`}
         aria-label={t.header.searchLabel} aria-expanded={open} onClick={() => { setOpen(true); setTimeout(() => input.current?.focus(), 0); }}>
         <Search aria-hidden="true" strokeWidth={1.8} className="h-[1.1rem] w-[1.1rem] shrink-0" />
         <span className="hidden truncate md:inline">{t.header.searchPlaceholder}</span>
       </button>
       {open && (
-        <div role="search" className={`${popPanel} w-[min(26rem,calc(100vw-2rem))] p-2`} style={{ insetInlineEnd: 0 }}>
+        <div role="search" className={`${popPanel} w-[min(32rem,calc(100vw-2rem))] p-2 md:end-auto md:start-0 md:w-full`}>
           <div className="relative">
             <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--a-muted)]" />
             <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.header.searchPlaceholder}

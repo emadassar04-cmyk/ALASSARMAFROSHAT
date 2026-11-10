@@ -23,6 +23,7 @@ export const en: Dict = {
     collapse: "Collapse menu", expand: "Expand menu", openMenu: "Open menu", closeMenu: "Close menu",
   },
   header: {
+    welcome: "Welcome,", languageMenu: "Language", storeCard: "Your store", storeCardSub: "Open the store in a new tab",
     searchPlaceholder: "Search orders, customers, products…", searchLabel: "Global search", searchEmpty: "No matches.",
     searchOrders: "Orders", searchCustomers: "Customers", searchProducts: "Products", searchHint: "Type at least 2 characters",
     notifications: "Notifications", noNotifications: "Nothing needs your attention right now.", language: "العربية", languageLabel: "Switch language to Arabic",
@@ -37,6 +38,9 @@ export const en: Dict = {
     last_month: "Last month", year: "This year", custom: "Custom range", compared: "Compared with",
   },
   dashboard: {
+    heroTitle: "Your store at a glance", heroSub: "Sales, orders and customers in one place", heroCta: "View detailed reports",
+    distribution: "Order distribution", ordersUnit: "orders", segCompleted: "Completed", segProcessing: "In progress", segNew: "New",
+    segCancelled: "Cancelled", noOrders: "No orders in this period.", moreAnalytics: "More analytics", soldUnits: "units sold",
     title: "Dashboard", welcome: "Welcome", subtitle: "Store performance for the selected period",
     kpi: {
       sales: "Total sales", salesHint: "Confirmed, non-cancelled orders (incl. delivery fees)",

@@ -68,7 +68,7 @@ async function OrderDetailContent({ params }: PageProps<"/admin/orders/[id]">) {
         </Card>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <Card title={t.od.customer}>
           <div className="space-y-2 text-sm">
             <p className="font-semibold">{o.customer_name}</p>
@@ -131,7 +131,7 @@ async function OrderDetailContent({ params }: PageProps<"/admin/orders/[id]">) {
         </div>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <Card title={t.od.timeline}>
           <ol className="relative space-y-4 border-s border-[var(--a-line)] ps-5 text-sm">
             {(history ?? []).map((h, i) => (

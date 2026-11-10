@@ -257,7 +257,7 @@
    #777777 على الأبيض = 4.48 ⇒ نستخدم #6b6b6b للنص الصغير، و#D94848 = 4.22 ⇒ #b83a3a للنص.
    ===================================================================== */
 .admin-ui {
-  --a-bg: #f7f6f2;
+  --a-bg: #f8f6f1;
   --a-sidebar: #171a1f;
   --a-sidebar-2: #20242b;
   --a-accent: #b89555;
@@ -272,7 +272,7 @@
   --a-danger: #d94848;
   --a-danger-ink: #b83a3a;
   --a-warning: #a8691b;
-  --a-radius: 14px;
+  --a-radius: 16px;
   --a-radius-sm: 10px;
   --a-shadow: 0 1px 2px rgb(23 26 31 / 0.04), 0 4px 16px -6px rgb(23 26 31 / 0.08);
   --a-shadow-lg: 0 2px 6px rgb(23 26 31 / 0.06), 0 22px 48px -18px rgb(23 26 31 / 0.25);
@@ -348,7 +348,8 @@
     transition: background-color 160ms, color 160ms, border-color 160ms;
   }
   .a-chip:hover { color: var(--a-text); border-color: #d5cfc2; }
-  .a-chip[aria-current="true"], .a-chip[aria-pressed="true"] { background: var(--a-sidebar); border-color: var(--a-sidebar); color: #fff; }
+  /* الاختيار الحالي ذهبي (أبيض على #8a6b2e = 4.97:1) */
+  .a-chip[aria-current="true"], .a-chip[aria-pressed="true"] { background: var(--a-accent-ink); border-color: var(--a-accent-ink); color: #fff; box-shadow: 0 4px 12px -6px rgb(138 107 46 / 0.8); }
   .a-table { width: 100%; font-size: 0.875rem; border-collapse: separate; border-spacing: 0; }
   .a-table th {
     text-align: start; font-weight: 600; font-size: 0.75rem; color: var(--a-muted-ink);
@@ -358,6 +359,8 @@
   .a-table tbody tr { transition: background-color 120ms; }
   .a-table tbody tr:hover { background: #fcfbf8; }
   .a-table tbody tr:last-child td { border-bottom: 0; }
+  /* جدول مختصر (لوحة المعلومات): خلايا أضيق وبلا التفاف */
+  .a-table-compact th, .a-table-compact td { padding: 0.65rem 0.7rem; white-space: nowrap; }
   .a-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--a-muted-ink); margin-bottom: 0.35rem; }
 }
 

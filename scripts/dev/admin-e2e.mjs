@@ -49,19 +49,23 @@ try {
     await go(page, "/admin?preset=30d");
     ok((await page.locator("html").getAttribute("dir")) === "rtl", "العربية: html dir=rtl");
     ok(await page.getByRole("heading", { name: "لوحة المعلومات", level: 1 }).isVisible(), "عنوان لوحة المعلومات");
-    const cards = await page.locator("section[aria-label] a.a-card").count();
+    const cards = await page.locator("section[aria-label] a [data-kpi-value]").count();
     ok(cards >= 10, `بطاقات الإحصاء العشر (${cards})`);
+    ok(await page.locator("section[aria-label] svg path").count() >= 4, "منحنيات صغيرة داخل البطاقات");
+    ok(await page.getByText("توزيع الطلبات").isVisible(), "حلقة توزيع الطلبات");
     ok(await page.locator("figure svg[role=img]").count() >= 3, "الرسوم البيانية (الإيرادات/الطلبات/الربح)");
     const sidebar = await page.locator("aside").boundingBox();
     ok(sidebar && sidebar.x > 1000, "القائمة الجانبية على اليمين في العربية");
     // تغيير الفترة يغيّر البيانات
-    const before = await page.locator("section[aria-label] a.a-card").first().locator("p.text-\\[1\\.6rem\\]").textContent();
+    const before = await page.locator("[data-kpi-value]").nth(2).textContent();
     await go(page, "/admin?preset=today");
-    const after = await page.locator("section[aria-label] a.a-card").first().locator("p.text-\\[1\\.6rem\\]").textContent();
+    const after = await page.locator("[data-kpi-value]").nth(2).textContent();
     ok(before !== after, `تغيير الفترة يغيّر الأرقام (${before} ← ${after})`);
     // تلميح الرسم عند المرور
     await go(page, "/admin?preset=30d");
     const svg = page.locator("figure svg[role=img]").first();
+    await svg.scrollIntoViewIfNeeded(); // الرسم صار تحت البانر، فقد يكون خارج الشاشة
+    await page.waitForTimeout(300);
     const box = await svg.boundingBox();
     await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
     ok(await page.locator("figure [role=status]").first().isVisible(), "تلميح الرسم يظهر عند المرور");
@@ -76,7 +80,8 @@ try {
     await page.keyboard.press("Escape");
 
     // 3) تبديل اللغة: الإنجليزية + LTR + القائمة يساراً
-    await page.getByRole("button", { name: /تغيير اللغة/ }).click();
+    await page.getByRole("button", { name: /اللغة/ }).click();
+    await page.getByRole("menuitemradio", { name: "English" }).click();
     await page.waitForFunction(() => document.documentElement.lang === "en", null, { timeout: 10000 });
     await page.waitForLoadState("networkidle");
     ok((await page.locator("html").getAttribute("dir")) === "ltr", "الإنجليزية: html dir=ltr");
@@ -100,7 +105,8 @@ try {
     ok(await page.getByRole("heading", { name: "Options & quantities" }).isVisible(), "EN صفحة تعديل المنتج");
     // رجوع للعربية
     await go(page, "/admin");
-    await page.getByRole("button", { name: /Switch language/ }).click();
+    await page.getByRole("button", { name: /Language/ }).click();
+    await page.getByRole("menuitemradio", { name: "العربية" }).click();
     await page.waitForFunction(() => document.documentElement.lang === "ar", null, { timeout: 10000 });
     ok(true, "الرجوع إلى العربية");
     ok(errors.length === 0, `لا أخطاء JavaScript (${errors.slice(0, 2).join(" | ")})`);

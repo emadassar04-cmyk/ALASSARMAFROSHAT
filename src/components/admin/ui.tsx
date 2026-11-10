@@ -23,8 +23,8 @@ export function Card({ title, action, children, className = "", bodyClass = "p-5
   return (
     <section className={`a-card ${className}`}>
       {(title || action) && (
-        <div className="flex items-center justify-between gap-3 border-b border-[var(--a-line)] px-5 py-3.5">
-          {title && <h2 className="text-[0.95rem] font-bold">{title}</h2>}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--a-line)] px-5 py-3.5">
+          {title && <h2 className="shrink-0 whitespace-nowrap text-[0.95rem] font-bold">{title}</h2>}
           {action}
         </div>
       )}
@@ -48,7 +48,7 @@ export function StatCard({ label, value, current, previous, good = "up", icon, h
         <p className="text-[0.8125rem] font-medium text-[var(--a-muted-ink)]">{label}</p>
         <span aria-hidden="true" className={`grid h-9 w-9 shrink-0 place-items-center rounded-[10px] ${tone === "warn" ? "bg-[#fbf3e6] text-[var(--a-warning)]" : "bg-[#f5efe3] text-[var(--a-accent-ink)]"}`}>{icon}</span>
       </div>
-      <p className="mt-1 text-[1.6rem] font-bold leading-tight tabular-nums tracking-tight">{value}</p>
+      <p data-kpi-value className="mt-1 text-[1.6rem] font-bold leading-tight tabular-nums tracking-tight">{value}</p>
       <div className="mt-2 flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
         {dir !== null ? (
           <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-semibold tabular-nums ${positive === null ? "bg-[#f1eee8] text-[var(--a-muted-ink)]" : positive ? "bg-[#eaf6f0] text-[var(--a-success)]" : "bg-[#fdf0f0] text-[var(--a-danger-ink)]"}`}>
@@ -155,7 +155,7 @@ export function PeriodPicker({ base, range, t, extra = {} }: {
       </div>
       <details className="relative" open={!range.preset || undefined}>
         <summary aria-current={!range.preset ? "true" : undefined} className="a-chip cursor-pointer list-none [&::-webkit-details-marker]:hidden">{t.period.custom}</summary>
-        <form className="absolute end-0 top-[calc(100%+0.4rem)] z-20 flex w-[min(20rem,calc(100vw-2rem))] flex-col gap-3 rounded-[14px] border border-[var(--a-line)] bg-white p-4 shadow-[var(--a-shadow-lg)]">
+        <form className="absolute end-0 top-[calc(100%+0.4rem)] z-20 flex w-[min(20rem,calc(100vw-2rem))] flex-col max-sm:fixed max-sm:inset-x-4 max-sm:top-24 max-sm:w-auto gap-3 rounded-[14px] border border-[var(--a-line)] bg-white p-4 shadow-[var(--a-shadow-lg)]">
           {Object.entries(extra).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
           <label className="block"><span className="a-label">{t.common.from}</span><input type="date" name="from" defaultValue={range.from} required className="a-input" /></label>
           <label className="block"><span className="a-label">{t.common.to}</span><input type="date" name="to" defaultValue={range.to} required className="a-input" /></label>

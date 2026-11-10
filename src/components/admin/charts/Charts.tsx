@@ -2,7 +2,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "../I18nProvider";
 
-export type Point = { t: string; orders: number; revenue: number; profit: number };
+export type Point = { t: string; orders: number; revenue: number; profit: number; created?: number; customers?: number; net?: number };
 type Unit = "hour" | "day" | "month";
 type Metric = "revenue" | "orders" | "profit";
 
@@ -118,14 +118,18 @@ export function TrendChart({ series, previous, unit, metric = "revenue", label }
           onPointerMove={onMove} onPointerLeave={() => setActive(null)} onPointerDown={onMove}>
           <defs>
             <linearGradient id={`g${gid}`} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={CHART.area} stopOpacity={0.22} />
+              <stop offset="0%" stopColor={CHART.area} stopOpacity={0.32} />
               <stop offset="100%" stopColor={CHART.area} stopOpacity={0} />
             </linearGradient>
           </defs>
           <Axis W={W} ticks={ticks} y={y} format={axisFmt} x={x} labels={tickLabels(n, lbl, W)} />
           <path d={area} fill={`url(#g${gid})`} />
           <path d={path(prev)} fill="none" stroke={CHART.previous} strokeWidth={2} strokeDasharray="5 5" strokeLinejoin="round" />
-          <path d={path(cur)} fill="none" stroke={CHART.current} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+          <path d={path(cur)} fill="none" stroke={CHART.current} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+          {/* نقاط على المنحنى للفترات القصيرة (حتى 31 نقطة) */}
+          {n <= 31 && cur.map((v, i) => v > 0 && (
+            <circle key={i} cx={x(i)} cy={y(v)} r={3.5} fill="#fff" stroke={CHART.current} strokeWidth={2} pointerEvents="none" />
+          ))}
           {a !== null && (
             <g pointerEvents="none">
               <line x1={x(a)} x2={x(a)} y1={P.t} y2={H - P.b} stroke="#c9c3b6" strokeWidth={1} />

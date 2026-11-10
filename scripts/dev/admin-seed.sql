@@ -109,3 +109,11 @@ begin
   perform public.record_store_purchase('0599115838', 180, (select id from public.branches where is_default), gen_random_uuid(), false);
   perform public.review_store_purchase((select id from public.store_purchases order by created_at limit 1), 'approve', null);
 end $$;
+
+-- صور توضيحية للمنتجات التجريبية (قاعدة الاختبار المحلية فقط) لاختبار عرض الصور في «الأكثر مبيعاً»
+insert into public.product_media (product_id, url, kind, alt, sort_order)
+select p.id, v.url, 'image', p.name, 1
+  from (values ('سجادة-تركية-كلاسيك', '/images/categories/rugs.webp'), ('مرتبة-طبية-فاخرة', '/images/categories/mattresses.webp'),
+               ('بطانية-شتوية-ناعمة', '/images/categories/blankets.webp'), ('مخدة-فندقية', '/images/categories/pillows.webp'),
+               ('طقم-شراشف-ساتان', '/images/categories/sheets.webp')) as v(slug, url)
+  join public.products p on p.slug = v.slug;

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { cairo, inter } from "../fonts";
 import { requireStaff } from "@/lib/staff";
 import { createClient } from "@/lib/supabase/server";
 import { getDict } from "@/lib/admin/i18n";
@@ -25,7 +24,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const role = (staff.locale === "en" ? staff.role_name_en : staff.role_name) ?? staff.role ?? "";
 
   return (
-    <div lang={staff.locale} dir={t.meta.dir} className={`admin-ui ${cairo.variable} ${inter.variable} flex min-h-full flex-1 flex-col`}>
+    <div lang={staff.locale} dir={t.meta.dir} className={`admin-ui flex min-h-full flex-1 flex-col`}>
       <IdleLogout />
       <AdminI18nProvider locale={staff.locale} dict={t}>
         <AdminShell items={items} groups={t.nav.groups} collapsed={jar.get("admin-nav")?.value === "collapsed"}

@@ -61,10 +61,10 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
     trackEvent("add_to_cart", { value: price !== null ? price * qty : null, items: [{ id: product.id, name: product.name, price, quantity: qty }] });
   }
 
-  const stepBtn = "flex h-full w-11 items-center justify-center text-charcoal transition-colors hover:bg-cream disabled:opacity-40";
+  const stepBtn = "flex h-full w-12 items-center justify-center text-charcoal transition-colors hover:bg-surface-soft disabled:opacity-40";
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-y border-border py-5">
         <Price price={variant?.price ?? product.price} compareAt={product.compare_at_price}
           requiresMeasurement={product.requires_measurement} size="lg" />
         <AvailabilityBadge value={availability} />
@@ -76,7 +76,7 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
           <div className="flex flex-wrap gap-2">
             {product.variants.map((v) => (
               <label key={v.id}
-                className={`cursor-pointer rounded-[var(--radius-control)] border px-4 py-2.5 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold ${v.id === variantId ? "border-charcoal bg-white text-charcoal" : "border-border bg-white text-muted-ink hover:border-[#ddd2bf]"} ${!isPurchasable(v.availability) ? "border-dashed bg-cream" : ""}`}>
+                className={`cursor-pointer rounded-full border px-5 py-2.5 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold ${v.id === variantId ? "border-charcoal bg-white text-charcoal" : "border-border bg-white text-muted-ink hover:border-border-strong"} ${!isPurchasable(v.availability) ? "border-dashed bg-cream" : ""}`}>
                 <input type="radio" name="variant" value={v.id} checked={v.id === variantId} onChange={() => { setVariantId(v.id); setAdded(false); }} className="sr-only" />
                 {variantLabel(v)}{v.price !== null && !product.requires_measurement ? ` — ${formatPrice(v.price)}` : ""}
                 {!isPurchasable(v.availability) && <span className="ms-1 text-xs">(غير متوفر)</span>}
@@ -87,7 +87,7 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
       )}
 
       {product.requires_measurement ? (
-        <div className="space-y-4 rounded-[var(--radius-card)] border border-border bg-cream/60 p-5 text-sm leading-7">
+        <div className="space-y-4 rounded-[var(--radius-card)] border border-border bg-champagne p-6 text-sm leading-7">
           <p className="flex gap-3">
             <Ruler aria-hidden="true" strokeWidth={1.5} className="mt-1 h-5 w-5 shrink-0 text-gold-ink" />
             هذا المنتج يُفصَّل حسب المقاس، ويُحدَّد سعره النهائي بعد معرفة المقاسات والمواصفات.
@@ -98,13 +98,13 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <label htmlFor="qty" className="text-sm font-medium">الكمية</label>
-            <div className="flex h-11 items-stretch overflow-hidden rounded-[var(--radius-control)] border border-border bg-white">
+            <div className="flex h-12 items-stretch overflow-hidden rounded-full border border-border bg-white">
               <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} className={stepBtn} aria-label="إنقاص الكمية">
                 <Minus aria-hidden="true" strokeWidth={1.6} className="h-4 w-4" />
               </button>
               <input id="qty" type="number" min={1} max={MAX_QTY} value={qty} inputMode="numeric"
                 onChange={(e) => setQty(Math.max(1, Math.min(MAX_QTY, Number(e.target.value) || 1)))}
-                className="w-14 border-x border-border text-center tabular-nums focus:outline-none" />
+                className="w-12 bg-transparent text-center tabular-nums [appearance:textfield] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
               <button type="button" onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))} disabled={qty >= MAX_QTY} className={stepBtn} aria-label="زيادة الكمية">
                 <Plus aria-hidden="true" strokeWidth={1.6} className="h-4 w-4" />
               </button>
@@ -114,7 +114,7 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
             <span className="font-medium">ملاحظات على المنتج <span className="font-normal text-muted-ink">(اختياري)</span></span>
             <input value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 300))} placeholder="مثال: اللون الأفتح إن وجد" className="field" />
           </label>
-          <button ref={buttonRef} type="button" disabled={!canBuy} onClick={addToCart} className="btn btn-primary h-13 w-full text-base">
+          <button ref={buttonRef} type="button" disabled={!canBuy} onClick={addToCart} className="btn btn-primary h-14 w-full text-base">
             {canBuy ? "أضف إلى السلة" : "غير متوفر حالياً"}
           </button>
           {added && (
@@ -138,7 +138,7 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
       {/* شريط الشراء السفلي (جوال فقط) */}
       {canBuy && (
         <div aria-hidden={!barVisible} inert={!barVisible}
-          className={`fixed inset-x-0 bottom-0 z-40 border-t border-border bg-warm-white/95 px-4 py-3 shadow-lift backdrop-blur-md transition-transform duration-300 md:hidden ${barVisible ? "translate-y-0" : "translate-y-full"}`}>
+          className={`fixed inset-x-0 bottom-0 z-40 border-t border-border bg-ivory/95 px-4 py-3 shadow-lift backdrop-blur-xl transition-transform duration-300 md:hidden ${barVisible ? "translate-y-0" : "translate-y-full"}`}>
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs text-muted-ink">{product.name}</p>

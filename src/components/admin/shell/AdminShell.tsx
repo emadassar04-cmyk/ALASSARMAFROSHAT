@@ -78,13 +78,13 @@ export function AdminShell({ items, groups, user, collapsed: initialCollapsed, n
                 return (
                   <li key={i.href}>
                     <Link href={i.href} aria-current={current ? "page" : undefined} title={compact ? i.label : undefined}
-                      className={`group flex items-center gap-3 rounded-[12px] px-3.5 py-2.5 text-[0.875rem] transition-colors ${compact ? "justify-center px-0" : ""} ${current
-                        ? "bg-gradient-to-l from-[#d9bd84] to-[#b38f4b] font-semibold text-[#1b1d22] shadow-[0_6px_18px_-8px_rgb(184_149_85/0.7)] ltr:bg-gradient-to-r"
-                        : "text-[#d0d3d9] hover:bg-white/[0.06] hover:text-white"}`}>
-                      <Icon aria-hidden="true" strokeWidth={1.8} className={`h-[1.15rem] w-[1.15rem] shrink-0 ${current ? "" : i.strong ? "text-[var(--a-accent-2)]" : "text-[#9aa0aa] group-hover:text-white"}`} />
+                      className={`group relative flex items-center gap-3 rounded-[10px] px-3.5 py-2.5 text-[0.875rem] transition-colors duration-200 ${compact ? "justify-center px-0" : ""} ${current
+                        ? "bg-white/[0.07] font-medium text-[#f7f6f2] before:absolute before:inset-y-2 before:start-0 before:w-[3px] before:rounded-full before:bg-[var(--a-accent)]"
+                        : "text-[#c9c6bd] hover:bg-white/[0.04] hover:text-[#f7f6f2]"}`}>
+                      <Icon aria-hidden="true" strokeWidth={1.5} className={`h-[1.15rem] w-[1.15rem] shrink-0 transition-colors ${current ? "text-[var(--a-accent-2)]" : i.strong ? "text-[var(--a-accent-2)]" : "text-[#a9a497] group-hover:text-[#f7f6f2]"}`} />
                       {compact ? <span className="sr-only">{i.label}</span> : <span className="min-w-0 flex-1 truncate">{i.label}</span>}
                       <Pending />
-                      {!compact && <ChevronLeft aria-hidden="true" strokeWidth={2} className={`h-4 w-4 shrink-0 ltr:rotate-180 ${current ? "opacity-70" : "opacity-30 group-hover:opacity-60"}`} />}
+                      {!compact && <ChevronLeft aria-hidden="true" strokeWidth={1.5} className={`h-4 w-4 shrink-0 transition-[opacity,transform] duration-200 ltr:rotate-180 ${current ? "text-[var(--a-accent-2)] opacity-80" : "opacity-0 group-hover:-translate-x-0.5 group-hover:opacity-50 ltr:group-hover:translate-x-0.5"}`} />}
                     </Link>
                   </li>
                 );
@@ -98,13 +98,13 @@ export function AdminShell({ items, groups, user, collapsed: initialCollapsed, n
 
   const brand = (compact: boolean) => (
     <Link href="/admin" className={`flex items-center gap-3 px-5 ${compact ? "justify-center px-0" : ""}`}>
-      <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-gradient-to-br from-[#e1c890] to-[#a8853f] text-[#1b1d22]">
-        <Sofa strokeWidth={1.8} className="h-5 w-5" />
+      <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--a-accent)]/45 text-[var(--a-accent-2)]">
+        <Sofa strokeWidth={1.4} className="h-5 w-5" />
       </span>
       {!compact && (
         <span className="leading-tight">
-          <span className="block text-[1rem] font-bold text-[#e6cf9c]">{locale === "en" ? "Al Assar" : "مفروشات العصار"}</span>
-          <span className="block text-[0.625rem] font-semibold tracking-[0.14em] text-[#9aa0aa]">AL ASSAR FURNITURE</span>
+          <span className="block text-[1rem] font-medium text-[#f7f6f2]">{locale === "en" ? "Al Assar" : "مفروشات العصار"}</span>
+          <span className="mt-0.5 block text-[0.5625rem] font-medium tracking-[0.3em] text-[var(--a-accent-2)]/80">AL ASSAR FURNITURE</span>
         </span>
       )}
     </Link>
@@ -112,12 +112,12 @@ export function AdminShell({ items, groups, user, collapsed: initialCollapsed, n
 
   // بطاقة سفلية: رابط المتجر (معلومة حقيقية، لا وعود دعم وهمية)
   const storeCard = (compact: boolean) => (
-    <Link href="/" target="_blank" className={`flex items-center gap-3 rounded-[14px] border border-white/[0.08] bg-white/[0.04] p-3 text-[#d0d3d9] transition-colors hover:border-[#b38f4b]/50 hover:text-white ${compact ? "justify-center" : ""}`}>
-      <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#b38f4b]/15 text-[#e1c890]"><Store strokeWidth={1.8} className="h-5 w-5" /></span>
+    <Link href="/" target="_blank" className={`flex items-center gap-3 rounded-[12px] border border-white/[0.08] p-3 text-[#c9c6bd] transition-colors hover:border-[var(--a-accent)]/50 hover:text-[#f7f6f2] ${compact ? "justify-center" : ""}`}>
+      <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--a-accent)]/12 text-[var(--a-accent-2)]"><Store strokeWidth={1.5} className="h-[1.1rem] w-[1.1rem]" /></span>
       {compact ? <span className="sr-only">{t.header.storeCard}</span> : (
         <span className="min-w-0 leading-tight">
-          <span className="block text-sm font-semibold">{t.header.storeCard}</span>
-          <span className="block truncate text-[0.6875rem] text-[#9aa0aa]">{t.header.storeCardSub}</span>
+          <span className="block text-sm font-medium">{t.header.storeCard}</span>
+          <span className="block truncate text-[0.6875rem] text-[#a9a497]">{t.header.storeCardSub}</span>
         </span>
       )}
     </Link>
@@ -149,17 +149,17 @@ export function AdminShell({ items, groups, user, collapsed: initialCollapsed, n
       </dialog>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-[var(--a-line)] bg-white print:hidden">
+        <header className="sticky top-0 z-30 border-b border-[var(--a-line)] bg-[#fbfaf7]/90 backdrop-blur-xl print:hidden">
           <div aria-hidden="true" className="nav-progress" />
           <div className="flex h-[4.5rem] items-center gap-2 px-4 sm:gap-3 sm:px-6">
             {/* زر القائمة: يطوي القائمة الجانبية في الشاشات الكبيرة، ويفتحها في الجوال */}
             <button type="button" onClick={() => setOpen(true)} aria-label={t.nav.openMenu}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[var(--a-text)] hover:bg-[#f3f0ea] lg:hidden">
-              <Menu aria-hidden="true" strokeWidth={1.8} className="h-5 w-5" />
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[var(--a-text)] hover:bg-[#f1efe9] lg:hidden">
+              <Menu aria-hidden="true" strokeWidth={1.5} className="h-5 w-5" />
             </button>
             <button type="button" onClick={toggle} aria-label={collapsed ? t.nav.expand : t.nav.collapse} aria-expanded={!collapsed}
-              className="hidden h-10 w-10 shrink-0 place-items-center rounded-full text-[var(--a-text)] hover:bg-[#f3f0ea] lg:grid">
-              <Menu aria-hidden="true" strokeWidth={1.8} className="h-5 w-5" />
+              className="hidden h-10 w-10 shrink-0 place-items-center rounded-full text-[var(--a-text)] hover:bg-[#f1efe9] lg:grid">
+              <Menu aria-hidden="true" strokeWidth={1.5} className="h-5 w-5" />
             </button>
             <div className="flex min-w-0 flex-1 justify-center"><GlobalSearch /></div>
             <div className="flex items-center gap-1.5 sm:gap-2">

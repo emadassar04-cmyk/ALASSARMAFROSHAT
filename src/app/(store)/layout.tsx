@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Gift, MapPin, MessageCircle, Ruler } from "lucide-react";
+import { Gift, MapPin, MessageCircle, Ruler, Truck } from "lucide-react";
 import { Logo } from "@/components/store/Logo";
-import { Wave } from "@/components/store/Dividers";
 import { SearchBox } from "@/components/store/SearchBox";
 import { HeaderCounters } from "@/components/store/HeaderCounters";
 import { MobileMenu } from "@/components/store/MobileMenu";
 import { WhatsAppFloat } from "@/components/store/WhatsAppFloat";
 import { SourceTracker } from "@/components/store/SourceTracker";
 import { Toaster } from "@/components/store/Toaster";
+import { QuickViewHost } from "@/components/store/QuickView";
 import { Analytics } from "@/components/store/Analytics";
 import { getBranches, getCampaign, getCategories, getPolicies, getStoreSettings } from "@/lib/catalog";
 import { whatsappLink } from "@/lib/format";
@@ -19,32 +19,28 @@ async function topCategories() {
   return (await getCategories()).filter((c) => !c.parent_id);
 }
 
-// شريط الأقسام (للشاشات الكبيرة): يمرر أفقياً عند الحاجة ولا يلتصق بالأعلى
+// شريط الأقسام (للشاشات الكبيرة): في المنتصف بخط هادئ وخط سفلي ينمو عند المرور، ويمرر أفقياً عند الحاجة
+const navLink = "relative block py-3.5 transition-colors after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-center after:scale-x-0 after:bg-gold after:transition-transform after:duration-300 hover:text-charcoal hover:after:scale-x-100";
 async function CategoryNav() {
   const [categories, campaign] = await Promise.all([topCategories(), getCampaign()]);
   return (
-    <ul className="no-scrollbar flex items-center gap-7 overflow-x-auto whitespace-nowrap text-[0.9rem]">
-      <li><Link href="/products" className="block py-3 font-medium text-charcoal transition-colors hover:text-gold-ink">كل المنتجات</Link></li>
+    <ul className="no-scrollbar flex items-center justify-center gap-8 overflow-x-auto whitespace-nowrap text-[0.875rem] text-muted-ink xl:gap-10">
+      <li><Link href="/products" className={`${navLink} font-medium text-charcoal`}>كل المنتجات</Link></li>
       {categories.map((c) => (
         <li key={c.id}>
-          <Link href={`/category/${encodeURIComponent(c.slug)}`} className="block py-3 text-muted-ink transition-colors hover:text-charcoal">{c.name}</Link>
+          <Link href={`/category/${encodeURIComponent(c.slug)}`} className={navLink}>{c.name}</Link>
         </li>
       ))}
       {campaign.current && (
-        <li className="ms-auto">
-          <Link href="/campaign" className="flex items-center gap-1.5 py-3 font-medium text-gold-ink transition-colors hover:text-charcoal">
-            <Gift aria-hidden="true" strokeWidth={1.6} className="h-4 w-4" />تسوّق واربح
+        <li>
+          <Link href="/campaign" className={`${navLink} flex items-center gap-1.5 text-gold-ink`}>
+            <Gift aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />تسوّق واربح
           </Link>
         </li>
       )}
-      <li className={campaign.current ? "" : "ms-auto"}>
-        <Link href="/branches" className="flex items-center gap-1.5 py-3 text-muted-ink transition-colors hover:text-charcoal">
-          <MapPin aria-hidden="true" strokeWidth={1.6} className="h-4 w-4" />فروعنا
-        </Link>
-      </li>
       <li>
-        <Link href="/special-order" className="flex items-center gap-1.5 py-3 text-gold-ink transition-colors hover:text-charcoal">
-          <Ruler aria-hidden="true" strokeWidth={1.6} className="h-4 w-4" />طلب حسب المقاس
+        <Link href="/special-order" className={`${navLink} flex items-center gap-1.5 text-gold-ink`}>
+          <Ruler aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />حسب المقاس
         </Link>
       </li>
     </ul>
@@ -59,9 +55,9 @@ async function MobileMenuLoader() {
 async function FooterCategories() {
   const categories = await topCategories();
   return (
-    <ul className="space-y-2.5">
+    <ul className="space-y-3">
       {categories.map((c) => (
-        <li key={c.id}><Link href={`/category/${encodeURIComponent(c.slug)}`} className="transition-colors hover:text-warm-white">{c.name}</Link></li>
+        <li key={c.id}><Link href={`/category/${encodeURIComponent(c.slug)}`} className="transition-colors hover:text-ivory">{c.name}</Link></li>
       ))}
     </ul>
   );
@@ -75,12 +71,12 @@ async function PolicyLinks() {
     ...published.filter((p) => p.slug !== "delivery").map((p) => ({ href: POLICY_PATHS[p.slug], title: p.title })),
   ];
   return (
-    <ul className="space-y-2.5">
-      {links.map((l) => <li key={l.href}><Link href={l.href} className="transition-colors hover:text-warm-white">{l.title}</Link></li>)}
-      <li><Link href="/branches" className="transition-colors hover:text-warm-white">فروعنا</Link></li>
-      <li><Link href="/campaign" className="transition-colors hover:text-warm-white">تسوّق واربح</Link></li>
-      <li><Link href="/special-order" className="transition-colors hover:text-warm-white">طلب حسب المقاس</Link></li>
-      <li><Link href="/track" className="transition-colors hover:text-warm-white">طلباتي</Link></li>
+    <ul className="space-y-3">
+      {links.map((l) => <li key={l.href}><Link href={l.href} className="transition-colors hover:text-ivory">{l.title}</Link></li>)}
+      <li><Link href="/branches" className="transition-colors hover:text-ivory">فروعنا</Link></li>
+      <li><Link href="/campaign" className="transition-colors hover:text-ivory">تسوّق واربح</Link></li>
+      <li><Link href="/special-order" className="transition-colors hover:text-ivory">طلب حسب المقاس</Link></li>
+      <li><Link href="/track" className="transition-colors hover:text-ivory">طلباتي</Link></li>
     </ul>
   );
 }
@@ -92,8 +88,8 @@ async function FooterContact() {
   return (
     <div className="space-y-4">
       {wa && (
-        <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-white/15 px-4 py-2.5 text-warm-white transition-colors hover:border-gold-soft">
-          <MessageCircle aria-hidden="true" strokeWidth={1.6} className="h-5 w-5 text-gold-soft" />
+        <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-white/15 px-4 py-2.5 text-ivory transition-colors hover:border-gold-light">
+          <MessageCircle aria-hidden="true" strokeWidth={1.5} className="h-5 w-5 text-gold-light" />
           تواصل عبر WhatsApp
         </a>
       )}
@@ -101,9 +97,9 @@ async function FooterContact() {
         <ul className="space-y-3">
           {branches.map((b) => (
             <li key={b.id} className="leading-6">
-              <Link href="/branches" className="font-medium text-warm-white hover:text-gold-soft">{b.name}{b.is_main ? " (الرئيسي)" : ""}</Link>
+              <Link href="/branches" className="font-medium text-ivory hover:text-gold-light">{b.name}{b.is_main ? " (الرئيسي)" : ""}</Link>
               {(b.city || b.address) && <span className="block">{[b.city, b.address].filter(Boolean).join(" – ")}</span>}
-              {b.phone && <a href={telHref(b.phone)} dir="ltr" className="tabular-nums hover:text-warm-white">{displayPhone(b.phone)}</a>}
+              {b.phone && <a href={telHref(b.phone)} dir="ltr" className="tabular-nums hover:text-ivory">{displayPhone(b.phone)}</a>}
             </li>
           ))}
         </ul>
@@ -122,55 +118,80 @@ export default function StoreLayout({ children }: LayoutProps<"/">) {
     <>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:right-2 focus:z-[80] focus:rounded-md focus:bg-white focus:p-3">تخطَّ إلى المحتوى</a>
 
-      <header className="sticky top-0 z-40 border-b border-border bg-warm-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-warm-white/85">
-        <div className="shell flex h-[4.25rem] items-center gap-3 sm:h-[4.75rem] lg:gap-8">
+      {/* شريط خدمات رفيع: حقائق فعلية فقط */}
+      <div className="bg-charcoal text-[0.75rem] text-on-dark-muted">
+        <div className="shell flex h-9 items-center justify-between gap-4">
+          <p className="flex items-center gap-2 truncate">
+            <Truck aria-hidden="true" strokeWidth={1.5} className="h-3.5 w-3.5 shrink-0 text-gold-light" />
+            <span className="truncate">توصيل داخل قطاع غزة<span className="max-sm:hidden"> · تفصيل الستائر والموكيت حسب المقاس</span></span>
+          </p>
+          <ul className="flex shrink-0 items-center gap-5">
+            <li><Link href="/branches" className="flex items-center gap-1.5 transition-colors hover:text-ivory"><MapPin aria-hidden="true" strokeWidth={1.5} className="h-3.5 w-3.5" />فروعنا</Link></li>
+            <li className="max-sm:hidden"><Link href="/track" className="transition-colors hover:text-ivory">طلباتي</Link></li>
+          </ul>
+        </div>
+      </div>
+
+      <header className="sticky top-0 z-40 border-b border-border/80 bg-ivory/90 backdrop-blur-xl supports-[backdrop-filter]:bg-ivory/75">
+        <div className="shell flex h-[4.5rem] items-center gap-3 sm:h-20 lg:gap-10">
           <Suspense fallback={<span className="h-11 w-11 lg:hidden" />}><MobileMenuLoader /></Suspense>
           <Link href="/" aria-label="مفروشات العصار — الصفحة الرئيسية" className="shrink-0"><Logo /></Link>
-          <div className="hidden flex-1 md:block md:max-w-xl md:ms-auto lg:mx-auto"><SearchBox /></div>
+          <div className="hidden flex-1 md:block md:max-w-lg md:ms-auto lg:mx-auto"><SearchBox /></div>
           <div className="ms-auto md:ms-0"><HeaderCounters /></div>
         </div>
+        <nav aria-label="التصنيفات" className="hidden border-t border-border/70 lg:block">
+          <div className="shell">
+            <Suspense fallback={<div className="h-[3.1rem]" />}><CategoryNav /></Suspense>
+          </div>
+        </nav>
       </header>
       {/* بحث الجوال: خارج الشريط اللاصق حتى يبقى الرأس مضغوطاً أثناء التمرير */}
-      <div className="shell border-b border-border bg-warm-white py-3 md:hidden"><SearchBox /></div>
+      <div className="shell border-b border-border bg-ivory py-3 md:hidden"><SearchBox /></div>
 
-      <nav aria-label="التصنيفات" className="hidden border-b border-border bg-warm-white lg:block">
-        <div className="shell">
-          <Suspense fallback={<div className="h-[2.85rem]" />}><CategoryNav /></Suspense>
-        </div>
-      </nav>
+      <main id="main" className="flex-1 pb-20">{children}</main>
 
-      <main id="main" className="flex-1 pb-14">{children}</main>
-
-      <Wave from="white" to="charcoal" thread={false} />
       <footer className="bg-charcoal text-[0.9rem] text-on-dark-muted">
-        <div className="shell grid grid-cols-2 gap-x-6 gap-y-10 py-14 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr]">
-          <div className="col-span-2 space-y-4 lg:col-span-1">
+        {/* خاتمة تحريرية */}
+        <div className="shell grid items-end gap-8 border-b border-white/10 py-16 md:grid-cols-[1.4fr_1fr] md:py-20">
+          <div>
+            <p className="kicker text-gold-light">مفروشات العصار</p>
+            <p className="mt-5 max-w-2xl text-[clamp(1.6rem,1.2rem+1.6vw,2.6rem)] font-light leading-[1.35] text-ivory">
+              تفاصيل هادئة، وخامات مختارة، وبيت يشبهك.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3 md:justify-end">
+            <Link href="/products" className="btn btn-gold">تسوّق المجموعة</Link>
+            <Link href="/special-order" className="btn btn-ghost-light"><Ruler aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />حسب المقاس</Link>
+          </div>
+        </div>
+        <div className="shell grid grid-cols-2 gap-x-6 gap-y-12 py-14 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr]">
+          <div className="col-span-2 space-y-5 lg:col-span-1">
             <Logo tone="light" />
             <p className="max-w-xs leading-7">
-              متجر مفروشات منزلية متكامل: سجاد وموكيت، ستائر، مراتب، بطانيات ولحف، شراشف ومخدات، مع تفصيل حسب المقاس.
+              مفروشات منزلية متكاملة: سجاد وموكيت، ستائر، مراتب، بطانيات ولحف، شراشف ومخدات، مع تفصيل حسب المقاس.
             </p>
           </div>
           <div>
-            <h2 className="mb-4 font-sans text-sm font-semibold text-warm-white">الأقسام</h2>
+            <h2 className="mb-5 text-[0.75rem] font-medium tracking-[0.12em] text-gold-light">الأقسام</h2>
             <Suspense fallback={null}><FooterCategories /></Suspense>
           </div>
           <div>
-            <h2 className="mb-4 font-sans text-sm font-semibold text-warm-white">معلومات</h2>
+            <h2 className="mb-5 text-[0.75rem] font-medium tracking-[0.12em] text-gold-light">معلومات</h2>
             <Suspense fallback={null}><PolicyLinks /></Suspense>
           </div>
           <div className="col-span-2 lg:col-span-1">
-            <h2 className="mb-4 font-sans text-sm font-semibold text-warm-white">تواصل معنا</h2>
+            <h2 className="mb-5 text-[0.75rem] font-medium tracking-[0.12em] text-gold-light">تواصل معنا</h2>
             <Suspense fallback={null}><FooterContact /></Suspense>
           </div>
         </div>
         <div className="border-t border-white/10">
-          <div className="shell flex flex-wrap items-center justify-between gap-3 py-5 text-xs">
+          <div className="shell flex flex-wrap items-center justify-between gap-3 py-6 text-xs">
             <p>© مفروشات العصار. جميع الحقوق محفوظة.</p>
-            <ul className="flex gap-5">
-              <li><Link href="/products" className="hover:text-warm-white">كل المنتجات</Link></li>
-              <li><Link href="/wishlist" className="hover:text-warm-white">المفضلة</Link></li>
-              <li><Link href="/compare" className="hover:text-warm-white">المقارنة</Link></li>
-              <li><Link href="/cart" className="hover:text-warm-white">السلة</Link></li>
+            <ul className="flex gap-6">
+              <li><Link href="/products" className="hover:text-ivory">كل المنتجات</Link></li>
+              <li><Link href="/wishlist" className="hover:text-ivory">المفضلة</Link></li>
+              <li><Link href="/compare" className="hover:text-ivory">المقارنة</Link></li>
+              <li><Link href="/cart" className="hover:text-ivory">السلة</Link></li>
             </ul>
           </div>
         </div>
@@ -178,6 +199,7 @@ export default function StoreLayout({ children }: LayoutProps<"/">) {
 
       <Suspense fallback={null}><FloatingWhatsApp /></Suspense>
       <Toaster />
+      <QuickViewHost />
       <SourceTracker />
       <Suspense fallback={null}><Analytics /></Suspense>
     </>

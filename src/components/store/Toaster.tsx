@@ -24,8 +24,8 @@ export function Toaster() {
       {items.map(({ id, message, tone }) => {
         const Icon = ICONS[tone];
         return (
-          <p key={id} className="pointer-events-auto flex animate-toast items-center gap-2.5 rounded-[var(--radius-control)] bg-charcoal px-4 py-3 text-sm text-warm-white shadow-lift">
-            <Icon aria-hidden="true" strokeWidth={1.75} className={`h-5 w-5 shrink-0 ${tone === "error" ? "text-[#e59a8e]" : "text-gold-soft"}`} />
+          <p key={id} className="pointer-events-auto flex animate-toast items-center gap-3 rounded-full border border-white/10 bg-charcoal/95 py-3 ps-4 pe-5 text-sm text-ivory shadow-lift backdrop-blur">
+            <Icon aria-hidden="true" strokeWidth={1.5} className={`h-5 w-5 shrink-0 ${tone === "error" ? "text-[#e59a8e]" : "text-gold-light"}`} />
             {message}
           </p>
         );

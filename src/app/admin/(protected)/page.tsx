@@ -4,16 +4,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import {
-  ArrowLeft, Ban, Boxes, ChartSpline, CircleCheck, Coins, Hourglass, Package, PackageX, PieChart, Receipt, ShoppingBag, ShoppingCart,
-  Sparkles, Store, TrendingUp, Trophy, Users,
+  ArrowLeft, Boxes, ChartSpline, Coins, Hourglass, Package, PieChart, ShoppingBag, ShoppingCart, Store, TrendingUp, Trophy, Users,
 } from "lucide-react";
 import heroImage from "@/assets/home/hero-living-room.webp";
-import { Donut, KpiCard } from "@/components/admin/DashboardParts";
+import { Donut, HeroKpi, KpiCard, MetricStrip } from "@/components/admin/DashboardParts";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff, can } from "@/lib/staff";
 import { getDict, fmt, fill } from "@/lib/admin/i18n";
 import { parseRange, type Kpis } from "@/lib/admin/finance";
-import { Card, EmptyState, PeriodPicker, StatCard, StatusBadge, rangeLabel } from "@/components/admin/ui";
+import { Card, EmptyState, PeriodPicker, StatusBadge, rangeLabel } from "@/components/admin/ui";
 import { BarChart, TrendChart, type Point } from "@/components/admin/charts/Charts";
 import { CHART } from "@/components/admin/charts/palette";
 
@@ -60,64 +59,67 @@ async function AdminHomeContent({ searchParams }: PageProps<"/admin">) {
 
   const spark = (k: "revenue" | "net" | "created" | "customers") => (d?.series ?? []).map((pt) => Number(pt[k] ?? 0));
   const statusSeg = o ? [
-    { key: "completed", label: t.dashboard.segCompleted, value: o.current.completed, color: "#16865b", href: q({ status: "delivered" }) },
-    { key: "processing", label: t.dashboard.segProcessing, value: o.current.processing, color: "#d9a43c", href: q({ status: "preparing" }) },
-    { key: "new", label: t.dashboard.segNew, value: o.current.new, color: "#3d6fd1", href: q({ status: "received" }) },
-    { key: "cancelled", label: t.dashboard.segCancelled, value: o.current.cancelled, color: "#d94848", href: q({ status: "cancelled" }) },
+    { key: "completed", label: t.dashboard.segCompleted, value: o.current.completed, color: "#2f6b4f", href: q({ status: "delivered" }) },
+    { key: "processing", label: t.dashboard.segProcessing, value: o.current.processing, color: "#b49a68", href: q({ status: "preparing" }) },
+    { key: "new", label: t.dashboard.segNew, value: o.current.new, color: "#5d6b7a", href: q({ status: "received" }) },
+    { key: "cancelled", label: t.dashboard.segCancelled, value: o.current.cancelled, color: "#b4533f", href: q({ status: "cancelled" }) },
   ] : [];
   const kv = { vsLabel: t.common.vsPrevious, noChange: t.common.noChange };
   const firstName = (staff.full_name ?? "").replace(/\(.*?\)/g, "").trim().split(/\s+/)[0] ?? "";
 
   return (
     <div className="mx-auto max-w-[90rem]">
-      {/* شريط الترحيب: صورة من المتجر (Unsplash، انظر IMAGES_CREDITS.md) */}
-      <section className="relative mb-6 overflow-hidden rounded-[20px] border border-[#ece3d1] bg-[#f6efe2]">
-        <div className="absolute inset-y-0 end-0 hidden w-[62%] sm:block">
+      {/* رأس تحريري: صورة من المتجر (Unsplash، انظر IMAGES_CREDITS.md) بتعتيم عاجي، وعنوان بوزن خفيف */}
+      <section className="relative mb-6 overflow-hidden rounded-[var(--a-radius)] border border-[var(--a-line)] bg-[#f3efe6]">
+        <div className="absolute inset-y-0 end-0 hidden w-[58%] sm:block">
           <Image src={heroImage} alt="" fill priority={false} sizes="(min-width: 1024px) 50vw, 60vw" className="object-cover" placeholder="blur" />
-          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-l from-[#f6efe2] via-[#f6efe2]/55 to-transparent ltr:bg-gradient-to-r" />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-l from-[#f3efe6] via-[#f3efe6]/60 to-[#f3efe6]/5 ltr:bg-gradient-to-r" />
         </div>
-        <div className="relative max-w-xl px-6 py-7 sm:px-8 sm:py-9">
-          <p className="text-sm font-semibold text-[var(--a-accent-ink)]">{t.dashboard.welcome} {firstName}</p>
-          <h1 className="mt-1 text-[1.75rem] leading-tight sm:text-[2.1rem]">{t.dashboard.title}</h1>
-          <p className="mt-1.5 text-sm text-[#5f5a52]">{t.dashboard.heroSub} · {rangeLabel(range, f)}</p>
+        <div className="relative max-w-xl px-6 py-8 sm:px-9 sm:py-10">
+          <p className="flex items-center gap-3 text-[0.8125rem] font-medium text-[var(--a-accent-ink)]"><span aria-hidden="true" className="h-px w-7 bg-[var(--a-accent)]" />{t.dashboard.welcome} {firstName}</p>
+          <h1 className="mt-3 text-[1.9rem] font-light leading-tight sm:text-[2.4rem]">{t.dashboard.title}</h1>
+          <p className="mt-2 text-sm text-[#5f5a52]">{t.dashboard.heroSub} · {rangeLabel(range, f)}</p>
           <Link href={fin ? `/admin/reports?from=${range.from}&to=${range.to}` : "/admin/orders"}
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-l from-[#9b7a37] to-[#7d6230] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_20px_-10px_rgb(125_98_48/0.9)] transition-transform hover:-translate-y-0.5 ltr:bg-gradient-to-r">
-            {fin ? t.dashboard.heroCta : t.orders.title}<ArrowLeft aria-hidden="true" className="h-4 w-4 ltr:rotate-180" />
+            className="a-btn a-btn-primary mt-6 rounded-full px-5">
+            {fin ? t.dashboard.heroCta : t.orders.title}<ArrowLeft aria-hidden="true" strokeWidth={1.5} className="h-4 w-4 ltr:rotate-180" />
           </Link>
         </div>
       </section>
 
       {error || !d ? <p role="alert" className="a-card p-4 text-[var(--a-danger-ink)]">{t.common.error}</p> : (
         <div className="space-y-6">
-          {/* البطاقات الرئيسية الخمس: قيمة فعلية + نسبة التغير + منحنى الفترة */}
-          <section aria-label={t.dashboard.subtitle} className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-5">
-            {o && <KpiCard {...kv} tone="orange" label={t.dashboard.kpi.processing} value={f.number(o.current.processing)} current={o.current.processing} previous={o.previous.processing}
-              icon={<Hourglass className={ico} />} href={q({ status: "preparing" })} />}
-            {fin && <KpiCard {...kv} tone="purple" label={t.dashboard.kpi.net} value={f.money(fin.current.manager_net)} current={+fin.current.manager_net} previous={+fin.previous.manager_net}
-              icon={<TrendingUp className={ico} />} spark={spark("net")} href={`/admin/profits?from=${range.from}&to=${range.to}`}
-              hint={fin.current.items_missing_profit ? `${f.number(fin.current.items_missing_profit)} ${t.dashboard.kpi.missingProfit}` : undefined} />}
-            {fin && <KpiCard {...kv} tone="green" label={t.dashboard.kpi.sales} value={f.money(fin.current.revenue)} current={+fin.current.revenue} previous={+fin.previous.revenue}
-              icon={<Coins className={ico} />} spark={spark("revenue")} href={`/admin/reports?from=${range.from}&to=${range.to}`} />}
-            {o && <KpiCard {...kv} tone="pink" label={t.dashboard.kpi.orders} value={f.number(o.current.total)} current={o.current.total} previous={o.previous.total}
-              icon={<ShoppingBag className={ico} />} spark={spark("created")} href={q({})} />}
-            {o && <KpiCard {...kv} tone="blue" label={t.dashboard.kpi.customers} value={f.number(o.customers_total)} current={o.current.new_customers} previous={o.previous.new_customers}
-              icon={<Users className={ico} />} spark={spark("customers")} href="/admin/customers" />}
+          {/* المؤشرات: مؤشر رئيسي بارز (المبيعات) + أربعة مؤشرات مدمجة — قيم فعلية + نسبة التغير + منحنى الفترة */}
+          <section aria-label={t.dashboard.subtitle} className={`grid grid-cols-1 gap-4 ${fin ? "lg:grid-cols-12" : ""}`}>
+            {fin && (
+              <div className="lg:col-span-5">
+                <HeroKpi {...kv} label={t.dashboard.kpi.sales} value={f.money(fin.current.revenue)} current={+fin.current.revenue} previous={+fin.previous.revenue}
+                  spark={spark("revenue")} href={`/admin/reports?from=${range.from}&to=${range.to}`} caption={rangeLabel(range, f)} />
+              </div>
+            )}
+            <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${fin ? "lg:col-span-7" : "md:grid-cols-4"}`}>
+              {fin && <KpiCard {...kv} label={t.dashboard.kpi.net} value={f.money(fin.current.manager_net)} current={+fin.current.manager_net} previous={+fin.previous.manager_net}
+                icon={<TrendingUp className={ico} />} spark={spark("net")} href={`/admin/profits?from=${range.from}&to=${range.to}`}
+                hint={fin.current.items_missing_profit ? `${f.number(fin.current.items_missing_profit)} ${t.dashboard.kpi.missingProfit}` : undefined} />}
+              {o && <KpiCard {...kv} label={t.dashboard.kpi.orders} value={f.number(o.current.total)} current={o.current.total} previous={o.previous.total}
+                icon={<ShoppingBag className={ico} />} spark={spark("created")} href={q({})} />}
+              {o && <KpiCard {...kv} label={t.dashboard.kpi.customers} value={f.number(o.customers_total)} current={o.current.new_customers} previous={o.previous.new_customers}
+                icon={<Users className={ico} />} spark={spark("customers")} href="/admin/customers" />}
+              {o && <KpiCard {...kv} label={t.dashboard.kpi.processing} value={f.number(o.current.processing)} current={o.current.processing} previous={o.previous.processing}
+                icon={<Hourglass className={ico} />} href={q({ status: "preparing" })} />}
+            </div>
           </section>
 
-          {/* مؤشرات إضافية مختصرة */}
-          <section aria-label={t.dashboard.moreAnalytics} className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-5">
-            {o && <StatCard t={t} f={f} label={t.dashboard.kpi.new} value={f.number(o.current.new)} current={o.current.new} previous={o.previous.new}
-              icon={<Sparkles className={ico} />} href={q({ status: "received" })} />}
-            {o && <StatCard t={t} f={f} label={t.dashboard.kpi.completed} value={f.number(o.current.completed)} current={o.current.completed} previous={o.previous.completed}
-              icon={<CircleCheck className={ico} />} href={q({ status: "delivered" })} />}
-            {o && <StatCard t={t} f={f} label={t.dashboard.kpi.cancelled} value={f.number(o.current.cancelled)} current={o.current.cancelled} previous={o.previous.cancelled}
-              good="down" icon={<Ban className={ico} />} href={q({ status: "cancelled" })} />}
-            {fin && <StatCard t={t} f={f} label={t.dashboard.kpi.aov} value={f.money(fin.current.avg_order)} current={+fin.current.avg_order} previous={+fin.previous.avg_order}
-              icon={<Receipt className={ico} />} href={`/admin/reports?from=${range.from}&to=${range.to}`} />}
-            {d.stock && <StatCard t={t} f={f} label={t.dashboard.kpi.lowStock} value={f.number(d.stock.low + d.stock.out)} icon={<PackageX className={ico} />}
-              tone={d.stock.low + d.stock.out > 0 ? "warn" : undefined} href="/admin/inventory?filter=low"
-              hint={d.stock.out ? `${f.number(d.stock.out)} ${t.dashboard.kpi.lowStockHint}` : undefined} />}
-          </section>
+          {/* مؤشرات إضافية: شريط واحد مقسوم بخطوط رفيعة */}
+          <MetricStrip label={t.dashboard.moreAnalytics} items={[
+            ...(o ? [
+              { ...kv, key: "new", label: t.dashboard.kpi.new, value: f.number(o.current.new), current: o.current.new, previous: o.previous.new, href: q({ status: "received" }) },
+              { ...kv, key: "done", label: t.dashboard.kpi.completed, value: f.number(o.current.completed), current: o.current.completed, previous: o.previous.completed, href: q({ status: "delivered" }) },
+              { ...kv, key: "cancel", label: t.dashboard.kpi.cancelled, value: f.number(o.current.cancelled), current: o.current.cancelled, previous: o.previous.cancelled, good: "down" as const, href: q({ status: "cancelled" }) },
+            ] : []),
+            ...(fin ? [{ ...kv, key: "aov", label: t.dashboard.kpi.aov, value: f.money(fin.current.avg_order), current: +fin.current.avg_order, previous: +fin.previous.avg_order, href: `/admin/reports?from=${range.from}&to=${range.to}` }] : []),
+            ...(d.stock ? [{ ...kv, key: "stock", label: t.dashboard.kpi.lowStock, value: f.number(d.stock.low + d.stock.out), warn: d.stock.low + d.stock.out > 0,
+              hint: d.stock.out ? `${f.number(d.stock.out)} ${t.dashboard.kpi.lowStockHint}` : undefined, href: "/admin/inventory?filter=low" }] : []),
+          ]} />
 
           {/* توزيع الطلبات + تحليل المبيعات */}
           <div className={`grid grid-cols-1 gap-6 ${o && fin ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]" : ""}`}>
@@ -154,7 +156,7 @@ async function AdminHomeContent({ searchParams }: PageProps<"/admin">) {
                           <div className="relative aspect-[4/3] overflow-hidden rounded-[12px] bg-[#f3f0ea]">
                             {pr.image ? <Image src={pr.image} alt="" fill unoptimized={!optimizable(pr.image)} sizes="(min-width:1280px) 12vw, 30vw" className="object-cover" />
                               : <span className="absolute inset-0 grid place-items-center text-[var(--a-muted)]"><Package aria-hidden="true" className="h-6 w-6" /></span>}
-                            <span className="absolute start-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-[var(--a-accent)] text-xs font-bold text-[#1b1d22] shadow">{i + 1}</span>
+                            <span className="absolute start-2 top-2 grid h-6 min-w-6 place-items-center rounded-full bg-white/95 px-1.5 text-[0.6875rem] font-medium tabular-nums tracking-wider text-[var(--a-accent-ink)] shadow-sm">{String(i + 1).padStart(2, "0")}</span>
                           </div>
                           <p className="mt-2 truncate text-sm font-semibold">{pr.name}</p>
                           <p className="text-xs"><b className="tabular-nums text-[var(--a-accent-ink)]">{f.money(pr.revenue)}</b> <span className="text-[var(--a-muted-ink)]">· {f.number(pr.qty)} {t.dashboard.soldUnits}</span></p>

@@ -17,7 +17,7 @@ export function UserMenu({ user }: { user: ShellUser }) {
     <div ref={ref} className="relative">
       <button ref={button} type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={t.header.account}
         className="flex h-11 items-center gap-2.5 rounded-full ps-1 pe-1 hover:bg-[#f7f5f0] sm:pe-3">
-        <span aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#2a2f37] to-[#171a1f] text-sm font-bold text-[#e1c890] ring-2 ring-[#efe3c8]">{initials(user.name)}</span>
+        <span aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-full bg-[var(--a-sidebar)] text-sm font-medium text-[var(--a-accent-2)] ring-1 ring-[var(--a-accent)]/40 ring-offset-2 ring-offset-white">{initials(user.name)}</span>
         <span className="hidden max-w-[9rem] text-start leading-tight md:block">
           <span className="block truncate text-[0.8125rem] font-semibold">{t.header.welcome} {user.name.replace(/\s*\(.*?\)\s*/g, " ").trim()}</span>
           <span className="block truncate text-[0.6875rem] text-[var(--a-muted-ink)]">{user.role}</span>

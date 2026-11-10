@@ -59,9 +59,9 @@ export async function ProductListing({ searchParams, base, overrides = {}, empty
   const filters = <Filters params={params} facets={facets} categories={categories} action={base} hideCategory={!!overrides.category} />;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[15.5rem_1fr] lg:gap-12">
+    <div className="grid gap-8 lg:grid-cols-[15.5rem_1fr] lg:gap-14">
       <aside className="hidden lg:block">
-        <div className="sticky top-28">{filters}</div>
+        <div className="sticky top-40">{filters}</div>
       </aside>
       <section aria-live="polite" aria-labelledby="results-title" className="min-w-0">
         <h2 id="results-title" className="sr-only">المنتجات</h2>
@@ -78,25 +78,25 @@ export async function ProductListing({ searchParams, base, overrides = {}, empty
           <p className="me-2 text-sm text-muted-ink">{countLabel(result.total)}</p>
           {chips.map((c) => (
             <Link key={c.key} href={href({ [c.key]: null })} aria-label={`إزالة الفلتر: ${c.label}`}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1 text-xs text-charcoal transition-colors hover:border-charcoal">
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3.5 py-1.5 text-xs text-charcoal transition-colors hover:border-charcoal">
               {c.label}<X aria-hidden="true" strokeWidth={1.8} className="h-3 w-3" />
             </Link>
           ))}
         </div>
 
         {result.items.length === 0 ? (
-          <div className="rounded-[var(--radius-card)] border border-dashed border-gold/50 bg-white px-6 py-14 text-center">
-            <p className="font-medium text-charcoal">{emptyText}</p>
+          <div className="rounded-[var(--radius-card)] border border-border bg-surface px-6 py-20 text-center">
+            <p className="text-lg font-light text-charcoal">{emptyText}</p>
             <Link href="/products" className="btn btn-outline mt-5">تصفح كل المنتجات</Link>
           </div>
         ) : (
-          <ProductGrid products={result.items} priorityCount={2} />
+          <ProductGrid products={result.items} priorityCount={2} cols="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:gap-x-8" />
         )}
         {pages > 1 && (
           <nav aria-label="الصفحات" className="mt-12 flex flex-wrap justify-center gap-2">
             {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
               <Link key={n} href={href({ page: n > 1 ? String(n) : null })} aria-current={n === result.page ? "page" : undefined}
-                className={`flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm tabular-nums transition-colors ${n === result.page ? "bg-charcoal text-warm-white" : "border border-border bg-white hover:border-charcoal"}`}>
+                className={`flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm tabular-nums transition-colors ${n === result.page ? "bg-charcoal text-ivory" : "border border-border bg-white hover:border-charcoal"}`}>
                 {n}
               </Link>
             ))}

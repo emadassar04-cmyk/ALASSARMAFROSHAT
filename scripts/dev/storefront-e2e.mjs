@@ -38,10 +38,25 @@ page.on("pageerror", (e) => consoleErrors.push(e.message));
 await check("الرئيسية: العنوان والتصنيفات السبعة وأقسام المنتجات", async () => {
   await page.goto(url("/"));
   assert((await page.locator("h1").first().textContent()).includes("كل تفاصيل بيتك"), "h1");
-  await page.getByRole("heading", { name: "منتجات مميزة" }).waitFor();
+  await page.getByRole("heading", { name: "قطع مختارة لبيت أكثر هدوءاً" }).waitFor();
   assert(await page.locator('section[aria-labelledby="cats"] li').count() === 7, "7 categories");
   assert(await page.locator("article").count() >= 4, "product cards");
   assert(await page.getAttribute("html", "dir") === "rtl", "rtl");
+});
+
+await check("العرض السريع: يفتح نافذة ببيانات البطاقة ويُغلق بـ Esc ويعيد التركيز", async () => {
+  const card = page.locator("article").first();
+  const name = (await card.locator("h3").textContent()).trim();
+  await card.hover();
+  const btn = card.getByRole("button", { name: /عرض سريع/ });
+  await btn.click();
+  const dialog = page.getByRole("dialog", { name: new RegExp(name) });
+  await dialog.waitFor({ state: "visible", timeout: 5000 });
+  assert(await dialog.getByRole("heading", { name }).isVisible(), "name in dialog");
+  assert(await dialog.getByRole("link", { name: "التفاصيل الكاملة" }).isVisible(), "details link");
+  await page.keyboard.press("Escape");
+  await dialog.waitFor({ state: "hidden", timeout: 5000 });
+  assert(await btn.evaluate((el) => el === document.activeElement), "focus returned");
 });
 
 await check("لا تظهر أي بيانات داخلية في HTML المتجر", async () => {

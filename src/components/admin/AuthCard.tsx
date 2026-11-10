@@ -1,5 +1,4 @@
 import { Languages } from "lucide-react";
-import { cairo, inter } from "@/app/admin/fonts";
 import type { Locale } from "@/lib/admin/i18n";
 
 // إطار صفحات الدخول والتحقق: نفس هوية لوحة الإدارة، مع تبديل لغة بسيط (يُحفظ في كوكي)
@@ -7,7 +6,7 @@ export function AuthCard({ title, children, locale = "ar", brand, switchLabel, s
   title: string; children: React.ReactNode; locale?: Locale; brand?: string; switchLabel?: string; switchHref?: string;
 }) {
   return (
-    <main lang={locale} dir={locale === "en" ? "ltr" : "rtl"} className={`admin-ui ${cairo.variable} ${inter.variable} flex flex-1 items-center justify-center px-4 py-12`}>
+    <main lang={locale} dir={locale === "en" ? "ltr" : "rtl"} className={`admin-ui flex flex-1 items-center justify-center px-4 py-12`}>
       <div className="w-full max-w-md">
         <div className="a-card p-8">
           <div className="mb-6 flex flex-col items-center gap-3">

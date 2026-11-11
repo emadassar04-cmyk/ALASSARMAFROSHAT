@@ -94,14 +94,14 @@ export function ChatWidget({ whatsapp }: { whatsapp: string | null }) {
     <>
       <button ref={btnRef} type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="alassar-chat"
         aria-label={open ? "إغلاق مساعد العصار" : "اسأل مساعد العصار"}
-        className={`fixed bottom-5 right-4 z-50 flex h-13 items-center gap-2 rounded-full ps-4 pe-5 text-sm font-medium shadow-lift ring-1 transition-[transform,bottom,background-color] duration-300 sm:right-6 [.has-buybar_&]:max-md:bottom-24 ${open ? "bg-charcoal text-ivory ring-gold/40 hover:bg-[#36372f]" : "bg-gold-light text-charcoal ring-charcoal/10 hover:bg-[#e6d9bd]"}`}>
+        className={`fixed bottom-[calc(var(--tabbar-h)+1.25rem)] right-4 z-50 flex h-13 items-center gap-2 rounded-full ps-4 pe-5 text-sm font-medium shadow-lift ring-1 transition-[transform,bottom,background-color] duration-300 sm:right-6 [.has-buybar_&]:max-md:bottom-[calc(var(--tabbar-h)+6rem)] ${open ? "bg-charcoal text-ivory ring-gold/40 hover:bg-[#36372f]" : "bg-gold-light text-charcoal ring-charcoal/10 hover:bg-[#e6d9bd]"}`}>
         {open ? <X aria-hidden="true" strokeWidth={1.5} className="h-5 w-5" /> : <Sparkles aria-hidden="true" strokeWidth={1.5} className="h-5 w-5" />}
         <span className="max-sm:sr-only">{open ? "إغلاق" : "اسأل المساعد"}</span>
       </button>
 
       {open && (
         <section id="alassar-chat" role="dialog" aria-label="مساعد العصار"
-          className="animate-toast fixed inset-x-3 bottom-22 z-50 flex max-h-[min(36rem,calc(100svh-7.5rem))] flex-col overflow-hidden rounded-[16px] border border-border bg-ivory shadow-lift sm:inset-x-auto sm:right-6 sm:w-[24rem] [.has-buybar_&]:max-md:bottom-40">
+          className="animate-toast fixed inset-x-3 bottom-[calc(var(--tabbar-h)+5.5rem)] z-50 flex max-h-[min(36rem,calc(100svh-7.5rem-var(--tabbar-h)))] flex-col overflow-hidden rounded-[16px] border border-border bg-ivory shadow-lift sm:inset-x-auto sm:right-6 sm:w-[24rem] [.has-buybar_&]:max-md:bottom-[calc(var(--tabbar-h)+10rem)]">
           <header className="flex items-center gap-3 bg-charcoal px-5 py-4 text-ivory">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-gold/40"><Sparkles aria-hidden="true" strokeWidth={1.4} className="h-5 w-5 text-gold-light" /></span>
             <span className="min-w-0 flex-1">

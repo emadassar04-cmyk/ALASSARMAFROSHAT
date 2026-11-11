@@ -5,6 +5,8 @@ import { Logo } from "@/components/store/Logo";
 import { SearchBox } from "@/components/store/SearchBox";
 import { HeaderCounters } from "@/components/store/HeaderCounters";
 import { MobileMenu } from "@/components/store/MobileMenu";
+import { MobileTabBar } from "@/components/store/MobileTabBar";
+import { FooterSection } from "@/components/store/FooterSection";
 import { WhatsAppFloat } from "@/components/store/WhatsAppFloat";
 import { SourceTracker } from "@/components/store/SourceTracker";
 import { Toaster } from "@/components/store/Toaster";
@@ -173,25 +175,16 @@ export default function StoreLayout({ children }: LayoutProps<"/">) {
             <Link href="/special-order" className="btn btn-ghost-light"><Ruler aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />حسب المقاس</Link>
           </div>
         </div>
-        <div className="shell grid grid-cols-2 gap-x-6 gap-y-12 py-14 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr]">
-          <div className="col-span-2 space-y-5 lg:col-span-1">
+        <div className="shell grid gap-x-6 py-10 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr] lg:gap-y-12 lg:py-14">
+          <div className="space-y-5 pb-8 lg:pb-0">
             <Logo tone="light" />
             <p className="max-w-xs leading-7">
               مفروشات منزلية متكاملة: سجاد وموكيت، ستائر، مراتب، بطانيات ولحف، شراشف ومخدات، مع تفصيل حسب المقاس.
             </p>
           </div>
-          <div>
-            <h2 className="mb-5 text-[0.75rem] font-medium tracking-[0.12em] text-gold-light">الأقسام</h2>
-            <Suspense fallback={null}><FooterCategories /></Suspense>
-          </div>
-          <div>
-            <h2 className="mb-5 text-[0.75rem] font-medium tracking-[0.12em] text-gold-light">معلومات</h2>
-            <Suspense fallback={null}><PolicyLinks /></Suspense>
-          </div>
-          <div className="col-span-2 lg:col-span-1">
-            <h2 className="mb-5 text-[0.75rem] font-medium tracking-[0.12em] text-gold-light">تواصل معنا</h2>
-            <Suspense fallback={null}><FooterContact /></Suspense>
-          </div>
+          <FooterSection title="الأقسام" className="border-t lg:border-t-0"><Suspense fallback={null}><FooterCategories /></Suspense></FooterSection>
+          <FooterSection title="معلومات"><Suspense fallback={null}><PolicyLinks /></Suspense></FooterSection>
+          <FooterSection title="تواصل معنا"><Suspense fallback={null}><FooterContact /></Suspense></FooterSection>
         </div>
         <div className="border-t border-white/10">
           <div className="shell flex flex-wrap items-center justify-between gap-3 py-6 text-xs">
@@ -204,10 +197,13 @@ export default function StoreLayout({ children }: LayoutProps<"/">) {
             </ul>
           </div>
         </div>
+        {/* مساحة تحت التذييل بقدر شريط التنقل السفلي حتى لا يغطي آخر سطر */}
+        <div aria-hidden="true" className="h-[var(--tabbar-h)]" />
       </footer>
 
       <Suspense fallback={null}><FloatingWhatsApp /></Suspense>
       <Suspense fallback={null}><FloatingChat /></Suspense>
+      <Suspense fallback={null}><MobileTabBar /></Suspense>
       <Toaster />
       <QuickViewHost />
       <SourceTracker />

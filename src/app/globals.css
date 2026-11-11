@@ -452,3 +452,29 @@
   .quick-view[open]::backdrop { animation: fade-in 300ms ease both; }
 }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* =====================================================================
+   تجربة الهاتف (أقل من 768px) — خارج الطبقات حتى تتقدم على أدوات Tailwind:
+   - شريط تنقل سفلي بنمط التطبيقات؛ ارتفاعه في --tabbar-h لتُرفع فوقه الأزرار العائمة وشريط الشراء
+   - .m-rail: شبكة منتجات تتحول على الهاتف إلى شريط أفقي بالسحب (أقصر بكثير من شبكة طويلة)
+   ===================================================================== */
+:root { --tabbar-h: 0px; --shell-pad: clamp(1.125rem, 0.3rem + 3.4vw, 3rem); }
+@media (max-width: 767.98px) {
+  :root:has(.m-tabbar) { --tabbar-h: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+
+  .m-rail {
+    display: flex;
+    gap: 0.875rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--shell-pad);
+    margin-inline: calc(var(--shell-pad) * -1);
+    padding-inline: var(--shell-pad);
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  .m-rail::-webkit-scrollbar { display: none; }
+  .m-rail > * { flex: 0 0 min(46vw, 15rem); scroll-snap-align: start; }
+  .m-rail.m-rail-wide > * { flex-basis: min(78vw, 20rem); }
+}

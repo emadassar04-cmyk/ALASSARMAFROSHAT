@@ -20,7 +20,7 @@ export function Toaster() {
     return () => window.removeEventListener(TOAST_EVENT, on);
   }, []);
   return (
-    <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-24 z-[70] flex flex-col items-center gap-2 px-4 md:bottom-8">
+    <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--tabbar-h)+6rem)] z-[70] flex flex-col items-center gap-2 px-4 md:bottom-8">
       {items.map(({ id, message, tone }) => {
         const Icon = ICONS[tone];
         return (

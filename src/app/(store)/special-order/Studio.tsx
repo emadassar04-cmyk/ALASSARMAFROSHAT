@@ -149,7 +149,24 @@ export function Studio({ whatsapp, initialType, productHint, options }: { whatsa
   return (
     <div ref={top} className="scroll-mt-40">
       {/* شريط التقدم: يمكن الرجوع لأي خطوة سابقة دون فقدان البيانات */}
-      <nav aria-label="خطوات الطلب" className="mb-8 overflow-x-auto no-scrollbar">
+      {/* على الهاتف: شريط تقدم مضغوط (الخطوة الحالية + مقاطع يمكن لمسها للرجوع) بدل صف عريض يحتاج تمريراً */}
+      <nav aria-label="خطوات الطلب" className="mb-6 sm:hidden">
+        <p className="flex items-baseline justify-between text-sm">
+          <span className="font-medium text-charcoal">{STEPS[step]}</span>
+          <span className="text-xs text-muted-ink tabular-nums">الخطوة {step + 1} من {STEPS.length}</span>
+        </p>
+        <ol className="mt-2 flex gap-1.5">
+          {STEPS.map((s, i) => (
+            <li key={s} className="flex-1">
+              <button type="button" disabled={i > reached} onClick={() => go(i)} aria-current={i === step ? "step" : undefined}
+                aria-label={`${i + 1}. ${s}`} className="flex h-8 w-full items-center disabled:cursor-not-allowed">
+                <span className={`h-1.5 w-full rounded-full transition-colors ${i < step ? "bg-gold" : i === step ? "bg-charcoal" : i <= reached ? "bg-gold-light" : "bg-border"}`} />
+              </button>
+            </li>
+          ))}
+        </ol>
+      </nav>
+      <nav aria-label="خطوات الطلب" className="mb-8 overflow-x-auto no-scrollbar max-sm:hidden">
         <ol className="flex min-w-[40rem] items-start">
           {STEPS.map((s, i) => {
             const done = i < step, cur = i === step, can = i <= reached;

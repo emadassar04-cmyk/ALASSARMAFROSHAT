@@ -247,7 +247,7 @@ function FeaturedBlock({ items }: { items: Card[] }) {
           </p>
           <Link href="/products" className="link-line mt-8">تسوّق كل المنتجات<ArrowLeft aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" /></Link>
         </div>
-        <ProductGrid products={shown} cols="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:gap-x-8" />
+        <ProductGrid products={shown} cols="m-rail grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:gap-x-8" />
       </div>
     </section>
   );
@@ -305,7 +305,7 @@ async function OffersSection() {
           <p className="mt-5 max-w-sm leading-8 text-on-dark-muted">أسعار مخفّضة فعلياً على منتجات من المتجر، لفترة محدودة. السعر قبل الخصم ظاهر بجانب كل منتج.</p>
           <Link href="/products?sort=price_asc" className="link-line mt-8 text-ivory">كل المنتجات<ArrowLeft aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" /></Link>
         </div>
-        <div className={`grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:gap-x-8 ${cols}`}>
+        <div className={`m-rail grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:gap-x-8 ${cols}`}>
           {shown.map((p) => <ProductCard key={p.id} product={p} tone="dark" />)}
         </div>
       </div>
@@ -362,7 +362,7 @@ async function BestSellers() {
     <section aria-labelledby="s-best" className="py-20 md:py-28">
       <div className="shell">
         <SectionHead id="s-best" kicker="اختيار زبائننا" title="الأكثر" accent="مبيعاً" href="/products?sort=best_selling" />
-        <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-8">
+        <div className="m-rail grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-8">
           {shown.map((p, i) => <ProductCard key={p.id} product={p} rank={i + 1} />)}
         </div>
       </div>
@@ -477,9 +477,9 @@ async function TrustSection() {
     <section aria-labelledby="s-trust" className="bg-surface py-16 md:py-20">
       <div className="shell">
         <h2 id="s-trust" className="sr-only">خدماتنا</h2>
-        <ul className="grid gap-px overflow-hidden rounded-[var(--radius-card)] border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="m-rail m-rail-wide grid gap-px overflow-hidden rounded-[var(--radius-card)] border border-border bg-border max-md:rounded-none max-md:border-0 max-md:bg-transparent sm:grid-cols-2 lg:grid-cols-4">
           {items.slice(0, 4).map(({ icon: Icon, title, text, href, link, external }) => (
-            <li key={title} className="reveal flex flex-col gap-4 bg-surface p-7 lg:p-8">
+            <li key={title} className="reveal flex flex-col gap-4 bg-surface p-7 max-md:rounded-[var(--radius-card)] max-md:border max-md:border-border max-md:p-6 lg:p-8">
               <Icon aria-hidden="true" strokeWidth={1.25} className="h-7 w-7 text-gold" />
               <h3 className="text-[1rem] font-medium">{title}</h3>
               <p className="text-sm leading-7 text-muted-ink">{text}</p>

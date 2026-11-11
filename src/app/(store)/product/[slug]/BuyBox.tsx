@@ -138,7 +138,7 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
       {/* شريط الشراء السفلي (جوال فقط) */}
       {canBuy && (
         <div aria-hidden={!barVisible} inert={!barVisible}
-          className={`fixed inset-x-0 bottom-0 z-40 border-t border-border bg-ivory/95 px-4 py-3 shadow-lift backdrop-blur-xl transition-transform duration-300 md:hidden ${barVisible ? "translate-y-0" : "translate-y-full"}`}>
+          className={`fixed inset-x-0 bottom-[var(--tabbar-h)] z-30 border-t border-border bg-ivory/95 px-4 py-3 shadow-lift backdrop-blur-xl transition-transform duration-300 md:hidden ${barVisible ? "translate-y-0" : "translate-y-[calc(100%+var(--tabbar-h))]"}`}>
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs text-muted-ink">{product.name}</p>

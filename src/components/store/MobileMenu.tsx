@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, GitCompareArrows, Heart, MapPin, Menu, PackageCheck, Ruler, X } from "lucide-react";
 import { useStore } from "@/lib/store/local-store";
+import { OPEN_MENU_EVENT } from "./MobileTabBar";
 
 type Cat = { slug: string; name: string; product_count: number };
 
@@ -23,6 +24,13 @@ export function MobileMenu({ categories }: { categories: Cat[] }) {
 
   // إغلاق القائمة عند الانتقال لصفحة أخرى
   useEffect(() => { ref.current?.close(); }, [pathname]);
+
+  // فتح القائمة من زر «الأقسام» في شريط التنقل السفلي
+  useEffect(() => {
+    const open = () => setOpen(true);
+    window.addEventListener(OPEN_MENU_EVENT, open);
+    return () => window.removeEventListener(OPEN_MENU_EVENT, open);
+  }, []);
 
   const item = "flex items-center justify-between gap-3 border-b border-border py-3.5 text-[0.95rem]";
   return (

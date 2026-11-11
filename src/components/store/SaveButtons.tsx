@@ -13,7 +13,7 @@ export function SaveButtons({ product, name, compact = false, row = false }: { p
 
   const base = "relative z-10 inline-flex items-center justify-center transition-colors";
   const shape = compact
-    ? `h-9 w-9 rounded-full ${row ? "border border-border bg-white hover:border-border-strong" : "bg-ivory/90 shadow-soft backdrop-blur hover:bg-white"}`
+    ? `h-10 w-10 sm:h-9 sm:w-9 rounded-full ${row ? "border border-border bg-white hover:border-border-strong" : "bg-ivory/90 shadow-soft backdrop-blur hover:bg-white"}`
     : "h-11 gap-2 rounded-full border px-5 text-sm";
   const state = (on: boolean) => compact
     ? (on ? "text-gold-ink" : "text-charcoal")

@@ -165,21 +165,21 @@ function ServiceStrip() {
   );
 }
 
-// شريط كلمات ضخم متحرك بأسماء الأقسام (زخرفي: مخفي عن قارئات الشاشة، ويتوقف مع «تقليل الحركة»)
+// شريط كلمات متحرك (بحجم هادئ) بأسماء الأقسام (زخرفي: مخفي عن قارئات الشاشة، ويتوقف مع «تقليل الحركة»)
 async function CategoryBand() {
   const names = [...(await getCategories()).filter((c) => !c.parent_id).map((c) => c.name), "تفصيل حسب المقاس"];
   const row = (key: string) => (
-    <ul key={key} className="flex shrink-0 items-center gap-10 pe-10 md:gap-16 md:pe-16">
+    <ul key={key} className="flex shrink-0 items-center gap-6 pe-6 md:gap-8 md:pe-8">
       {names.map((n, i) => (
-        <li key={n} className="flex items-center gap-10 whitespace-nowrap md:gap-16">
+        <li key={n} className="flex items-center gap-6 whitespace-nowrap md:gap-8">
           <span className={i % 2 ? "text-ivory" : "text-gold-light"}>{n}</span>
-          <svg viewBox="0 0 16 16" className="h-5 w-5 shrink-0 text-gold md:h-7 md:w-7"><path d="M8 0C8.6 4.6 11.4 7.4 16 8C11.4 8.6 8.6 11.4 8 16C7.4 11.4 4.6 8.6 0 8C4.6 7.4 7.4 4.6 8 0Z" fill="currentColor" /></svg>
+          <svg viewBox="0 0 16 16" className="h-3 w-3 shrink-0 text-gold md:h-3.5 md:w-3.5"><path d="M8 0C8.6 4.6 11.4 7.4 16 8C11.4 8.6 8.6 11.4 8 16C7.4 11.4 4.6 8.6 0 8C4.6 7.4 7.4 4.6 8 0Z" fill="currentColor" /></svg>
         </li>
       ))}
     </ul>
   );
   return (
-    <div aria-hidden="true" className="marquee overflow-hidden bg-charcoal py-10 text-[clamp(2.6rem,1.6rem+4.4vw,6rem)] font-light leading-none md:py-14">
+    <div aria-hidden="true" className="marquee overflow-hidden bg-charcoal py-5 text-[clamp(1.05rem,0.9rem+0.6vw,1.4rem)] font-light leading-none md:py-6">
       <div className="marquee-track flex w-max">{row("a")}{row("b")}</div>
     </div>
   );

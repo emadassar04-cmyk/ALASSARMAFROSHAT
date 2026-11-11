@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ArrowLeft, ArrowDown, CreditCard, Gift, MapPin, MessageCircle, Ruler, RotateCcw, Truck } from "lucide-react";
+import { ArrowLeft, CreditCard, Gift, MapPin, MessageCircle, Ruler, RotateCcw, Truck } from "lucide-react";
 import { getBestSellers, getBranches, getCampaign, getCategories, getCheckoutOptions, getOffers, getPolicies, getStoreSettings, searchProducts } from "@/lib/catalog";
 import type { Category, ProductCard as Card } from "@/lib/catalog-types";
 import { categoryImage } from "@/lib/category-images";
@@ -54,17 +54,19 @@ async function StoreJsonLd() {
   );
 }
 
-// رأس قسم تحريري: سطر ذهبي صغير، عنوان كبير، ووصف اختياري، ورابط بخط سفلي
-function SectionHead({ id, kicker, title, lead, href, linkLabel = "عرض الكل", tone = "light", center = false }: {
-  id: string; kicker: string; title: string; lead?: string; href?: string; linkLabel?: string; tone?: "light" | "dark"; center?: boolean;
+// رأس قسم تحريري: سطر ذهبي صغير، عنوان كبير بوزنين (خفيف + كلمة ذهبية بارزة)، ووصف اختياري، ورابط بخط سفلي
+function SectionHead({ id, kicker, title, accent, lead, href, linkLabel = "عرض الكل", tone = "light" }: {
+  id: string; kicker: string; title: string; accent?: string; lead?: string; href?: string; linkLabel?: string; tone?: "light" | "dark";
 }) {
   const dark = tone === "dark";
   return (
-    <div className={`reveal mb-10 flex flex-wrap items-end gap-6 md:mb-14 ${center ? "flex-col items-center text-center" : "justify-between"}`}>
-      <div className={center ? "flex max-w-2xl flex-col items-center" : "max-w-2xl"}>
+    <div className="reveal mb-12 flex flex-wrap items-end justify-between gap-6 md:mb-16">
+      <div className="max-w-3xl">
         <p className={`kicker ${dark ? "text-gold-light" : ""}`}>{kicker}</p>
-        <h2 id={id} className={`mt-4 text-title font-normal ${dark ? "text-ivory" : ""}`}>{title}</h2>
-        {lead && <p className={`mt-4 max-w-xl leading-8 ${dark ? "text-on-dark-muted" : "text-muted-ink"}`}>{lead}</p>}
+        <h2 id={id} className={`mt-5 text-title font-light ${dark ? "text-ivory" : ""}`}>
+          {title}{accent && <>{" "}<span className={`font-medium ${dark ? "text-gold-light" : "text-gold-ink"}`}>{accent}</span></>}
+        </h2>
+        {lead && <p className={`mt-5 max-w-xl text-[1.02rem] leading-8 ${dark ? "text-on-dark-muted" : "text-muted-ink"}`}>{lead}</p>}
       </div>
       {href && (
         <Link href={href} className={`link-line ${dark ? "text-ivory" : ""}`}>
@@ -84,42 +86,60 @@ function countLabel(n: number) {
 }
 
 // ---------------------------------------------------------------------
-// الواجهة: صورة سينمائية بعرض الشاشة، نص تحريري كبير بوزن خفيف، وظهور هادئ
+// الواجهة: صورة سينمائية تملأ الشاشة، عنوان ضخم بوزنين (خفيف + ذهبي بارز)، وفهرس أقسام زجاجي في الأسفل
 // ---------------------------------------------------------------------
+async function HeroIndex() {
+  const categories = (await getCategories()).filter((c) => !c.parent_id).slice(0, 5);
+  if (!categories.length) return null;
+  return (
+    <nav aria-label="أقسام سريعة" className="absolute inset-x-0 bottom-0 hidden border-t border-ivory/15 bg-charcoal/35 backdrop-blur-md md:block">
+      <ul className="shell grid" style={{ gridTemplateColumns: `repeat(${categories.length}, minmax(0, 1fr))` }}>
+        {categories.map((c, i) => (
+          <li key={c.id} className="[&:not(:first-child)]:border-s [&:not(:first-child)]:border-ivory/15">
+            <Link href={`/category/${encodeURIComponent(c.slug)}`} className="group flex items-center gap-3 px-5 py-5 text-ivory/80 transition-colors hover:bg-ivory/[0.06] hover:text-ivory">
+              <span className="index-num text-gold-light">{String(i + 1).padStart(2, "0")}</span>
+              <span className="truncate text-[0.95rem]">{c.name}</span>
+              <ArrowLeft aria-hidden="true" strokeWidth={1.4} className="ms-auto h-4 w-4 shrink-0 opacity-0 transition-all duration-300 group-hover:-translate-x-1 group-hover:opacity-100" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
 function Hero() {
   return (
     <section aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-charcoal">
-      <div className="relative h-[min(88svh,860px)] min-h-[560px]">
+      <div className="relative h-[calc(100svh-7.75rem)] max-h-[960px] min-h-[600px] lg:h-[calc(100svh-10.5rem)]">
         <Image src={heroImage} alt="غرفة معيشة دافئة بكنبة ووسائد وسجادة وستائر خفيفة"
           fill preload fetchPriority="high" placeholder="blur" quality={75}
           sizes="100vw" className="hero-zoom object-cover object-[30%_center]" />
-        {/* تعتيم متدرج من جهة النص ومن الأسفل لضمان وضوح الكتابة */}
-        <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-l from-charcoal/85 via-charcoal/45 to-charcoal/0" />
-        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-charcoal/80 via-charcoal/20 to-transparent" />
-        <div className="shell relative flex h-full flex-col justify-end pb-16 sm:pb-20 lg:justify-center lg:pb-0">
-          <div className="max-w-[40rem] text-ivory">
+        {/* تعتيم متدرج قوي من جهة النص ومن الأسفل لضمان وضوح الكتابة وإبراز الصورة */}
+        <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-l from-charcoal/95 via-charcoal/60 to-charcoal/10" />
+        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-charcoal via-charcoal/30 to-transparent" />
+        <div className="shell relative flex h-full flex-col justify-end pb-28 sm:pb-20 md:pb-36 lg:justify-center lg:pb-24">
+          <div className="max-w-[46rem] text-ivory">
             <p className="hero-rise kicker text-gold-light">مفروشات العصار · دير البلح والنصيرات</p>
-            <h1 id="hero-title" className="hero-rise-2 mt-6 text-hero font-light text-ivory">كل تفاصيل بيتك<br />تبدأ من هنا</h1>
-            <p className="hero-rise-3 mt-6 max-w-lg text-lead text-ivory/80">
+            <h1 id="hero-title" className="hero-rise-2 mt-7 text-hero font-light text-ivory">
+              كل تفاصيل بيتك{" "}<span className="block font-medium text-gold-light">تبدأ من هنا</span>
+            </h1>
+            <p className="hero-rise-3 mt-7 max-w-lg text-lead text-ivory/80">
               سجاد وستائر ومراتب ولحف وشراشف مختارة بعناية، تمنح كل غرفة دفئاً وهدوءاً، مع تفصيل ما تحتاجه حسب مقاساتك.
             </p>
             <div className="hero-rise-3 mt-10 flex flex-wrap gap-3">
-              <Link href="/products" className="btn btn-light min-w-40">تسوّق المجموعة</Link>
+              <Link href="/products" className="btn btn-gold min-w-44 text-base">تسوّق المجموعة<ArrowLeft aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" /></Link>
               <a href="#categories" className="btn btn-ghost-light">اكتشف الأقسام</a>
             </div>
           </div>
         </div>
-        <a href="#categories" aria-label="انتقل إلى الأقسام" className="absolute bottom-7 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2.5 text-[0.75rem] text-ivory/70 transition-colors hover:text-ivory lg:flex">
-          <span>اكتشف</span>
-          <span aria-hidden="true" className="h-10 w-px bg-ivory/40" />
-          <ArrowDown aria-hidden="true" strokeWidth={1.3} className="h-4 w-4" />
-        </a>
+        <Suspense fallback={null}><HeroIndex /></Suspense>
       </div>
     </section>
   );
 }
 
-// شريط الخدمات أسفل الواجهة: حقائق فعلية فقط
+// شريط الخدمات أسفل الواجهة (داكن يكمل الواجهة): حقائق فعلية فقط
 function ServiceStrip() {
   const items = [
     { icon: Truck, title: "توصيل داخل قطاع غزة", text: "رسوم التوصيل واضحة قبل التأكيد" },
@@ -127,18 +147,40 @@ function ServiceStrip() {
     { icon: MapPin, title: "فرعان قريبان منك", text: "دير البلح والنصيرات" },
   ];
   return (
-    <div className="border-b border-border bg-surface">
+    <div className="bg-[#1a1b19] text-ivory">
       <ul className="shell grid sm:grid-cols-3">
         {items.map(({ icon: Icon, title, text }) => (
-          <li key={title} className="flex items-center gap-4 py-5 max-sm:border-b max-sm:border-border max-sm:last:border-0 sm:justify-center sm:px-6 sm:py-7 sm:[&:not(:first-child)]:border-s sm:[&:not(:first-child)]:border-border">
-            <Icon aria-hidden="true" strokeWidth={1.25} className="h-7 w-7 shrink-0 text-gold" />
+          <li key={title} className="flex items-center gap-4 py-6 max-sm:border-b max-sm:border-white/10 max-sm:last:border-0 sm:justify-center sm:px-6 sm:py-8 sm:[&:not(:first-child)]:border-s sm:[&:not(:first-child)]:border-white/10">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-gold/40">
+              <Icon aria-hidden="true" strokeWidth={1.25} className="h-6 w-6 text-gold-light" />
+            </span>
             <span>
-              <span className="block text-[0.9375rem] font-medium text-charcoal">{title}</span>
-              <span className="block text-[0.8125rem] text-muted-ink">{text}</span>
+              <span className="block text-[0.98rem] font-medium">{title}</span>
+              <span className="block text-[0.8125rem] text-on-dark-muted">{text}</span>
             </span>
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+// شريط كلمات ضخم متحرك بأسماء الأقسام (زخرفي: مخفي عن قارئات الشاشة، ويتوقف مع «تقليل الحركة»)
+async function CategoryBand() {
+  const names = [...(await getCategories()).filter((c) => !c.parent_id).map((c) => c.name), "تفصيل حسب المقاس"];
+  const row = (key: string) => (
+    <ul key={key} className="flex shrink-0 items-center gap-10 pe-10 md:gap-16 md:pe-16">
+      {names.map((n, i) => (
+        <li key={n} className="flex items-center gap-10 whitespace-nowrap md:gap-16">
+          <span className={i % 2 ? "text-ivory" : "text-outline-gold"}>{n}</span>
+          <svg viewBox="0 0 16 16" className="h-5 w-5 shrink-0 text-gold md:h-7 md:w-7"><path d="M8 0C8.6 4.6 11.4 7.4 16 8C11.4 8.6 8.6 11.4 8 16C7.4 11.4 4.6 8.6 0 8C4.6 7.4 7.4 4.6 8 0Z" fill="currentColor" /></svg>
+        </li>
+      ))}
+    </ul>
+  );
+  return (
+    <div aria-hidden="true" className="marquee overflow-hidden bg-charcoal py-10 text-[clamp(2.6rem,1.6rem+4.4vw,6rem)] font-light leading-none md:py-14">
+      <div className="marquee-track flex w-max">{row("a")}{row("b")}</div>
     </div>
   );
 }
@@ -161,11 +203,12 @@ function CategoryTile({ c, i }: { c: Category; i: number }) {
         <Image src={categoryImage(c.name, c.image_url)} alt="" fill
           sizes={big ? "(min-width: 768px) 58vw, 100vw" : i < 3 ? "(min-width: 768px) 42vw, 50vw" : "(min-width: 768px) 25vw, 50vw"}
           className="img-zoom object-cover" />
-        <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/25 to-transparent via-45%" />
+        <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-charcoal/85 via-charcoal/25 to-transparent via-45%" />
+        <span aria-hidden="true" className="absolute inset-x-5 bottom-0 h-px origin-right scale-x-0 bg-gold-light transition-transform duration-700 ease-[var(--ease-luxe)] group-hover:scale-x-100 sm:inset-x-7" />
         <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 sm:p-7">
           <span>
             <span className="index-num block text-gold-light">{String(i + 1).padStart(2, "0")}</span>
-            <span className={`mt-2 block font-light text-ivory ${big ? "text-[clamp(1.6rem,1.2rem+1.4vw,2.4rem)]" : "text-[1.15rem] sm:text-[1.35rem]"}`}>{c.name}</span>
+            <span className={`mt-2 block text-ivory ${big ? "text-[clamp(1.9rem,1.3rem+2.2vw,3.2rem)] font-light leading-tight" : "text-[1.2rem] sm:text-[1.5rem] font-light"}`}>{c.name}</span>
             <span className="mt-1 block text-[0.8rem] text-ivory/75">{countLabel(c.product_count)}</span>
           </span>
           <span aria-hidden="true" className={`hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-ivory/40 text-ivory transition-all duration-500 group-hover:border-ivory group-hover:bg-ivory group-hover:text-charcoal ${i < 3 ? "sm:flex" : ""}`}>
@@ -181,7 +224,7 @@ async function CategoriesSection() {
   const categories = (await getCategories()).filter((c) => !c.parent_id);
   if (!categories.length) return null;
   return (
-    <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:auto-rows-[minmax(15rem,auto)] md:grid-cols-12 md:gap-5 lg:auto-rows-[17rem]">
+    <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:auto-rows-[minmax(16rem,auto)] md:grid-cols-12 md:gap-5 lg:auto-rows-[21rem]">
       {categories.map((c, i) => <CategoryTile key={c.id} c={c} i={i} />)}
     </ul>
   );
@@ -198,7 +241,7 @@ function FeaturedBlock({ items }: { items: Card[] }) {
       <div className="shell grid gap-12 lg:grid-cols-[minmax(0,4fr)_minmax(0,9fr)] lg:gap-16">
         <div className="reveal lg:sticky lg:top-40 lg:self-start">
           <p className="kicker">مختارات العصار</p>
-          <h2 id="s-featured" className="mt-4 text-title font-normal">قطع مختارة لبيت أكثر هدوءاً</h2>
+          <h2 id="s-featured" className="mt-5 text-title font-light">قطع مختارة{" "}<span className="font-medium text-gold-ink">لبيت أكثر هدوءاً</span></h2>
           <p className="mt-5 max-w-sm leading-8 text-muted-ink">
             منتجات ننصح بها من أقسام المتجر المختلفة، تتناسق مع بعضها لتمنح كل غرفة طابعاً واحداً.
           </p>
@@ -216,7 +259,7 @@ function NewArrivals({ items }: { items: Card[] }) {
   return (
     <section aria-labelledby="s-new" className="overflow-hidden py-20 md:py-28">
       <div className="shell">
-        <SectionHead id="s-new" kicker="جديد المتجر" title="وصل حديثاً" href="/products?sort=newest" />
+        <SectionHead id="s-new" kicker="جديد المتجر" title="وصل" accent="حديثاً" href="/products?sort=newest" />
       </div>
       <div className="shell">
         <ul className="no-scrollbar -mx-[clamp(1.125rem,0.3rem+3.4vw,3rem)] flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-[clamp(1.125rem,0.3rem+3.4vw,3rem)] px-[clamp(1.125rem,0.3rem+3.4vw,3rem)] pb-4 sm:gap-6 lg:gap-8">
@@ -258,7 +301,7 @@ async function OffersSection() {
       <div className="shell grid gap-12 lg:grid-cols-[minmax(0,4fr)_minmax(0,9fr)] lg:gap-16">
         <div className="reveal lg:sticky lg:top-40 lg:self-start">
           <p className="kicker text-gold-light">خصومات حقيقية</p>
-          <h2 id="s-offers" className="mt-4 text-title font-normal text-ivory">عروض مختارة</h2>
+          <h2 id="s-offers" className="mt-5 text-title font-light text-ivory">عروض{" "}<span className="font-medium text-gold-light">مختارة</span></h2>
           <p className="mt-5 max-w-sm leading-8 text-on-dark-muted">أسعار مخفّضة فعلياً على منتجات من المتجر، لفترة محدودة. السعر قبل الخصم ظاهر بجانب كل منتج.</p>
           <Link href="/products?sort=price_asc" className="link-line mt-8 text-ivory">كل المنتجات<ArrowLeft aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" /></Link>
         </div>
@@ -277,29 +320,30 @@ async function CampaignSection() {
   return (
     <section aria-labelledby="s-campaign" className="py-16 md:py-24">
       <div className="shell">
-        <div className="reveal relative overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface px-6 py-12 sm:px-12 md:py-16">
-          <span aria-hidden="true" className="absolute inset-y-0 start-0 w-1 bg-gold" />
+        <div className="reveal relative overflow-hidden rounded-[var(--radius-card)] bg-[#1a1b19] px-6 py-14 text-ivory sm:px-12 md:py-20">
+          <span aria-hidden="true" className="pointer-events-none absolute -end-24 -top-24 h-80 w-80 rounded-full border border-gold/25" />
+          <span aria-hidden="true" className="pointer-events-none absolute -end-10 -top-10 h-52 w-52 rounded-full border border-gold/20" />
           <div className="grid items-center gap-10 lg:grid-cols-[1.3fr_1fr]">
             <div>
-              <p className="kicker"><Gift aria-hidden="true" strokeWidth={1.4} className="h-4 w-4" />{current ? "حملة هذا الشهر" : "الفائز السابق"}</p>
-              <h2 id="s-campaign" className="mt-4 text-title font-normal">{current?.title ?? last_winner!.title}</h2>
+              <p className="kicker text-gold-light"><Gift aria-hidden="true" strokeWidth={1.4} className="h-4 w-4" />{current ? "حملة هذا الشهر" : "الفائز السابق"}</p>
+              <h2 id="s-campaign" className="mt-5 text-title font-light text-ivory">{current?.title ?? last_winner!.title}</h2>
               {current ? (
                 <>
-                  <p className="mt-4 text-lg text-gold-ink">الجائزة: {current.prize}</p>
-                  <p className="mt-3 max-w-xl leading-8 text-muted-ink">
+                  <p className="mt-5 text-[1.35rem] font-medium text-gold-light">الجائزة: {current.prize}</p>
+                  <p className="mt-3 max-w-xl leading-8 text-on-dark-muted">
                     {current.description ?? "اشترِ من متجرنا الإلكتروني أو من أحد فرعينا برقم جوالك، وكل شراء مؤهل يمنحك فرصة في السحب."}
                   </p>
                 </>
               ) : (
-                <p className="mt-4 text-lg text-muted-ink">مبروك لـ <strong className="font-medium text-charcoal">{last_winner!.winner}</strong> — الجائزة: {last_winner!.prize}</p>
+                <p className="mt-5 text-lg text-on-dark-muted">مبروك لـ <strong className="font-medium text-ivory">{last_winner!.winner}</strong> — الجائزة: {last_winner!.prize}</p>
               )}
-              <Link href="/campaign" className="btn btn-primary mt-8">{current ? "التفاصيل والشروط" : "تفاصيل الحملة"}</Link>
+              <Link href="/campaign" className="btn btn-gold mt-9">{current ? "التفاصيل والشروط" : "تفاصيل الحملة"}</Link>
             </div>
             {current && (
               <div className="space-y-4">
-                <Countdown start={current.start_at} end={current.end_at} />
-                {current.entries > 0 && <p className="text-sm text-muted-ink">{current.entries} مشاركة حتى الآن</p>}
-                {last_winner && <p className="text-sm text-muted-ink">الفائز السابق: {last_winner.winner}</p>}
+                <Countdown start={current.start_at} end={current.end_at} tone="light" />
+                {current.entries > 0 && <p className="text-sm text-on-dark-muted">{current.entries} مشاركة حتى الآن</p>}
+                {last_winner && <p className="text-sm text-on-dark-muted">الفائز السابق: {last_winner.winner}</p>}
               </div>
             )}
           </div>
@@ -317,7 +361,7 @@ async function BestSellers() {
   return (
     <section aria-labelledby="s-best" className="py-20 md:py-28">
       <div className="shell">
-        <SectionHead id="s-best" kicker="اختيار زبائننا" title="الأكثر مبيعاً" href="/products?sort=best_selling" />
+        <SectionHead id="s-best" kicker="اختيار زبائننا" title="الأكثر" accent="مبيعاً" href="/products?sort=best_selling" />
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-8">
           {shown.map((p, i) => <ProductCard key={p.id} product={p} rank={i + 1} />)}
         </div>
@@ -339,35 +383,31 @@ async function EmptyCatalogNotice() {
 }
 
 // ---------------------------------------------------------------------
-// قسم تحريري بطبقات: صورة كبيرة + صورة صغيرة متراكبة + نص (لا عروض أو نسب مخترعة)
+// قسم تحريري داكن بعرض الشاشة: صورة تملأ النصف + نص كبير + صورة صغيرة متراكبة (لا عروض أو نسب مخترعة)
 // ---------------------------------------------------------------------
 function EditorialSection() {
   return (
-    <section aria-labelledby="s-editorial" className="bg-champagne py-20 md:py-28">
-      <div className="shell grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
-        <div className="reveal relative lg:col-span-7">
-          <div className="relative aspect-[5/4] overflow-hidden rounded-[var(--radius-card)] lg:aspect-[6/5]">
-            <Image src={editorialImage} alt="غرفة معيشة بكنبة وسجادة ووسائد وستائر متناسقة" fill sizes="(min-width: 1024px) 56vw, 100vw" className="object-cover" placeholder="blur" />
-          </div>
-          <div className="absolute -bottom-10 start-6 hidden w-[38%] overflow-hidden rounded-[var(--radius-card)] border-[6px] border-champagne shadow-lift sm:block lg:-bottom-14 lg:-start-10">
-            <div className="relative aspect-[4/5]">
-              <Image src={aboutImage} alt="" fill sizes="(min-width: 1024px) 22vw, 38vw" className="object-cover" placeholder="blur" />
-            </div>
+    <section aria-labelledby="s-editorial" className="grid bg-charcoal text-ivory lg:grid-cols-2">
+      <div className="relative min-h-[22rem] sm:min-h-[30rem] lg:min-h-[44rem]">
+        <Image src={editorialImage} alt="غرفة معيشة بكنبة وسجادة ووسائد وستائر متناسقة" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" placeholder="blur" />
+        <div className="absolute -bottom-12 end-8 hidden w-[34%] overflow-hidden rounded-[var(--radius-card)] border-[6px] border-charcoal shadow-lift sm:block lg:-end-16 lg:bottom-16 lg:w-[38%]">
+          <div className="relative aspect-[4/5]">
+            <Image src={aboutImage} alt="" fill sizes="(min-width: 1024px) 19vw, 34vw" className="object-cover" placeholder="blur" />
           </div>
         </div>
-        <div className="reveal lg:col-span-4 lg:col-start-9">
-          <p className="kicker">مجموعة متكاملة</p>
-          <h2 id="s-editorial" className="mt-4 text-title font-normal">بيت متناسق، غرفة بعد غرفة</h2>
-          <p className="mt-6 leading-8 text-muted-ink">
-            نسّق السجادة مع الستائر، والوسائد مع الشراشف واللحف، واختر ما يناسب كل غرفة في بيتك من مكان واحد.
-            وإن احتجت مقاساً خاصاً للستائر أو الموكيت، نفصّله لك حسب مقاساتك.
-          </p>
-          <div className="mt-9 flex flex-wrap gap-3">
-            <Link href="/products" className="btn btn-primary">تسوّق المجموعة</Link>
-            <Link href="/special-order" className="btn btn-outline">
-              <Ruler aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />اطلب حسب المقاس
-            </Link>
-          </div>
+      </div>
+      <div className="reveal flex flex-col justify-center px-[clamp(1.125rem,0.3rem+3.4vw,3rem)] py-20 sm:py-24 lg:px-20 lg:ps-28 xl:px-28 xl:ps-36">
+        <p className="kicker text-gold-light">مجموعة متكاملة</p>
+        <h2 id="s-editorial" className="mt-5 text-display font-light text-ivory">بيت متناسق،{" "}<span className="block font-medium text-gold-light">غرفة بعد غرفة</span></h2>
+        <p className="mt-7 max-w-md text-[1.02rem] leading-8 text-on-dark-muted">
+          نسّق السجادة مع الستائر، والوسائد مع الشراشف واللحف، واختر ما يناسب كل غرفة في بيتك من مكان واحد.
+          وإن احتجت مقاساً خاصاً للستائر أو الموكيت، نفصّله لك حسب مقاساتك.
+        </p>
+        <div className="mt-10 flex flex-wrap gap-3">
+          <Link href="/products" className="btn btn-gold">تسوّق المجموعة</Link>
+          <Link href="/special-order" className="btn btn-ghost-light">
+            <Ruler aria-hidden="true" strokeWidth={1.5} className="h-4 w-4" />اطلب حسب المقاس
+          </Link>
         </div>
       </div>
     </section>
@@ -384,7 +424,7 @@ async function BrandIntro() {
       <div className="shell grid gap-12 lg:grid-cols-12 lg:gap-8">
         <div className="reveal lg:col-span-5">
           <p className="kicker">عن مفروشات العصار</p>
-          <h2 id="s-about" className="mt-4 text-display font-light">العناية بتفاصيل منزلك تبدأ من الاختيار الصحيح</h2>
+          <h2 id="s-about" className="mt-5 text-display font-light">العناية بتفاصيل منزلك{" "}<span className="font-medium text-gold-ink">تبدأ من الاختيار الصحيح</span></h2>
         </div>
         <div className="reveal lg:col-span-6 lg:col-start-7">
           <p className="text-lead text-muted-ink">
@@ -461,7 +501,7 @@ async function BranchesSection() {
   return (
     <section aria-labelledby="s-branches" className="bg-champagne py-20 md:py-28">
       <div className="shell">
-        <SectionHead id="s-branches" kicker="زورونا" title="فروعنا" href="/branches" linkLabel="كل التفاصيل والخرائط" />
+        <SectionHead id="s-branches" kicker="زورونا" title="فروعنا" accent="قريبة منك" href="/branches" linkLabel="كل التفاصيل والخرائط" />
         <BranchCards branches={branches} />
       </div>
     </section>
@@ -475,15 +515,18 @@ export default function Home() {
       <Hero />
       <ServiceStrip />
 
-      <section id="categories" aria-labelledby="cats" className="pt-20 pb-4 md:pt-28">
+      <section id="categories" aria-labelledby="cats" className="pt-20 md:pt-28">
         <div className="shell">
-          <SectionHead id="cats" kicker="أقسام المتجر" title="تسوّق حسب القسم" href="/products" linkLabel="كل المنتجات"
+          <SectionHead id="cats" kicker="أقسام المتجر" title="تسوّق حسب" accent="القسم" href="/products" linkLabel="كل المنتجات"
             lead="من السجاد والستائر إلى المراتب واللحف والشراشف: كل ما يحتاجه البيت في مكان واحد." />
           <Suspense fallback={<div className="grid grid-cols-2 gap-4 md:grid-cols-12">{Array.from({ length: 3 }, (_, i) => <div key={i} className={`skeleton aspect-[4/5] rounded-[var(--radius-card)] ${i === 0 ? "col-span-2 md:col-span-7" : "md:col-span-5"}`} />)}</div>}>
             <CategoriesSection />
           </Suspense>
         </div>
       </section>
+
+      <div className="h-20 md:h-28" aria-hidden="true" />
+      <Suspense fallback={<div className="h-40 bg-charcoal" />}><CategoryBand /></Suspense>
 
       <Suspense fallback={<div className="shell py-20"><ProductGridSkeleton count={4} /></div>}>
         <EmptyCatalogNotice />

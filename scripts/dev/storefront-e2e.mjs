@@ -292,7 +292,9 @@ await check("العروض والإضافة السريعة: منتج مخفّض �
   // منتج بعدة خيارات لا يظهر عليه زر الإضافة السريعة
   assert(await page.getByRole("button", { name: "إضافة سجادة تركية كلاسيك للسلة" }).count() === 0, "multi-variant has no quick add");
   await page.goto(url("/products"));
-  const before = Number((await page.getByRole("link", { name: /^السلة \(\d+\)$/ }).getAttribute("aria-label")).match(/\d+/)[0]);
+  // العدد الفعلي من التخزين المحلي، وننتظر حتى يعرضه الرأس (قبل التفعيل يُعرض 0 مؤقتاً)
+  const before = await page.evaluate(() => (JSON.parse(localStorage.getItem("alassar-store-v1") ?? "null")?.cart ?? []).reduce((n, i) => n + i.qty, 0));
+  await page.getByRole("link", { name: `السلة (${before})` }).waitFor();
   await page.getByRole("button", { name: "إضافة مخدة فندقية للسلة" }).click();
   await page.getByRole("link", { name: `السلة (${before + 1})` }).waitFor();
 });

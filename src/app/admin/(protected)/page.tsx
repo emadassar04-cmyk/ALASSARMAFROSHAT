@@ -69,18 +69,19 @@ async function AdminHomeContent({ searchParams }: PageProps<"/admin">) {
 
   return (
     <div className="mx-auto max-w-[90rem]">
-      {/* رأس تحريري: صورة من المتجر (Unsplash، انظر IMAGES_CREDITS.md) بتعتيم عاجي، وعنوان بوزن خفيف */}
-      <section className="relative mb-6 overflow-hidden rounded-[var(--a-radius)] border border-[var(--a-line)] bg-[#f3efe6]">
-        <div className="absolute inset-y-0 end-0 hidden w-[58%] sm:block">
-          <Image src={heroImage} alt="" fill priority={false} sizes="(min-width: 1024px) 50vw, 60vw" className="object-cover" placeholder="blur" />
-          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-l from-[#f3efe6] via-[#f3efe6]/60 to-[#f3efe6]/5 ltr:bg-gradient-to-r" />
+      {/* رأس داكن قوي: صورة من المتجر (Unsplash، انظر IMAGES_CREDITS.md) بتعتيم فحمي، وعنوان كبير بكلمة ذهبية */}
+      <section className="relative mb-6 overflow-hidden rounded-[var(--a-radius)] bg-[var(--a-sidebar)] text-[#f7f6f2]">
+        <div className="absolute inset-y-0 end-0 hidden w-[60%] sm:block">
+          <Image src={heroImage} alt="" fill priority={false} sizes="(min-width: 1024px) 50vw, 60vw" className="object-cover opacity-80" placeholder="blur" />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-l from-[var(--a-sidebar)] via-[var(--a-sidebar)]/70 to-[var(--a-sidebar)]/10 ltr:bg-gradient-to-r" />
         </div>
-        <div className="relative max-w-xl px-6 py-8 sm:px-9 sm:py-10">
-          <p className="flex items-center gap-3 text-[0.8125rem] font-medium text-[var(--a-accent-ink)]"><span aria-hidden="true" className="h-px w-7 bg-[var(--a-accent)]" />{t.dashboard.welcome} {firstName}</p>
-          <h1 className="mt-3 text-[1.9rem] font-light leading-tight sm:text-[2.4rem]">{t.dashboard.title}</h1>
-          <p className="mt-2 text-sm text-[#5f5a52]">{t.dashboard.heroSub} · {rangeLabel(range, f)}</p>
+        <span aria-hidden="true" className="pointer-events-none absolute -start-20 -bottom-24 h-64 w-64 rounded-full border border-[#b49a68]/20" />
+        <div className="relative max-w-xl px-6 py-9 sm:px-10 sm:py-12">
+          <p className="flex items-center gap-3 text-[0.8125rem] font-medium text-[var(--a-accent-2)]"><span aria-hidden="true" className="h-px w-8 bg-[var(--a-accent)]" />{t.dashboard.welcome} {firstName}</p>
+          <h1 className="mt-4 text-[2.1rem] font-light leading-tight text-[#f7f6f2] sm:text-[2.9rem]">{t.dashboard.title}</h1>
+          <p className="mt-3 text-sm text-[#c9c6bd]">{t.dashboard.heroSub} · <span className="text-[var(--a-accent-2)]">{rangeLabel(range, f)}</span></p>
           <Link href={fin ? `/admin/reports?from=${range.from}&to=${range.to}` : "/admin/orders"}
-            className="a-btn a-btn-primary mt-6 rounded-full px-5">
+            className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--a-accent-2)] px-6 text-sm font-medium text-[var(--a-sidebar)] transition-[background-color,box-shadow] hover:bg-[#e6d9bd] hover:shadow-[0_12px_30px_-14px_rgb(216_198_162/0.7)]">
             {fin ? t.dashboard.heroCta : t.orders.title}<ArrowLeft aria-hidden="true" strokeWidth={1.5} className="h-4 w-4 ltr:rotate-180" />
           </Link>
         </div>

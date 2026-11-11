@@ -172,7 +172,7 @@ async function CategoryBand() {
     <ul key={key} className="flex shrink-0 items-center gap-10 pe-10 md:gap-16 md:pe-16">
       {names.map((n, i) => (
         <li key={n} className="flex items-center gap-10 whitespace-nowrap md:gap-16">
-          <span className={i % 2 ? "text-ivory" : "text-outline-gold"}>{n}</span>
+          <span className={i % 2 ? "text-ivory" : "text-gold-light"}>{n}</span>
           <svg viewBox="0 0 16 16" className="h-5 w-5 shrink-0 text-gold md:h-7 md:w-7"><path d="M8 0C8.6 4.6 11.4 7.4 16 8C11.4 8.6 8.6 11.4 8 16C7.4 11.4 4.6 8.6 0 8C4.6 7.4 7.4 4.6 8 0Z" fill="currentColor" /></svg>
         </li>
       ))}

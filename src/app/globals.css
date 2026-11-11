@@ -253,8 +253,6 @@
   /* إطار صورة: خلفية هادئة وتكبير بطيء عند المرور على العنصر الأب .group */
   .img-zoom { transition: transform 1200ms var(--ease-luxe); }
   .group:hover .img-zoom { transform: scale(1.045); }
-  /* نص بحدود ذهبية مفرغة (لشريط الكلمات الضخم) */
-  .text-outline-gold { color: transparent; -webkit-text-stroke: 1px var(--gold); }
   /* إخفاء شريط التمرير الأفقي مع إبقاء التمرير */
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }

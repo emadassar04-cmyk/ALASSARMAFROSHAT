@@ -25,4 +25,5 @@ export NODE_PATH="$(npm root -g)"
 status=0
 node scripts/dev/storefront-e2e.mjs "${1:-}" || status=1
 node scripts/dev/checkout-e2e.mjs || status=1
+node scripts/dev/custom-order-e2e.mjs || status=1
 exit $status

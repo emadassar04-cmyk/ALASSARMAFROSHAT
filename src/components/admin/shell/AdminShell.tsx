@@ -4,8 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   Boxes, ChartColumn, ChevronLeft, ClipboardCheck, FolderTree, Gift, History, LayoutDashboard, MapPin, Megaphone,
-  Menu, Package, Plug, ShoppingBag, Sofa, Store, TicketPercent, TrendingUp, Truck, UserCog, Users, Wallet, X,
-} from "lucide-react";
+  Menu, Package, Plug, ShoppingBag, Sofa, Store, TicketPercent, TrendingUp, Truck, UserCog, Users, Wallet, X, Ruler } from "lucide-react";
 import type { NavIcon } from "@/lib/admin/nav";
 import { useI18n } from "../I18nProvider";
 import { GlobalSearch } from "./GlobalSearch";
@@ -15,7 +14,7 @@ import { UserMenu } from "./UserMenu";
 import type { Notice } from "@/app/admin/(protected)/shell-actions";
 
 const ICONS: Record<NavIcon, typeof Package> = {
-  dashboard: LayoutDashboard, orders: ShoppingBag, sale: Store, purchases: ClipboardCheck, customers: Users,
+  dashboard: LayoutDashboard, orders: ShoppingBag, custom: Ruler, sale: Store, purchases: ClipboardCheck, customers: Users,
   products: Package, categories: FolderTree, inventory: Boxes, coupons: TicketPercent, expenses: Wallet,
   profits: TrendingUp, reports: ChartColumn, campaigns: Gift, marketing: Megaphone, staff: UserCog,
   activity: History, delivery: Truck, branches: MapPin, integrations: Plug,

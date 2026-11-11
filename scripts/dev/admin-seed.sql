@@ -117,3 +117,14 @@ select p.id, v.url, 'image', p.name, 1
                ('بطانية-شتوية-ناعمة', '/images/categories/blankets.webp'), ('مخدة-فندقية', '/images/categories/pillows.webp'),
                ('طقم-شراشف-ساتان', '/images/categories/sheets.webp')) as v(slug, url)
   join public.products p on p.slug = v.slug;
+
+-- طلبات تفصيل حسب المقاس (0025) — بيانات اختبار محلية فقط
+insert into public.custom_orders (request_id, number, product_type, specs, customer_name, phone, area, customer_notes)
+values
+  ('aaaaaaaa-1111-0000-0000-000000000001', 'SO-1001', 'curtains',
+   '{"windows":[{"width":2.5,"height":2.8,"count":1,"panels":2,"unit":"m"},{"width":3,"height":2.7,"count":2,"panels":2,"unit":"m"}],"fabric":"كتان","color":"بيج","blackout":"partial","style":"كسرات عادية","notes":""}',
+   'سارة النجار', '0599000111', 'دير البلح', 'أفضّل التركيب صباحاً'),
+  ('aaaaaaaa-1111-0000-0000-000000000002', 'SO-1002', 'mattress',
+   '{"width":160,"length":200,"height":25,"unit":"cm","quantity":2,"fabric":"قطن","color":"عاجي","cover":"zipper","notes":""}',
+   'عمر السوافيري', '0598000222', 'النصيرات', null);
+insert into public.custom_order_events (order_id, kind, status) select id, 'created', 'new' from public.custom_orders;

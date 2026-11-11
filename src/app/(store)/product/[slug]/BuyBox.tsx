@@ -92,7 +92,7 @@ export function BuyBox({ product, whatsapp, url }: { product: ProductDetail; wha
             <Ruler aria-hidden="true" strokeWidth={1.5} className="mt-1 h-5 w-5 shrink-0 text-gold-ink" />
             هذا المنتج يُفصَّل حسب المقاس، ويُحدَّد سعره النهائي بعد معرفة المقاسات والمواصفات.
           </p>
-          <Link href={`/special-order?product=${encodeURIComponent(product.slug)}`} className="btn btn-primary w-full">أرسل المقاسات واطلب عرض سعر</Link>
+          <Link href={`/special-order?product=${encodeURIComponent(product.name)}`} className="btn btn-primary w-full">أرسل المقاسات واطلب عرض سعر</Link>
         </div>
       ) : (
         <div className="space-y-4">

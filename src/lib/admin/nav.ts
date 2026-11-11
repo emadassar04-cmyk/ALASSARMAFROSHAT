@@ -2,7 +2,7 @@
 import type { Dict } from "./dict/ar";
 
 export type NavIcon =
-  | "dashboard" | "orders" | "sale" | "purchases" | "customers" | "products" | "categories" | "inventory" | "coupons"
+  | "dashboard" | "orders" | "custom" | "sale" | "purchases" | "customers" | "products" | "categories" | "inventory" | "coupons"
   | "expenses" | "profits" | "reports" | "campaigns" | "marketing" | "staff" | "activity" | "delivery" | "branches" | "integrations";
 
 type Key = Exclude<keyof Dict["nav"], "groups" | "collapse" | "expand" | "openMenu" | "closeMenu" | "settings">;
@@ -11,6 +11,7 @@ type Group = keyof Dict["nav"]["groups"];
 export const NAV: { href: string; key: Key; icon: NavIcon; group: Group; perm?: string | string[]; strong?: boolean }[] = [
   { href: "/admin", key: "dashboard", icon: "dashboard", group: "overview" },
   { href: "/admin/orders", key: "orders", icon: "orders", group: "sales", perm: "orders.read" },
+  { href: "/admin/custom-orders", key: "customOrders", icon: "custom", group: "sales", perm: "orders.read" },
   { href: "/admin/sales", key: "recordSale", icon: "sale", group: "sales", perm: "sales.record", strong: true },
   { href: "/admin/purchases", key: "purchases", icon: "purchases", group: "sales", perm: "sales.review" },
   { href: "/admin/customers", key: "customers", icon: "customers", group: "sales", perm: "orders.read" },

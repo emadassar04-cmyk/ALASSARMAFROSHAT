@@ -13,7 +13,7 @@ export const ar = {
   },
   nav: {
     groups: { overview: "نظرة عامة", sales: "المبيعات", catalog: "الكتالوج", finance: "المالية", marketing: "التسويق", admin: "الإدارة" },
-    dashboard: "لوحة المعلومات", orders: "الطلبات", recordSale: "تسجيل بيع", purchases: "مبيعات الفروع", customers: "العملاء",
+    dashboard: "لوحة المعلومات", orders: "الطلبات", customOrders: "طلبات التفصيل", recordSale: "تسجيل بيع", purchases: "مبيعات الفروع", customers: "العملاء",
     products: "المنتجات", categories: "التصنيفات", inventory: "المخزون والجرد", coupons: "الكوبونات والخصومات",
     expenses: "المصروفات", profits: "الأرباح", reports: "التقارير", campaigns: "حملة تسوّق واربح", marketing: "التسويق والسياسات",
     staff: "الموظفون والصلاحيات", activity: "سجل النشاط", delivery: "التوصيل والدفع", branches: "الفروع",
@@ -202,6 +202,18 @@ export const ar = {
     stockValue: "قيمة المخزون بسعر البيع", stockCost: "قيمة المخزون بالتكلفة", costMissing: "أصناف بلا تكلفة", openProfits: "فتح قائمة الأرباح والخسائر",
     needFinance: "التقارير المالية تحتاج صلاحية المالية.", loadError: "تعذر تحميل التقرير. تأكد أن الفترة لا تتجاوز سنة.", printPdf: "طباعة / حفظ PDF",
     sheets: { summary: "الملخص", products: "المنتجات", days: "الأيام", categories: "التصنيفات", expenses: "المصروفات", sources: "المصادر" },
+  },
+  co: {
+    title: "طلبات التفصيل", subtitle: "طلبات حسب المقاس من صفحة «فصّل منتجك على مقاسك»: المقاسات والوحدات والمعاينة والسعر النهائي.",
+    search: "بحث (رقم الطلب، الاسم، الجوال)", type: "نوع المنتج", status: "الحالة", number: "رقم الطلب", customer: "العميل", area: "المنطقة",
+    date: "التاريخ", price: "السعر النهائي", noPrice: "لم يُحدَّد", empty: "لا توجد طلبات تفصيل مطابقة.", view: "عرض",
+    types: { curtains: "ستائر", ceiling: "بطانة سقف", mattress: "وجه فرشة", other: "تفصيلات أخرى" },
+    st: { new: "جديد", reviewing: "قيد المراجعة", awaiting_customer: "بانتظار تأكيد العميل", confirmed: "تم التأكيد", in_progress: "قيد التنفيذ", ready: "جاهز", completed: "مكتمل", cancelled: "ملغي" },
+    specs: "المقاسات والمواصفات", preview: "صورة المعاينة", reference: "الصورة المرجعية من العميل", customerNotes: "ملاحظات العميل", phone: "الجوال",
+    manage: "إدارة الطلب", finalPrice: "السعر النهائي (₪)", clearPrice: "إلغاء السعر", note: "ملاحظة داخلية (لا تظهر للعميل)", save: "حفظ التحديث", saved: "تم الحفظ ✓",
+    history: "سجل التحديثات", created: "استُلم الطلب", statusTo: "الحالة ←", priceSet: "السعر النهائي:", priceCleared: "أُلغي السعر", by: "بواسطة", system: "الموقع",
+    readOnly: "عرض فقط: تحتاج صلاحية إدارة الطلبات للتعديل.", whatsapp: "مراسلة العميل عبر WhatsApp", back: "كل طلبات التفصيل", unit: "الوحدة",
+    windows: "الشبابيك", w: "عرض", h: "ارتفاع", l: "طول", count: "العدد", panels: "القطع",
   },
   pur: {
     title: "مبيعات الفروع والمشتريات", subtitle: "طلبات الموقع ومبيعات الفروع في سجل واحد. مبيعات الفروع تُعتمد من الإدارة.",

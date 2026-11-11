@@ -15,7 +15,7 @@ export const en: Dict = {
   },
   nav: {
     groups: { overview: "Overview", sales: "Sales", catalog: "Catalog", finance: "Finance", marketing: "Marketing", admin: "Administration" },
-    dashboard: "Dashboard", orders: "Orders", recordSale: "Record sale", purchases: "Branch sales", customers: "Customers",
+    dashboard: "Dashboard", orders: "Orders", customOrders: "Custom orders", recordSale: "Record sale", purchases: "Branch sales", customers: "Customers",
     products: "Products", categories: "Categories", inventory: "Inventory", coupons: "Coupons & Discounts",
     expenses: "Expenses", profits: "Profits", reports: "Reports", campaigns: "Shop & Win campaign", marketing: "Marketing & Policies",
     staff: "Employees & Permissions", activity: "Activity Logs", delivery: "Delivery & Payment", branches: "Branches",
@@ -204,6 +204,18 @@ export const en: Dict = {
     stockValue: "Stock value at selling price", stockCost: "Stock value at cost", costMissing: "Items without a cost", openProfits: "Open Profit & Loss",
     needFinance: "Financial reports need the finance permission.", loadError: "Couldn't load the report. Make sure the range is at most one year.", printPdf: "Print / save PDF",
     sheets: { summary: "Summary", products: "Products", days: "Days", categories: "Categories", expenses: "Expenses", sources: "Sources" },
+  },
+  co: {
+    title: "Custom orders", subtitle: "Made-to-measure requests from the “Design it to your size” page: measurements, units, preview and final price.",
+    search: "Search (order no., name, phone)", type: "Product type", status: "Status", number: "Order no.", customer: "Customer", area: "Area",
+    date: "Date", price: "Final price", noPrice: "Not set", empty: "No matching custom orders.", view: "View",
+    types: { curtains: "Curtains", ceiling: "Ceiling lining", mattress: "Mattress cover", other: "Other" },
+    st: { new: "New", reviewing: "Under review", awaiting_customer: "Awaiting customer", confirmed: "Confirmed", in_progress: "In progress", ready: "Ready", completed: "Completed", cancelled: "Cancelled" },
+    specs: "Measurements & specs", preview: "Preview image", reference: "Customer reference image", customerNotes: "Customer notes", phone: "Phone",
+    manage: "Manage order", finalPrice: "Final price (₪)", clearPrice: "Clear price", note: "Internal note (not shown to customer)", save: "Save update", saved: "Saved ✓",
+    history: "Update history", created: "Order received", statusTo: "Status →", priceSet: "Final price:", priceCleared: "Price cleared", by: "by", system: "Website",
+    readOnly: "Read only: you need the manage-orders permission to edit.", whatsapp: "Message customer on WhatsApp", back: "All custom orders", unit: "Unit",
+    windows: "Windows", w: "W", h: "H", l: "L", count: "Qty", panels: "Panels",
   },
   pur: {
     title: "Branch sales & purchases", subtitle: "Online orders and branch sales in one log. Branch sales are approved by management.",

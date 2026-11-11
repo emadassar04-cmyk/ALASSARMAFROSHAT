@@ -3,8 +3,8 @@ import { usePathname } from "next/navigation";
 import { whatsappLink } from "@/lib/format";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 
-// لا يظهر في السلة وإتمام الطلب وصفحة الطلب (فيها أزرار WhatsApp خاصة بها) حتى لا يغطي الملخص
-const HIDDEN_ON = /^\/(cart|checkout|order)(\/|$)/;
+// لا يظهر في السلة وإتمام الطلب وصفحة الطلب واستوديو التفصيل (فيها أزرار WhatsApp خاصة بها) حتى لا يغطي الملخص أو أزرار المعاينة
+const HIDDEN_ON = /^\/(cart|checkout|order|special-order)(\/|$)/;
 
 export function WhatsAppFloat({ number }: { number: string | null }) {
   const pathname = usePathname();

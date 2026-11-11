@@ -233,6 +233,37 @@ try {
     ok(await page.locator("ul.md\\:hidden li").first().isVisible(), "الطلبات كبطاقات في الجوال");
     await ctx.close();
   }
+  // طلبات التفصيل: القائمة والتصفية والتفاصيل وتحديث الحالة والسعر والملاحظة وسجل التحديثات، والمشاهد للعرض فقط
+  {
+    const { ctx, page, errors } = await as("owner");
+    await go(page, "/admin/custom-orders");
+    ok(await page.getByRole("heading", { name: "طلبات التفصيل" }).isVisible(), "صفحة طلبات التفصيل في الإدارة");
+    ok(await page.getByRole("link", { name: "SO-1001" }).isVisible() && await page.getByRole("link", { name: "SO-1002" }).isVisible(), "الطلبات المحفوظة تظهر في القائمة");
+    await go(page, "/admin/custom-orders?type=mattress");
+    ok(await page.getByRole("link", { name: "SO-1002" }).isVisible() && !(await page.getByRole("link", { name: "SO-1001" }).count()), "التصفية حسب نوع المنتج");
+    await go(page, "/admin/custom-orders?q=سارة");
+    ok(await page.getByRole("link", { name: "SO-1001" }).isVisible() && !(await page.getByRole("link", { name: "SO-1002" }).count()), "البحث باسم العميل");
+    await page.getByRole("link", { name: "SO-1001" }).click();
+    await page.getByRole("heading", { name: /SO-1001/ }).waitFor();
+    ok(await page.getByText("الشباك 2: عرض 3 م × ارتفاع 2.7 م").first().isVisible(), "التفاصيل تعرض كل شباك بمقاسه ووحدته");
+    await page.getByRole("combobox", { name: "الحالة" }).selectOption("awaiting_customer");
+    await page.getByLabel("السعر النهائي (₪)").fill("480");
+    await page.getByLabel("ملاحظة داخلية (لا تظهر للعميل)").fill("تم حساب القماش مع الكسرات");
+    await page.getByRole("button", { name: "حفظ التحديث" }).click();
+    await page.getByText("تم الحفظ ✓").waitFor({ timeout: 10000 });
+    await page.getByText("تم حساب القماش مع الكسرات").waitFor({ timeout: 10000 });
+    ok(await page.getByText("الحالة ← بانتظار تأكيد العميل").first().isVisible() && await page.getByText(/السعر النهائي:.*480/).first().isVisible(), "تحديث الحالة والسعر والملاحظة يظهر في سجل التحديثات");
+    ok(errors.length === 0, `بلا أخطاء في صفحات طلبات التفصيل ${errors.join(" | ")}`);
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await as("viewer");
+    await go(page, "/admin/custom-orders");
+    await page.getByRole("link", { name: "SO-1002" }).click();
+    await page.getByRole("heading", { name: /SO-1002/ }).waitFor();
+    ok(await page.getByText("عرض فقط").first().isVisible() && !(await page.getByRole("button", { name: "حفظ التحديث" }).count()), "المشاهد يرى طلبات التفصيل دون تعديل");
+    await ctx.close();
+  }
 } catch (e) {
   failed++;
   console.log("FAIL: exception", e.message);

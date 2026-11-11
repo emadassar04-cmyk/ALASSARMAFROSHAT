@@ -14,7 +14,7 @@ pool.on("error", (e) => console.warn("pg pool connection dropped:", e.code ?? e.
 const ANON_RPC = /^(catalog_[a-z_]+|get_variant_availability|quote_order|track_order)$/;
 // مفتاح اختبار محلي فقط (لا علاقة له بمفتاح Supabase الحقيقي)
 const SERVICE_KEY = process.env.LOCAL_SERVICE_KEY ?? "local-service-key";
-const SERVICE_RPC = /^(place_order|rate_limit_hit)$/;
+const SERVICE_RPC = /^(place_order|rate_limit_hit|submit_custom_order)$/;
 const TABLES = {
   store_settings: "select store_name, whatsapp_number, contact_phone, is_published, maintenance_mode, site_url, ga_measurement_id, meta_pixel_id, google_site_verification from public.store_settings",
   delivery_zones: "select id, name, fee, eta_text, sort_order from public.delivery_zones where is_active order by sort_order, name",

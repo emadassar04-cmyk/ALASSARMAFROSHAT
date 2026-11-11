@@ -8,7 +8,7 @@ import { ArrowUp, Sparkles, X } from "lucide-react";
 // وتعرض الإجابة متدفقة. المحادثة في ذاكرة الصفحة فقط (لا تُحفظ في المتصفح ولا في الخادم).
 
 type Msg = { role: "user" | "assistant"; content: string };
-const HIDDEN_ON = /^\/(cart|checkout|order)(\/|$)/;
+const HIDDEN_ON = /^\/(cart|checkout|order|special-order)(\/|$)/;
 const SUGGESTIONS = ["ما مناطق التوصيل ورسومها؟", "أبحث عن بطانية شتوية", "كيف أطلب ستارة حسب المقاس؟", "وين فروعكم؟"];
 const ERRORS: Record<string, string> = {
   rate_limited: "وصلت للحد المسموح من الأسئلة مؤقتاً. حاول بعد قليل أو تواصل معنا عبر WhatsApp.",

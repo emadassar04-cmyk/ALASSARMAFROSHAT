@@ -171,10 +171,11 @@ await check("منتج حسب المقاس: بلا سعر تقديري ومع ط�
   const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').first().textContent());
   assert(!ld.offers, "no offer for measured product");
   await page.getByRole("link", { name: "أرسل المقاسات واطلب عرض سعر" }).click();
-  await page.getByRole("heading", { name: "طلب منتج حسب المقاس" }).waitFor();
-  await page.getByLabel("العرض").fill("220");
-  await page.getByLabel("الارتفاع أو الطول").fill("260");
-  await page.getByRole("button", { name: /أرسل الطلب عبر WhatsApp/ }).waitFor();
+  await page.getByRole("heading", { level: 1, name: /فصّل منتجك/ }).waitFor();
+  await page.getByRole("link", { name: /الستائر.*ابدأ التفصيل/ }).click();
+  await page.getByLabel("عرض الشباك").fill("2.2");
+  await page.getByLabel("ارتفاع الشباك").fill("2.6");
+  await page.getByRole("button", { name: /^التالي: الخامة واللون/ }).waitFor();
 });
 
 await check("المفضلة: الإضافة تظهر في صفحة المفضلة", async () => {

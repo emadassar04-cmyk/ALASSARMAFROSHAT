@@ -59,6 +59,14 @@ await check("العرض السريع: يفتح نافذة ببيانات الب�
   assert(await btn.evaluate((el) => el === document.activeElement), "focus returned");
 });
 
+await check("مساعد العصار مخفي ومتوقف عندما لا يوجد أي مفتاح مزود", async () => {
+  await page.goto(url("/"));
+  assert(await page.getByRole("button", { name: "اسأل مساعد العصار" }).count() === 0, "chat button hidden");
+  // من خارج المتصفح حتى لا يُحتسب 503 خطأً في سجل المتصفح (اختبار «لا أخطاء JavaScript»)
+  const st = (await fetch(BASE + "/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: [{ role: "user", content: "hi" }] }) })).status;
+  assert(st === 503, `api ${st}`);
+});
+
 await check("لا تظهر أي بيانات داخلية في HTML المتجر", async () => {
   const html = await page.content();
   assert(!/unit_cost|on_hand|reserved|manager_profit|store_due|low_stock_threshold/.test(html), "leak found");

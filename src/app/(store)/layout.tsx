@@ -9,6 +9,8 @@ import { WhatsAppFloat } from "@/components/store/WhatsAppFloat";
 import { SourceTracker } from "@/components/store/SourceTracker";
 import { Toaster } from "@/components/store/Toaster";
 import { QuickViewHost } from "@/components/store/QuickView";
+import { ChatWidget } from "@/components/store/ChatWidget";
+import { chatEnabled } from "@/lib/ai/providers";
 import { Analytics } from "@/components/store/Analytics";
 import { getBranches, getCampaign, getCategories, getPolicies, getStoreSettings } from "@/lib/catalog";
 import { whatsappLink } from "@/lib/format";
@@ -113,6 +115,13 @@ async function FloatingWhatsApp() {
   return <WhatsAppFloat number={s.whatsapp_number} />;
 }
 
+// مساعد العصار: يظهر فقط إذا ضُبط مفتاح مزود واحد على الأقل في Vercel
+async function FloatingChat() {
+  if (!chatEnabled()) return null;
+  const s = await getStoreSettings();
+  return <ChatWidget whatsapp={s.whatsapp_number} />;
+}
+
 export default function StoreLayout({ children }: LayoutProps<"/">) {
   return (
     <>
@@ -198,6 +207,7 @@ export default function StoreLayout({ children }: LayoutProps<"/">) {
       </footer>
 
       <Suspense fallback={null}><FloatingWhatsApp /></Suspense>
+      <Suspense fallback={null}><FloatingChat /></Suspense>
       <Toaster />
       <QuickViewHost />
       <SourceTracker />

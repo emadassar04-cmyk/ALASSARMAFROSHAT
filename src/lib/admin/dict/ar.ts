@@ -58,7 +58,7 @@ export const ar = {
     received: "جديد", awaiting_confirmation: "بانتظار التأكيد", confirmed: "مؤكد", preparing: "قيد التجهيز",
     ready_for_pickup: "جاهز للاستلام", out_for_delivery: "خرج للتوصيل", delivered: "مكتمل", cancelled: "ملغى",
   },
-  payment: { cash_on_delivery: "الدفع عند الاستلام", cash_in_store: "نقداً في المحل", bank_transfer: "تحويل بنكي" },
+  payment: { cash_on_delivery: "الدفع عند الاستلام", cash_in_store: "نقداً في المحل", bank_transfer: "تحويل بنكي", e_wallet: "محفظة إلكترونية" },
   paymentStatus: { unpaid: "غير مدفوع", awaiting_review: "تحويل بانتظار المراجعة", paid: "مدفوع", rejected: "تحويل مرفوض", refunded: "مسترد" },
   fulfillment: { delivery: "توصيل", pickup: "استلام من المحل" },
   orders: {
@@ -88,6 +88,7 @@ export const ar = {
     cancelReason: "سبب الإلغاء (إلزامي)", force: "موافقة الإدارة: الطلب بدأ تجهيزه، وأريد إلغاءه وإعادة الكمية للمخزون",
     confirmCancel: "تأكيد الإلغاء", cancelQ: "إلغاء الطلب نهائياً؟", done: "تم ✓",
     transfer: "تحويل بنكي بانتظار المراجعة. أرسل بيانات الحساب للعميل عبر WhatsApp، وراجع التحويل قبل الاعتماد.",
+    wallet: "دفع بالمحفظة الإلكترونية بانتظار المراجعة. أرسل رقم المحفظة للعميل عبر WhatsApp، وتأكد من وصول المبلغ قبل الاعتماد.",
     reference: "رقم/مرجع الحوالة (اختياري)", note: "ملاحظة (اختياري)", approve: "اعتماد الدفع", approveQ: "اعتماد التحويل كمدفوع؟",
     reject: "رفض", rejectQ: "رفض التحويل؟", created: "أُنشئ الطلب",
     err: {
@@ -256,7 +257,7 @@ export const ar = {
   set: {
     deliveryTitle: "التوصيل والدفع", zones: "مناطق التوصيل ورسومها", zonesHint: "تظهر المناطق الفعّالة للزبون في صفحة إتمام الطلب. ألغِ تفعيل منطقة لإخفائها دون حذفها.",
     newZone: "منطقة جديدة", zone: "المنطقة", fee: "الرسوم ₪", eta: "مدة التوصيل", etaPh: "خلال يوم", sort: "الترتيب", active: "فعّالة", add: "إضافة",
-    saved: "تم الحفظ ✓", payments: "طرق الدفع", paymentsHint: "التحويل البنكي: بيانات الحساب تُرسل للزبون عبر WhatsApp ولا تظهر في الموقع.", enable: "تفعيل",
+    saved: "تم الحفظ ✓", payments: "طرق الدفع", paymentsHint: "التحويل البنكي والمحفظة الإلكترونية: بيانات الحساب ورقم المحفظة تُرسل للزبون عبر WhatsApp ولا تظهر في الموقع.", enable: "تفعيل",
     branchesTitle: "الفروع", integrationsTitle: "التكاملات", marketingTitle: "التسويق والسياسات",
     branchesHint: "تظهر هذه البيانات في صفحة «فروعنا» والصفحة الرئيسية والتذييل. المخزون مشترك ويُسجَّل على الفرع الرئيسي.", viewBranches: "عرض صفحة الفروع",
     mainBranch: "الرئيسي (المخزون والطلبات)", branchName: "اسم الفرع", city: "المدينة", address: "العنوان", addressPh: "مثال: دوار البركة", phone: "رقم الجوال",

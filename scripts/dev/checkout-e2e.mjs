@@ -64,14 +64,14 @@ await check("كوبون صالح يخصم من الإجمالي (90 − 9 + 15 =
 });
 
 await check("الدفع عند الاستلام يظهر للتوصيل فقط، والدفع في المحل للاستلام فقط", async () => {
-  assert(await page.getByText("الدفع نقداً عند الاستلام").count() === 1, "COD for delivery");
+  assert(await page.getByText("الدفع عند الاستلام", { exact: true }).count() === 1, "COD for delivery");
   assert(await page.getByText("الدفع نقداً في المحل").count() === 0, "no in-store for delivery");
 });
 
 await check("بيانات ناقصة: رسالة خطأ واضحة ولا يُنشأ طلب", async () => {
   const before = (await one("select count(*)::int n from public.orders")).n;
   await page.getByText("تحويل بنكي").click();
-  await page.getByText("بيانات الحساب البنكي").first().waitFor();
+  await page.getByText("التحويل مباشرة إلى الحساب البنكي").first().waitFor();
   await page.getByRole("button", { name: "إرسال الطلب" }).click();
   await page.getByRole("alert").filter({ hasText: /الاسم|الشروط|العنوان/ }).waitFor();
   assert((await one("select count(*)::int n from public.orders")).n === before, "no order created");

@@ -1,6 +1,6 @@
 // فلاتر قائمة الطلبات: من معاملات الرابط إلى معاملات admin_orders (تُستخدم في الصفحة والتصدير)
 export const ORDER_STATUSES = ["received", "awaiting_confirmation", "confirmed", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "cancelled"] as const;
-export const PAYMENTS = ["cash_on_delivery", "cash_in_store", "bank_transfer"] as const;
+export const PAYMENTS = ["cash_on_delivery", "cash_in_store", "bank_transfer", "e_wallet"] as const;
 const SORTS = ["created_at", "total", "order_number", "customer_name"];
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 

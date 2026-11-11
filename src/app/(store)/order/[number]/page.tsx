@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "طلبك", robots: { index: false, f
 const FLOW_DELIVERY = ["received", "confirmed", "preparing", "out_for_delivery", "delivered"];
 const FLOW_PICKUP = ["received", "confirmed", "preparing", "ready_for_pickup", "delivered"];
 const PAYMENT_LABEL: Record<string, string> = {
-  cash_on_delivery: "نقداً عند الاستلام", cash_in_store: "نقداً في المحل", bank_transfer: "تحويل بنكي",
+  cash_on_delivery: "الدفع عند الاستلام", cash_in_store: "نقداً في المحل", bank_transfer: "تحويل بنكي", e_wallet: "محفظة إلكترونية",
 };
 
 async function OrderView({ params, searchParams }: PageProps<"/order/[number]">) {
@@ -33,8 +33,10 @@ async function OrderView({ params, searchParams }: PageProps<"/order/[number]">)
   const flow = order.fulfillment === "delivery" ? FLOW_DELIVERY : FLOW_PICKUP;
   const reached = new Set(order.history.map((h) => (h.status === "awaiting_confirmation" ? "received" : h.status)));
   const wa = whatsappLink(settings.whatsapp_number,
-    `مرحباً، بخصوص طلبي رقم ${order.order_number}` + (order.payment_method === "bank_transfer" && order.payment_status === "awaiting_review"
-      ? `\nاخترت الدفع بالتحويل البنكي، أرجو إرسال بيانات الحساب. المبلغ: ${formatPrice(order.total)}` : ""));
+    `مرحباً، بخصوص طلبي رقم ${order.order_number}` + (order.payment_status === "awaiting_review"
+      ? order.payment_method === "bank_transfer" ? `\nاخترت الدفع بالتحويل البنكي، أرجو إرسال بيانات الحساب. المبلغ: ${formatPrice(order.total)}`
+      : order.payment_method === "e_wallet" ? `\nاخترت الدفع بالمحفظة الإلكترونية، أرجو إرسال رقم المحفظة. المبلغ: ${formatPrice(order.total)}` : ""
+      : ""));
 
   return (
     <div className="space-y-6">
@@ -65,6 +67,11 @@ async function OrderView({ params, searchParams }: PageProps<"/order/[number]">)
       {order.payment_method === "bank_transfer" && order.payment_status === "awaiting_review" && (
         <p className="rounded-[var(--radius-card)] bg-cream p-4 text-sm">
           اخترت الدفع بالتحويل البنكي: سنرسل لك بيانات الحساب عبر WhatsApp. لا يُعتمد الدفع إلا بعد مراجعة التحويل.
+        </p>
+      )}
+      {order.payment_method === "e_wallet" && order.payment_status === "awaiting_review" && (
+        <p className="rounded-[var(--radius-card)] bg-cream p-4 text-sm">
+          اخترت الدفع بالمحفظة الإلكترونية: سنرسل لك رقم المحفظة عبر WhatsApp. لا يُعتمد الدفع إلا بعد مراجعته.
         </p>
       )}
 

@@ -60,7 +60,7 @@ export const en: Dict = {
     received: "New", awaiting_confirmation: "Awaiting confirmation", confirmed: "Confirmed", preparing: "Preparing",
     ready_for_pickup: "Ready for pickup", out_for_delivery: "Out for delivery", delivered: "Completed", cancelled: "Cancelled",
   },
-  payment: { cash_on_delivery: "Cash on delivery", cash_in_store: "Cash in store", bank_transfer: "Bank transfer" },
+  payment: { cash_on_delivery: "Cash on delivery", cash_in_store: "Cash in store", bank_transfer: "Bank transfer", e_wallet: "E-wallet" },
   paymentStatus: { unpaid: "Unpaid", awaiting_review: "Transfer under review", paid: "Paid", rejected: "Transfer rejected", refunded: "Refunded" },
   fulfillment: { delivery: "Delivery", pickup: "Store pickup" },
   orders: {
@@ -90,6 +90,7 @@ export const en: Dict = {
     cancelReason: "Cancellation reason (required)", force: "Admin approval: preparation started, cancel and return stock",
     confirmCancel: "Confirm cancellation", cancelQ: "Cancel this order permanently?", done: "Done ✓",
     transfer: "Bank transfer awaiting review. Send the account details to the customer on WhatsApp and verify the transfer before approving.",
+    wallet: "E-wallet payment awaiting review. Send the wallet number to the customer on WhatsApp and confirm the money arrived before approving.",
     reference: "Transfer reference (optional)", note: "Note (optional)", approve: "Approve payment", approveQ: "Mark the transfer as paid?",
     reject: "Reject", rejectQ: "Reject the transfer?", created: "Order created",
     err: {
@@ -258,7 +259,7 @@ export const en: Dict = {
   set: {
     deliveryTitle: "Delivery & Payment", zones: "Delivery zones & fees", zonesHint: "Active zones appear to customers at checkout. Deactivate a zone to hide it without deleting it.",
     newZone: "New zone", zone: "Zone", fee: "Fee ₪", eta: "Delivery time", etaPh: "e.g. within a day", sort: "Order", active: "Active", add: "Add",
-    saved: "Saved ✓", payments: "Payment methods", paymentsHint: "Bank transfer: account details are sent to the customer on WhatsApp and never shown on the site.", enable: "Enable",
+    saved: "Saved ✓", payments: "Payment methods", paymentsHint: "Bank transfer and e-wallet: account details and the wallet number are sent to the customer on WhatsApp and never shown on the site.", enable: "Enable",
     branchesTitle: "Branches", integrationsTitle: "Integrations", marketingTitle: "Marketing & Policies",
     branchesHint: "This information appears on the “Our branches” page, the homepage and the footer. Stock is shared and recorded on the main branch.", viewBranches: "View branches page",
     mainBranch: "Main (stock & orders)", branchName: "Branch name", city: "City", address: "Address", addressPh: "e.g. Al-Baraka roundabout", phone: "Phone number",

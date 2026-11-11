@@ -63,7 +63,7 @@ async function OrderDetailContent({ params }: PageProps<"/admin/orders/[id]">) {
               <p className="text-sm">{t.od.reservationEnds}: <strong>{f.dateTime(o.reservation_expires_at)}</strong> — {t.od.autoCancel}</p>
             )}
             <StatusActions id={o.id} status={o.status} fulfillment={o.fulfillment} />
-            {o.payment_method === "bank_transfer" && ["awaiting_review", "rejected"].includes(o.payment_status) && o.status !== "cancelled" && <TransferReview id={o.id} />}
+            {(o.payment_method === "bank_transfer" || o.payment_method === "e_wallet") && ["awaiting_review", "rejected"].includes(o.payment_status) && o.status !== "cancelled" && <TransferReview id={o.id} wallet={o.payment_method === "e_wallet"} />}
           </div>
         </Card>
       )}

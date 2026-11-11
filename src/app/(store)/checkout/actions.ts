@@ -15,7 +15,7 @@ export type PlaceOrderInput = {
   delivery_zone_id?: string;
   address?: string;
   notes?: string;
-  payment_method: "cash_on_delivery" | "cash_in_store" | "bank_transfer";
+  payment_method: "cash_on_delivery" | "cash_in_store" | "bank_transfer" | "e_wallet";
   coupon_code?: string;
   terms_accepted: boolean;
   marketing_consent?: boolean;

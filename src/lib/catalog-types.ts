@@ -135,7 +135,7 @@ export function isPurchasable(a: Availability) {
 }
 
 export type DeliveryZone = { id: string; name: string; fee: number; eta_text: string | null };
-export type PaymentMethodCode = "cash_on_delivery" | "cash_in_store" | "bank_transfer";
+export type PaymentMethodCode = "cash_on_delivery" | "cash_in_store" | "bank_transfer" | "e_wallet";
 export type PaymentMethod = { code: PaymentMethodCode; name_ar: string; instructions: string | null };
 
 export type Quote = {

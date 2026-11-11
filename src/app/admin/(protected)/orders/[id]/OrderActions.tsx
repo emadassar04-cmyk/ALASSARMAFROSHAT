@@ -87,14 +87,14 @@ export function ProfitInput({ itemId, current, net, disabled }: { itemId: string
   );
 }
 
-export function TransferReview({ id }: { id: string }) {
+export function TransferReview({ id, wallet = false }: { id: string; wallet?: boolean }) {
   const { t } = useI18n();
   const { pending, result, run } = useAction();
   const [ref, setRef] = useState("");
   const [note, setNote] = useState("");
   return (
     <div className="space-y-2 rounded-[12px] border border-[#ecd9b8] bg-[#fffaf1] p-3">
-      <p className="text-sm font-medium text-[var(--a-warning)]">{t.od.transfer}</p>
+      <p className="text-sm font-medium text-[var(--a-warning)]">{wallet ? t.od.wallet : t.od.transfer}</p>
       <input value={ref} onChange={(e) => setRef(e.target.value)} placeholder={t.od.reference} aria-label={t.od.reference} className="a-input" />
       <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t.od.note} aria-label={t.od.note} className="a-input" />
       <div className="flex gap-2">

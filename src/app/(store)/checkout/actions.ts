@@ -1,6 +1,8 @@
 "use server";
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
+import { after } from "next/server";
+import { flushTelegram } from "@/lib/notify/telegram";
 import { updateTag } from "next/cache";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { canonicalPhone } from "@/lib/phone";
@@ -100,6 +102,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     return { ok: false, error: "تعذر إرسال الطلب. حاول مرة أخرى أو تواصل معنا عبر WhatsApp." };
   }
   updateTag("catalog"); // التوفر تغيّر بعد الحجز
+  after(() => flushTelegram()); // إشعار Telegram فوري بالطلب الجديد
   const r = data as { order_number: string; tracking_token: string; total: number; reservation_expires_at: string | null };
   return { ok: true, ...r };
 }

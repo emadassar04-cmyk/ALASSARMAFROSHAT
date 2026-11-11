@@ -6,9 +6,17 @@ import { getDict, fmt } from "@/lib/admin/i18n";
 import { Card, PageHeader } from "@/components/admin/ui";
 import { KeyGenerator } from "./KeyGenerator";
 import { AiTest } from "./AiTest";
+import { TelegramActions } from "./TelegramActions";
+import { telegramConfigured } from "@/lib/notify/telegram";
 import { allProviders } from "@/lib/ai/providers";
 
 export const instant = false;
+
+// الإشعارات المعلّقة خلال آخر يوم (التي سيرسلها الموقع)
+function countRecentPending(rows: { status: string; created_at?: string }[]) {
+  const since = Date.now() - 86_400_000;
+  return rows.filter((d) => ["pending", "failed"].includes(d.status) && new Date(d.created_at ?? 0).getTime() > since).length;
+}
 
 async function IntegrationsPageContent() {
   const staff = await requireStaff();
@@ -16,16 +24,25 @@ async function IntegrationsPageContent() {
   const supabase = await createClient();
   const [{ data: status }, { data: deliveries }] = await Promise.all([
     supabase.rpc("integration_key_status", { p_name: "n8n" }),
-    supabase.from("notification_deliveries").select("status").eq("channel", "telegram"),
+    supabase.from("notification_deliveries").select("status, created_at").eq("channel", "telegram"),
   ]);
   const s = status as { exists: boolean; created_at: string; last_used_at: string | null } | null;
   // للعرض فقط: هل المفتاح مضبوط؟ (لا تُمرَّر قيم المفاتيح لأي مكوّن)
   const providers = allProviders().map(({ id, label, envKey, model, key }) => ({ id, label, envKey, model, configured: !!key }));
+  const recentPending = countRecentPending(deliveries ?? []);
   const count = (st: string) => (deliveries ?? []).filter((d) => d.status === st).length;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title={S.integrationsTitle} />
+      <Card title={S.tgTitle}>
+        <div className="space-y-4">
+          <p className="text-sm leading-6 text-[var(--a-muted-ink)]">{S.tgHint}</p>
+          <p className={`text-sm font-medium ${telegramConfigured() ? "text-[var(--a-success)]" : "text-[var(--a-warning)]"}`}>{telegramConfigured() ? S.tgOn : S.tgOff}</p>
+          <p className="text-sm">{S.tgPending}: <span className="tabular-nums">{f.number(recentPending)}</span></p>
+          {telegramConfigured() && <TelegramActions />}
+        </div>
+      </Card>
       {/* مساعد العصار: حالة المفاتيح فقط (مضبوط/غير مضبوط) — القيم لا تُقرأ ولا تُعرض إطلاقاً */}
       <Card title={S.aiTitle}>
         <div className="space-y-4">

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { after } from "next/server";
+import { flushTelegram } from "@/lib/notify/telegram";
 import { requireStaff } from "@/lib/staff";
 import { createClient } from "@/lib/supabase/server";
 import { getDict } from "@/lib/admin/i18n";
@@ -17,6 +19,8 @@ export const metadata: Metadata = { title: "لوحة الإدارة", robots: { 
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const staff = await requireStaff();
+  // بعد الدخول وفي أثناء استخدام اللوحة: إرسال إشعارات Telegram المعلّقة (مرة كل 15 ثانية كحد أقصى لكل خادم)
+  after(() => flushTelegram());
   const t = getDict(staff.locale);
   const supabase = await createClient();
   const [{ data: notices }, jar] = await Promise.all([supabase.rpc("admin_notifications"), cookies()]);

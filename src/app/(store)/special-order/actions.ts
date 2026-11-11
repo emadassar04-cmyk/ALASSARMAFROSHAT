@@ -1,6 +1,8 @@
 "use server";
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
+import { after } from "next/server";
+import { flushTelegram } from "@/lib/notify/telegram";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { canonicalPhone } from "@/lib/phone";
 import { emptyDraft, validateCustomer, validateSpecs, type Draft, type ProductType } from "@/lib/custom-order/spec";
@@ -63,5 +65,6 @@ export async function submitCustomOrder(input: SubmitInput): Promise<{ ok: true;
     console.error("submit_custom_order", error.message);
     return { ok: false, error: "تعذر حفظ الطلب. حاول مرة أخرى أو تواصل معنا عبر WhatsApp." };
   }
+  after(() => flushTelegram()); // إشعار Telegram فوري للإدارة (بعد إرسال الرد للزبون)
   return { ok: true, number: (data as { number: string }).number };
 }

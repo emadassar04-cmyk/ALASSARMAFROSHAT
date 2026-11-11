@@ -41,6 +41,11 @@ await check("الانتقال التلقائي للمزود التالي عند 
   assert(r.text.includes("/product/"), "grounded answer");
 });
 
+await check("اختيار نموذج متاح تلقائياً عندما يرفض المزود النموذج الافتراضي (مثل ما حصل مع Groq)", async () => {
+  const used = await (await fetch("http://localhost:54400/v1/last-model")).text();
+  assert(used === "openai/gpt-oss-120b", `auto-picked model: ${used}`);
+});
+
 await check("رفض الطلبات من موقع آخر ورسائل غير صالحة", async () => {
   const cross = await fetch(BASE + "/api/chat", { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://evil.example" }, body: JSON.stringify({ messages: [{ role: "user", content: "hi" }] }) });
   assert(cross.status === 403, `cross-origin ${cross.status}`);

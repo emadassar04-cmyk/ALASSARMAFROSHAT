@@ -17,7 +17,7 @@ export function AiTest({ id }: { id: ProviderId }) {
       </button>
       {r && (
         <span role="status" className={`text-xs ${r.ok ? "text-[var(--a-success)]" : "text-[var(--a-danger-ink)]"}`}>
-          {r.ok ? `${t.set.aiOk} · ${f.number("ms" in r ? r.ms ?? 0 : 0)}ms${"models" in r && r.models ? ` · ${f.number(r.models)} ${t.set.aiModels}` : ""}` : `${t.set.aiFail}: ${r.error ?? ""}`}
+          {r.ok ? `${t.set.aiOk} · ${"model" in r ? r.model : ""} · ${f.number("ms" in r ? r.ms ?? 0 : 0)}ms${"models" in r && r.models ? ` · ${f.number(r.models)} ${t.set.aiModels}` : ""}` : `${t.set.aiFail}: ${r.error ?? ""}`}
         </span>
       )}
     </div>

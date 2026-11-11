@@ -21,12 +21,30 @@ const PROVIDERS: Provider[] = [
 
 const env = (k: string) => process.env[k]?.trim() || undefined;
 
+// أسماء النماذج تتغير مع الوقت (يُوقف المزود نموذجاً قديماً). إن رفض المزود النموذج الافتراضي،
+// نسأله عن نماذجه المتاحة ونختار نموذج محادثة مناسباً تلقائياً، ونحفظ الاختيار في ذاكرة الخادم.
+const autoModel = new Map<ProviderId, string>();
+const NOT_CHAT = /whisper|tts|guard|embed|audio|speech|transcri|moderation|imagen|image|vision|playai|orpheus|dall-e|veo|aqa|realtime|search|computer|safeguard|prompt-guard|distil/i;
+const PREFER = [/gpt-oss-120b/i, /llama-3\.3-70b/i, /llama-4-maverick/i, /llama-4/i, /kimi/i, /qwen/i, /gpt-oss/i, /70b/i, /flash/i, /mini/i, /llama/i];
+
+function pickModel(ids: string[]) {
+  const chat = ids.filter((id) => !NOT_CHAT.test(id));
+  for (const re of PREFER) { const m = chat.find((id) => re.test(id)); if (m) return m; }
+  return chat[0];
+}
+
+const modelMissing = (status: number, body: string) =>
+  (status === 404 || status === 400) && /model/i.test(body) && /not exist|not found|does not exist|decommission|deprecat|unknown|invalid|no access|not supported|not available/i.test(body);
+
 function resolved(p: Provider) {
   const id = p.id.toUpperCase();
+  const fixed = env(`AI_MODEL_${id}`);
   return {
     ...p,
     key: env(p.envKey),
-    model: env(`AI_MODEL_${id}`) ?? p.defaultModel,
+    // النموذج: المحدد يدوياً في Vercel، وإلا الذي اختير تلقائياً سابقاً، وإلا الافتراضي
+    model: fixed ?? autoModel.get(p.id) ?? p.defaultModel,
+    fixedModel: !!fixed,
     // للاختبار المحلي فقط (خادم وهمي)؛ في الإنتاج يبقى العنوان الرسمي
     baseURL: env(`AI_BASE_URL_${id}`) ?? p.baseURL,
   };
@@ -49,7 +67,30 @@ export function chatEnabled() {
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
-function request(p: ReturnType<typeof resolved>, messages: ChatMessage[], opts: { stream: boolean; maxTokens: number; signal?: AbortSignal; siteUrl?: string }) {
+type Resolved = ReturnType<typeof resolved>;
+
+async function listModels(p: Resolved): Promise<string[]> {
+  try {
+    const r = await fetch(`${p.baseURL}/models`, { headers: { Authorization: `Bearer ${p.key}` }, signal: AbortSignal.timeout(10_000) });
+    if (!r.ok) return [];
+    return (((await r.json())?.data ?? []) as { id?: string }[]).map((m) => String(m.id ?? "").replace(/^models\//, "")).filter(Boolean);
+  } catch { return []; }
+}
+
+// طلب مع إصلاح ذاتي: إن رُفض النموذج (ولم يُحدَّد يدوياً) نختار نموذجاً متاحاً ونعيد المحاولة مرة واحدة
+async function send(p: Resolved, messages: ChatMessage[], opts: { stream: boolean; maxTokens: number; timeout: number; siteUrl?: string }) {
+  const first = await request(p, p.model, messages, { ...opts, signal: AbortSignal.timeout(opts.timeout) });
+  if (first.ok || p.fixedModel) return { res: first, model: p.model };
+  const body = await first.text().catch(() => "");
+  if (!modelMissing(first.status, body)) return { res: first, model: p.model, body };
+  const next = pickModel(await listModels(p));
+  if (!next || next === p.model) return { res: first, model: p.model, body };
+  autoModel.set(p.id, next);
+  const retry = await request(p, next, messages, { ...opts, signal: AbortSignal.timeout(opts.timeout) });
+  return { res: retry, model: next };
+}
+
+function request(p: Resolved, model: string, messages: ChatMessage[], opts: { stream: boolean; maxTokens: number; signal?: AbortSignal; siteUrl?: string }) {
   return fetch(`${p.baseURL}/chat/completions`, {
     method: "POST",
     signal: opts.signal,
@@ -58,7 +99,7 @@ function request(p: ReturnType<typeof resolved>, messages: ChatMessage[], opts: 
       Authorization: `Bearer ${p.key}`,
       ...(p.id === "openrouter" && { "HTTP-Referer": opts.siteUrl ?? "https://alassarnumber1.vercel.app", "X-Title": "Al Assar Furniture" }),
     },
-    body: JSON.stringify({ model: p.model, messages, stream: opts.stream, max_tokens: opts.maxTokens, temperature: 0.3 }),
+    body: JSON.stringify({ model, messages, stream: opts.stream, max_tokens: opts.maxTokens, temperature: 0.3 }),
   });
 }
 
@@ -103,8 +144,8 @@ export async function streamChat(messages: ChatMessage[], opts: { maxTokens?: nu
   const errors: string[] = [];
   for (const p of activeProviders()) {
     try {
-      const res = await request(p, messages, { stream: true, maxTokens: opts.maxTokens ?? 500, signal: AbortSignal.timeout(30_000), siteUrl: opts.siteUrl });
-      if (!res.ok || !res.body) { errors.push(`${p.id}: ${safeError(res.status, await res.text().catch(() => ""), p.key)}`); continue; }
+      const { res, body } = await send(p, messages, { stream: true, maxTokens: opts.maxTokens ?? 500, timeout: 30_000, siteUrl: opts.siteUrl });
+      if (!res.ok || !res.body) { errors.push(`${p.id}: ${safeError(res.status, body ?? await res.text().catch(() => ""), p.key)}`); continue; }
       const it = deltas(res);
       const first = await it.next();
       if (first.done) { errors.push(`${p.id}: empty`); continue; }
@@ -126,23 +167,22 @@ export async function streamChat(messages: ChatMessage[], opts: { maxTokens?: nu
   return { ok: false as const, errors };
 }
 
-// اختبار مزود واحد من لوحة الإدارة: طلب صغير جداً + عدد النماذج المتاحة بالمفتاح
+// اختبار مزود واحد من لوحة الإدارة: طلب صغير جداً (مع الاختيار التلقائي للنموذج) + عدد النماذج المتاحة بالمفتاح
 export async function testProvider(id: ProviderId) {
   const p = allProviders().find((x) => x.id === id);
   if (!p) return { ok: false, error: "unknown" };
   if (!p.key) return { ok: false, error: "no_key" };
   const t0 = Date.now();
   try {
-    const res = await request(p, [{ role: "user", content: "Reply with the single word: OK" }], { stream: false, maxTokens: 5, signal: AbortSignal.timeout(20_000) });
-    const body = await res.text();
+    const { res, model, body } = await send(p, [{ role: "user", content: "Reply with the single word: OK" }], { stream: false, maxTokens: 5, timeout: 20_000 });
+    const text = body ?? await res.text();
     const ms = Date.now() - t0;
-    if (!res.ok) return { ok: false, ms, model: p.model, error: safeError(res.status, body, p.key) };
-    let models: number | null = null;
-    try {
-      const m = await fetch(`${p.baseURL}/models`, { headers: { Authorization: `Bearer ${p.key}` }, signal: AbortSignal.timeout(10_000) });
-      if (m.ok) models = ((await m.json())?.data ?? []).length;
-    } catch { /* اختياري */ }
-    return { ok: true, ms, model: p.model, models };
+    const ids = await listModels(p);
+    if (!res.ok) {
+      const chat = ids.filter((m) => !NOT_CHAT.test(m)).slice(0, 6);
+      return { ok: false, ms, model, error: safeError(res.status, text, p.key) + (chat.length ? ` — المتاح: ${chat.join("، ")}` : "") };
+    }
+    return { ok: true, ms, model, models: ids.length || null };
   } catch (e) {
     return { ok: false, ms: Date.now() - t0, model: p.model, error: e instanceof Error ? e.name : "error" };
   }

@@ -64,6 +64,17 @@ await check("6) تغيير اللون يغيّر المجسم فعلاً (مقا
   assert(await page.getByText("المختار: كحلي").isVisible(), "selected color text");
 });
 
+await check("خيارات القماش من الإدارة: قماش بصورة حقيقية يظهر بصورته ويُطبَّق على المجسم", async () => {
+  const opt = page.locator("label", { hasText: "مخمل بصورة (تجربة)" });
+  assert(await opt.locator("img").count() === 1, "fabric photo thumbnail");
+  const shot = () => page.evaluate(() => document.querySelector("[data-preview-mode] canvas")?.toDataURL("image/jpeg", 0.5));
+  const before = await shot();
+  await opt.click();
+  await page.waitForTimeout(1200);
+  assert(before !== await shot(), "texture applied to model");
+  await page.getByTitle("كحلي", { exact: true }).click();
+});
+
 await check("12) لا تضيع البيانات عند الرجوع بين الخطوات أو تحديث الصفحة", async () => {
   await page.getByRole("button", { name: "السابق" }).first().click();
   assert(await page.getByLabel("عرض الشباك").nth(1).inputValue() === "3.25", "kept after back");
@@ -169,6 +180,13 @@ await check("11) فشل المعاينة ثلاثية الأبعاد (بلا Web
   await p.getByText("تعذرت المعاينة ثلاثية الأبعاد").waitFor({ timeout: 10000 });
   assert(await p.locator("[data-preview-mode='2d'] svg[role=img]").isVisible(), "2d fallback shown");
   assert(await p.getByRole("heading", { name: "أدخل المقاسات" }).isVisible(), "form still works");
+  // إكمال الطلب في وضع 2D: صورة المعاينة تُلتقط من المخطط
+  await p.getByLabel("طول الفرشة").fill("200"); await p.getByLabel("ارتفاع الفرشة").fill("25");
+  for (const l of ["الخامة واللون", "المعاينة", "بياناتك"]) await p.getByRole("button", { name: new RegExp(`^التالي: ${l}`) }).click();
+  await p.getByLabel("الاسم").fill("عميل 2D"); await p.getByLabel("رقم الجوال").fill("0599333444"); await p.getByLabel("المدينة أو المنطقة").fill("غزة");
+  await p.getByRole("button", { name: /^التالي: مراجعة وإرسال/ }).click();
+  await p.getByAltText("صورة المعاينة").waitFor({ timeout: 5000 });
+  assert((await p.getByAltText("صورة المعاينة").getAttribute("src")).startsWith("data:image/jpeg"), "2d preview captured as jpeg");
   assert(errs.length === 0, errs.join(" | "));
   await b2.close();
 });

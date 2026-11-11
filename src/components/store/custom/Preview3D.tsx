@@ -10,7 +10,7 @@ import type { PreviewModel } from "./preview-model";
 // المجسم يُبنى من المقاسات الفعلية (بالمتر داخل المشهد)، وأسهم القياس تعرض القيم كما أدخلها العميل بوحدتها.
 // إن فشل WebGL أو التحميل ⇒ onError فيعرض المكوّن الأب البديل ثنائي الأبعاد.
 
-export type PreviewHandle = { capture: () => string | null; zoom: (f: number) => void; reset: () => void };
+export type PreviewHandle = { capture: () => string | null | Promise<string | null>; zoom: (f: number) => void; reset: () => void };
 
 const IVORY = 0xf3efe6, WALL = 0xf6f3ec, FLOOR = 0xe7e0d2, FRAME = 0xfbfaf6;
 const DIM = { w: "#8a6b2e", l: "#3f5871", h: "#a4483a" };
@@ -53,6 +53,19 @@ function fabricMaterial(hex: string, fabric: string, opacity = 1) {
     sheenColor: new THREE.Color(hex).offsetHSL(0, 0, 0.15), sheenRoughness: 0.6,
     transparent: opacity < 1, opacity,
   });
+}
+
+// صورة القماش الحقيقية (من الإدارة) كنسيج متكرر بمقياس واقعي؛ إن فشل التحميل يبقى اللون
+const loader = new THREE.TextureLoader().setCrossOrigin("anonymous");
+const texCache = new Map<string, Promise<THREE.Texture>>();
+function applyTexture(mat: THREE.MeshStandardMaterial, url: string | null, rx: number, ry: number) {
+  if (!url) return;
+  let p = texCache.get(url);
+  if (!p) { p = loader.loadAsync(url).then((t) => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; }); texCache.set(url, p); }
+  p.then((base) => {
+    const t = base.clone(); t.repeat.set(Math.max(1, rx), Math.max(1, ry)); t.needsUpdate = true;
+    mat.map = t; mat.color.set(0xffffff); mat.needsUpdate = true;
+  }).catch(() => { texCache.delete(url); });
 }
 
 // نسيج خياطة (معيّنات) لوجه الفرشة المبطّن أو بطانة المربعات
@@ -101,7 +114,9 @@ function build(m: PreviewModel): { group: THREE.Group; size: THREE.Vector3; targ
       const pos = geo.attributes.position;
       for (let i = 0; i < pos.count; i++) pos.setZ(i, Math.sin((pos.getX(i) / panelW) * Math.PI * 14) * 0.03);
       geo.computeVertexNormals();
-      const p = new THREE.Mesh(geo, fabricMaterial(m.color, m.fabric, opacity));
+      const mat = fabricMaterial(m.color, m.fabric, opacity);
+      applyTexture(mat, m.texture, panelW / 0.45, panelH / 0.45);
+      const p = new THREE.Mesh(geo, mat);
       p.position.set(s * (rodW / 2 - panelW / 2), rodY - panelH / 2, 0.2); p.castShadow = true; g.add(p);
     }
     const ext = new THREE.Vector3(0, 0.05, 0);
@@ -128,7 +143,8 @@ function build(m: PreviewModel): { group: THREE.Group; size: THREE.Vector3; targ
     }
     geo.computeVertexNormals();
     const mat = fabricMaterial(m.color, m.fabric);
-    if (m.design === "panels") { const tx = stitchTexture(m.color, "grid"); tx.repeat.set(W / 0.6, L / 0.6); mat.map = tx; }
+    if (m.texture) applyTexture(mat, m.texture, W / 0.6, L / 0.6);
+    else if (m.design === "panels") { const tx = stitchTexture(m.color, "grid"); tx.repeat.set(W / 0.6, L / 0.6); mat.map = tx; }
     const lining = new THREE.Mesh(geo, mat);
     lining.rotation.x = Math.PI / 2; lining.position.y = R - 0.01; g.add(lining);
     const lamp = new THREE.PointLight(0xfff3df, 1.2, 0, 0); lamp.position.set(0, R * 0.45, 0); g.add(lamp);
@@ -146,7 +162,8 @@ function build(m: PreviewModel): { group: THREE.Group; size: THREE.Vector3; targ
   const radius = Math.min(H * 0.3, 0.05, W * 0.1);
   const geo = new RoundedBoxGeometry(W, H, L, 4, radius);
   const mat = fabricMaterial(m.color, m.fabric);
-  if (m.kind === "mattress" && m.cover === "quilted") { const tx = stitchTexture(m.color, "diamond"); tx.repeat.set(W / 0.25, L / 0.25); mat.map = tx; }
+  if (m.texture) applyTexture(mat, m.texture, W / 0.3, L / 0.3);
+  else if (m.kind === "mattress" && m.cover === "quilted") { const tx = stitchTexture(m.color, "diamond"); tx.repeat.set(W / 0.25, L / 0.25); mat.map = tx; }
   const body = new THREE.Mesh(geo, mat);
   body.position.y = H / 2; body.castShadow = true; g.add(body);
   if (m.kind === "mattress") {

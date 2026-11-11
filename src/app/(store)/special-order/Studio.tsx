@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransiti
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, ImagePlus, Plus, Trash2, View } from "lucide-react";
 import {
-  BLACKOUT, CEILING_DESIGNS, CURTAIN_STYLES, FABRICS, MATTRESS_COVERS, TYPES, UNIT_LABEL,
+  BLACKOUT, CEILING_DESIGNS, COLORS, CURTAIN_STYLES, FABRICS, MATTRESS_COVERS, TYPES, UNIT_LABEL,
   emptyDraft, emptyWindow, specLines, validateCustomer, validateSpecs, type Draft, type Errors, type ProductType,
 } from "@/lib/custom-order/spec";
 import { canonicalPhone } from "@/lib/phone";
@@ -12,7 +12,8 @@ import { WhatsAppIcon } from "@/components/store/WhatsAppIcon";
 import { PreviewPanel } from "@/components/store/custom/PreviewPanel";
 import { toPreviewModel } from "@/components/store/custom/preview-model";
 import type { PreviewHandle } from "@/components/store/custom/Preview3D";
-import { Choice, MeasureGuide, NumField, Swatches, TextField, downscaleImage } from "./parts";
+import { Choice, FabricChoice, MeasureGuide, NumField, Swatches, TextField, downscaleImage } from "./parts";
+import type { CustomOptions } from "@/lib/catalog";
 import { submitCustomOrder } from "./actions";
 
 // استوديو التفصيل: ست خطوات، والبيانات محفوظة في جلسة المتصفح (sessionStorage) فلا تضيع عند الرجوع أو التحديث.
@@ -41,7 +42,10 @@ function load(type?: ProductType): Saved {
   return s;
 }
 
-export function Studio({ whatsapp, initialType, productHint }: { whatsapp: string | null; initialType?: ProductType; productHint?: string }) {
+export function Studio({ whatsapp, initialType, productHint, options }: { whatsapp: string | null; initialType?: ProductType; productHint?: string; options?: CustomOptions }) {
+  // خيارات المحل من الإدارة؛ وإن لم تتوفر نستخدم القوائم الافتراضية
+  const colors = options?.colors.length ? options.colors : COLORS;
+  const fabricsFor = (t: ProductType) => options?.fabrics[t]?.length ? options.fabrics[t] : FABRICS[t].filter((f) => !f.startsWith("غير متأكد")).map((name) => ({ name, texture: null }));
   const [state, setState] = useState<Saved>(() => {
     const s = load(initialType);
     if (productHint && !s.draft.customer.notes) s.draft.customer.notes = `بخصوص المنتج: ${productHint}`;
@@ -62,7 +66,10 @@ export function Studio({ whatsapp, initialType, productHint }: { whatsapp: strin
 
   useEffect(() => { try { sessionStorage.setItem(KEY, JSON.stringify(state)); } catch { /* التخزين ممتلئ أو معطل */ } }, [state]);
 
-  const model = useMemo(() => toPreviewModel(draft, activeWindow), [draft, activeWindow]);
+  const model = useMemo(() => toPreviewModel(draft, activeWindow, {
+    hex: (name) => colors.find((c) => c.name === name)?.hex ?? "#d9c7a7",
+    texture: (t, f) => (options?.fabrics[t] ?? []).find((x) => x.name === f)?.texture ?? null,
+  }), [draft, activeWindow, colors, options]);
   const set = (fn: (d: Draft) => Draft) => setState((s) => ({ ...s, draft: fn(structuredClone(s.draft)) }));
   const go = (n: number, keep: Errors = {}) => {
     setErrors(keep);
@@ -76,7 +83,7 @@ export function Studio({ whatsapp, initialType, productHint }: { whatsapp: strin
       const { errors: e } = validateSpecs(draft);
       if (Object.keys(e).length) return go(1, e); // نبقى/نعود لخطوة المقاسات مع إظهار الأخطاء
     }
-    if (step === 3) setPreviewShot(handle.current?.capture() ?? null);
+    if (step === 3) Promise.resolve(handle.current?.capture() ?? null).then(setPreviewShot).catch(() => setPreviewShot(null));
     if (step === 4) {
       const { errors: e } = validateCustomer(draft.customer, canonicalPhone);
       if (Object.keys(e).length) return setErrors(e);
@@ -273,9 +280,8 @@ export function Studio({ whatsapp, initialType, productHint }: { whatsapp: strin
           {step === 2 && draft.type && (
             <div className="space-y-7">
               <div><p className="kicker">{typeTitle}</p><h2 className="mt-3 text-[1.5rem] font-light">اختر الخامة واللون</h2></div>
-              <Choice label="نوع القماش" value={draft[draft.type].fabric} options={FABRICS[draft.type].map((f) => ({ id: f, label: f }))}
-                onChange={(v) => set((d) => { d[d.type!].fabric = v; return d; })} />
-              <Swatches value={draft[draft.type].color} onChange={(v) => set((d) => { d[d.type!].color = v; return d; })} />
+              <FabricChoice value={draft[draft.type].fabric} options={fabricsFor(draft.type)} onChange={(v) => set((d) => { d[d.type!].fabric = v; return d; })} />
+              <Swatches colors={colors} value={draft[draft.type].color} onChange={(v) => set((d) => { d[d.type!].color = v; return d; })} />
               {draft.type === "curtains" && <>
                 <Choice label="درجة التعتيم" value={draft.curtains.blackout} options={BLACKOUT.map((b) => ({ id: b.id, label: b.label }))} onChange={(v) => set((d) => { d.curtains.blackout = v; return d; })} />
                 <Choice label="نوع التصميم" value={draft.curtains.style} options={CURTAIN_STYLES.map((s) => ({ id: s, label: s }))} onChange={(v) => set((d) => { d.curtains.style = v; return d; })} />

@@ -19,6 +19,7 @@ export const NAV: { href: string; key: Key; icon: NavIcon; group: Group; perm?: 
   { href: "/admin/categories", key: "categories", icon: "categories", group: "catalog", perm: "catalog.manage" },
   { href: "/admin/inventory", key: "inventory", icon: "inventory", group: "catalog", perm: "inventory.manage" },
   { href: "/admin/coupons", key: "coupons", icon: "coupons", group: "catalog", perm: "catalog.manage" },
+  { href: "/admin/settings/custom-options", key: "customOptions", icon: "custom", group: "catalog", perm: "catalog.manage" },
   { href: "/admin/expenses", key: "expenses", icon: "expenses", group: "finance", perm: "finance.manage" },
   { href: "/admin/profits", key: "profits", icon: "profits", group: "finance", perm: "finance.read" },
   { href: "/admin/reports", key: "reports", icon: "reports", group: "finance", perm: "finance.read" },

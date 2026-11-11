@@ -19,6 +19,8 @@ const TABLES = {
   store_settings: "select store_name, whatsapp_number, contact_phone, is_published, maintenance_mode, site_url, ga_measurement_id, meta_pixel_id, google_site_verification from public.store_settings",
   delivery_zones: "select id, name, fee, eta_text, sort_order from public.delivery_zones where is_active order by sort_order, name",
   payment_methods: "select code, name_ar, instructions, sort_order from public.payment_methods where is_enabled order by sort_order",
+  custom_fabrics: "select product_type, name, texture_url from public.custom_fabrics where is_active order by sort_order, name",
+  custom_colors: "select name, hex from public.custom_colors where is_active order by sort_order, name",
 };
 
 async function asRole(role, sql, params) {

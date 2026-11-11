@@ -16,7 +16,7 @@ export const en: Dict = {
   nav: {
     groups: { overview: "Overview", sales: "Sales", catalog: "Catalog", finance: "Finance", marketing: "Marketing", admin: "Administration" },
     dashboard: "Dashboard", orders: "Orders", customOrders: "Custom orders", recordSale: "Record sale", purchases: "Branch sales", customers: "Customers",
-    products: "Products", categories: "Categories", inventory: "Inventory", coupons: "Coupons & Discounts",
+    products: "Products", categories: "Categories", inventory: "Inventory", coupons: "Coupons & Discounts", customOptions: "Custom-order options",
     expenses: "Expenses", profits: "Profits", reports: "Reports", campaigns: "Shop & Win campaign", marketing: "Marketing & Policies",
     staff: "Employees & Permissions", activity: "Activity Logs", delivery: "Delivery & Payment", branches: "Branches",
     integrations: "Integrations", settings: "Settings",
@@ -216,6 +216,14 @@ export const en: Dict = {
     history: "Update history", created: "Order received", statusTo: "Status →", priceSet: "Final price:", priceCleared: "Price cleared", by: "by", system: "Website",
     readOnly: "Read only: you need the manage-orders permission to edit.", whatsapp: "Message customer on WhatsApp", back: "All custom orders", unit: "Unit",
     windows: "Windows", w: "W", h: "H", l: "L", count: "Qty", panels: "Panels",
+  },
+  cop: {
+    title: "Custom-order options", subtitle: "Fabrics and colors customers choose from on the “Design it to your size” page. Fabric photos appear in the 3D preview.",
+    fabrics: "Fabrics", colors: "Colors", name: "Name", photo: "Fabric photo", sort: "Order", active: "Active", hex: "Color",
+    add: "Add", addFabric: "Add fabric", addColor: "Add color", remove: "Delete", removePhoto: "Remove photo", upload: "Upload photo", uploading: "Uploading…",
+    saved: "Saved ✓", confirmDelete: "Delete this option? Past orders are not affected.", photoHint: "A close-up of the fabric surface (JPG/PNG/WebP up to 5MB). It tiles on the model at a realistic scale.",
+    tooBig: "Image is larger than 5MB.", none: "No options yet.", note: "“Not sure — suggest one” is always shown to customers automatically.",
+    types: { curtains: "Curtains", ceiling: "Ceiling lining", mattress: "Mattress cover", other: "Other" },
   },
   pur: {
     title: "Branch sales & purchases", subtitle: "Online orders and branch sales in one log. Branch sales are approved by management.",

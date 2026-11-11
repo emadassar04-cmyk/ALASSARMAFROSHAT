@@ -60,3 +60,7 @@ insert into public.campaigns (slug, title, prize, terms, start_at, end_at, statu
 values ('test-campaign', 'تسوّق واربح مع العصار', 'جائزة تجريبية لبيئة الاختبار',
         E'- كل شراء مؤهل خلال فترة الحملة يمنح مشاركة واحدة في السحب.\n- المشتريات الملغاة لا تُحتسب.',
         now() - interval '1 day', now() + interval '10 days', 'published');
+
+-- خيار قماش بصورة (لاختبار نسيج المعاينة ثلاثية الأبعاد محلياً فقط)
+insert into public.custom_fabrics (product_type, name, texture_url, sort_order)
+values ('curtains', 'مخمل بصورة (تجربة)', '/images/categories/curtains.webp', 0);

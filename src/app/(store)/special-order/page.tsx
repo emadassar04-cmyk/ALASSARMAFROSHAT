@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowLeft, Ruler, ShieldCheck, Sparkles } from "lucide-react";
-import { getStoreSettings } from "@/lib/catalog";
+import { getCustomOptions, getStoreSettings } from "@/lib/catalog";
 import { TYPES, type ProductType } from "@/lib/custom-order/spec";
 import { Breadcrumbs } from "@/components/store/Breadcrumbs";
 import { StudioLoader } from "./StudioLoader";
@@ -23,9 +23,9 @@ const CARD_IMAGES: Record<ProductType, string> = {
 };
 
 async function StudioSection({ searchParams }: { searchParams: PageProps<"/special-order">["searchParams"] }) {
-  const [{ type, product }, s] = await Promise.all([searchParams, getStoreSettings()]);
+  const [{ type, product }, s, options] = await Promise.all([searchParams, getStoreSettings(), getCustomOptions().catch(() => undefined)]);
   const t = TYPES.find((x) => x.id === type)?.id;
-  return <StudioLoader whatsapp={s.whatsapp_number} initialType={t} productHint={typeof product === "string" ? decodeURIComponent(product).slice(0, 80) : undefined} />;
+  return <StudioLoader whatsapp={s.whatsapp_number} initialType={t} productHint={typeof product === "string" ? decodeURIComponent(product).slice(0, 80) : undefined} options={options} />;
 }
 
 export default function SpecialOrderPage({ searchParams }: PageProps<"/special-order">) {

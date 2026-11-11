@@ -131,3 +131,24 @@ export async function trackOrder(orderNumber: string, token: string): Promise<Tr
   const { data } = await publicClient().rpc("track_order", { p_order_number: orderNumber, p_token: token });
   return (data as TrackedOrder | null) ?? null;
 }
+
+// خيارات استوديو التفصيل (الأقمشة بصورها والألوان) كما تديرها الإدارة — المفعّل فقط (RLS)
+export type CustomOptions = {
+  fabrics: Record<"curtains" | "ceiling" | "mattress" | "other", { name: string; texture: string | null }[]>;
+  colors: { name: string; hex: string }[];
+};
+export async function getCustomOptions(): Promise<CustomOptions> {
+  "use cache";
+  cacheTag("custom-options");
+  cacheLife("hours");
+  const db = publicClient();
+  const [f, c] = await Promise.all([
+    db.from("custom_fabrics").select("product_type, name, texture_url").order("sort_order").order("name"),
+    db.from("custom_colors").select("name, hex").order("sort_order").order("name"),
+  ]);
+  const fabrics: CustomOptions["fabrics"] = { curtains: [], ceiling: [], mattress: [], other: [] };
+  for (const r of (f.data ?? []) as { product_type: keyof CustomOptions["fabrics"]; name: string; texture_url: string | null }[]) {
+    fabrics[r.product_type]?.push({ name: r.name, texture: r.texture_url });
+  }
+  return { fabrics, colors: (c.data ?? []) as { name: string; hex: string }[] };
+}

@@ -264,6 +264,29 @@ try {
     ok(await page.getByText("عرض فقط").first().isVisible() && !(await page.getByRole("button", { name: "حفظ التحديث" }).count()), "المشاهد يرى طلبات التفصيل دون تعديل");
     await ctx.close();
   }
+  // خيارات التفصيل (الأقمشة والألوان): إضافة وتعطيل، والمشاهد ممنوع
+  {
+    const { ctx, page, errors } = await as("owner");
+    await go(page, "/admin/settings/custom-options");
+    ok(await page.getByRole("heading", { name: "خيارات التفصيل" }).isVisible(), "صفحة خيارات التفصيل");
+    ok(await page.getByRole("textbox", { name: "الاسم" }).count() >= 26, "الأقمشة والألوان الأولية ظاهرة");
+    await page.getByRole("textbox", { name: "إضافة قماش — الستائر" }).fill("ساتان المحل");
+    await page.getByRole("button", { name: "إضافة قماش" }).first().click();
+    await page.getByText("تم الحفظ ✓").waitFor({ timeout: 10000 });
+    await page.waitForFunction(() => [...document.querySelectorAll("input")].some((i) => i.value === "ساتان المحل"), null, { timeout: 10000 });
+    await page.getByRole("textbox", { name: "إضافة لون" }).fill("ذهبي");
+    await page.getByRole("button", { name: "إضافة لون" }).click();
+    await page.waitForFunction(() => [...document.querySelectorAll("input")].some((i) => i.value === "ذهبي"), null, { timeout: 10000 });
+    ok(true, "إضافة قماش ولون من الإدارة");
+    ok(errors.length === 0, `بلا أخطاء في صفحة خيارات التفصيل ${errors.join(" | ")}`);
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await as("viewer");
+    await go(page, "/admin/settings/custom-options");
+    ok(!page.url().includes("custom-options"), "المشاهد لا يدخل صفحة خيارات التفصيل");
+    await ctx.close();
+  }
 } catch (e) {
   failed++;
   console.log("FAIL: exception", e.message);

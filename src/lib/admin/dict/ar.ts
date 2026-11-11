@@ -14,7 +14,7 @@ export const ar = {
   nav: {
     groups: { overview: "نظرة عامة", sales: "المبيعات", catalog: "الكتالوج", finance: "المالية", marketing: "التسويق", admin: "الإدارة" },
     dashboard: "لوحة المعلومات", orders: "الطلبات", customOrders: "طلبات التفصيل", recordSale: "تسجيل بيع", purchases: "مبيعات الفروع", customers: "العملاء",
-    products: "المنتجات", categories: "التصنيفات", inventory: "المخزون والجرد", coupons: "الكوبونات والخصومات",
+    products: "المنتجات", categories: "التصنيفات", inventory: "المخزون والجرد", coupons: "الكوبونات والخصومات", customOptions: "خيارات التفصيل",
     expenses: "المصروفات", profits: "الأرباح", reports: "التقارير", campaigns: "حملة تسوّق واربح", marketing: "التسويق والسياسات",
     staff: "الموظفون والصلاحيات", activity: "سجل النشاط", delivery: "التوصيل والدفع", branches: "الفروع",
     integrations: "التكاملات", settings: "الإعدادات",
@@ -214,6 +214,14 @@ export const ar = {
     history: "سجل التحديثات", created: "استُلم الطلب", statusTo: "الحالة ←", priceSet: "السعر النهائي:", priceCleared: "أُلغي السعر", by: "بواسطة", system: "الموقع",
     readOnly: "عرض فقط: تحتاج صلاحية إدارة الطلبات للتعديل.", whatsapp: "مراسلة العميل عبر WhatsApp", back: "كل طلبات التفصيل", unit: "الوحدة",
     windows: "الشبابيك", w: "عرض", h: "ارتفاع", l: "طول", count: "العدد", panels: "القطع",
+  },
+  cop: {
+    title: "خيارات التفصيل", subtitle: "الأقمشة والألوان التي يختار منها الزبون في صفحة «فصّل منتجك على مقاسك». صورة القماش تظهر في المعاينة ثلاثية الأبعاد.",
+    fabrics: "الأقمشة", colors: "الألوان", name: "الاسم", photo: "صورة القماش", sort: "الترتيب", active: "مفعّل", hex: "اللون",
+    add: "إضافة", addFabric: "إضافة قماش", addColor: "إضافة لون", remove: "حذف", removePhoto: "إزالة الصورة", upload: "رفع صورة", uploading: "جارٍ الرفع…",
+    saved: "تم الحفظ ✓", confirmDelete: "حذف هذا الخيار؟ الطلبات السابقة لا تتأثر.", photoHint: "صورة قريبة لسطح القماش (JPG/PNG/WebP حتى 5MB). تتكرر على المجسم بمقياس واقعي.",
+    tooBig: "الصورة أكبر من 5MB.", none: "لا توجد خيارات بعد.", note: "«غير متأكد — اقترحوا عليّ» يظهر دائماً للزبون تلقائياً.",
+    types: { curtains: "الستائر", ceiling: "بطانة السقف", mattress: "وجه الفرشات", other: "تفصيلات أخرى" },
   },
   pur: {
     title: "مبيعات الفروع والمشتريات", subtitle: "طلبات الموقع ومبيعات الفروع في سجل واحد. مبيعات الفروع تُعتمد من الإدارة.",

@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Component, useState, type ReactNode } from "react";
+import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Box, Expand, Minus, Plus, RotateCcw, Square, X } from "lucide-react";
 import type { PreviewHandle } from "./Preview3D";
@@ -32,6 +32,20 @@ function canUse3D() {
   } catch { return false; }
 }
 
+// تحويل مخطط SVG إلى صورة JPEG (لإرفاق صورة المعاينة بالطلب في وضع 2D أيضاً)
+async function svgToJpeg(svg: SVGSVGElement): Promise<string | null> {
+  try {
+    const clone = svg.cloneNode(true) as SVGSVGElement;
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("width", "800"); clone.setAttribute("height", "600");
+    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(clone))}`;
+    const img = await new Promise<HTMLImageElement>((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
+    const c = document.createElement("canvas"); c.width = 800; c.height = 600;
+    const x = c.getContext("2d")!; x.fillStyle = "#f3efe6"; x.fillRect(0, 0, 800, 600); x.drawImage(img, 0, 0, 800, 600);
+    return c.toDataURL("image/jpeg", 0.8);
+  } catch { return null; }
+}
+
 const ctl = "grid h-10 w-10 place-items-center rounded-full bg-white/95 text-charcoal shadow-soft backdrop-blur transition-colors hover:bg-white";
 
 export function PreviewPanel({ model, handleRef, className = "" }: {
@@ -43,12 +57,21 @@ export function PreviewPanel({ model, handleRef, className = "" }: {
   const effective = mode ?? (canUse3D() ? "3d" : "2d");
   const use3D = effective === "3d" && !failed;
   const fail = () => { setFailed(true); handleRef.current = null; };
+  const box2d = useRef<HTMLDivElement>(null);
+  // في وضع 2D: الالتقاط من المخطط نفسه (في 3D يضبطه مكوّن Preview3D)
+  useEffect(() => {
+    if (use3D) return;
+    handleRef.current = {
+      capture: () => { const svg = box2d.current?.querySelector("svg[role=img]"); return svg ? svgToJpeg(svg as SVGSVGElement) : null; },
+      zoom: () => {}, reset: () => {},
+    };
+  }, [use3D, handleRef]);
 
   const body = (
     <div className={`relative overflow-hidden rounded-[var(--radius-card)] border border-border bg-[#f3efe6] ${full ? "h-full" : "aspect-[4/3]"}`} data-preview-mode={use3D ? "3d" : "2d"}>
       {use3D
         ? <Guard onError={fail}><Preview3D model={model} onError={fail} handleRef={handleRef} /></Guard>
-        : <Preview2D model={model} />}
+        : <div ref={box2d} className="h-full w-full"><Preview2D model={model} /></div>}
       <div className="absolute start-3 top-3 flex items-center gap-2">
         <span className="rounded-full bg-charcoal px-3 py-1 text-xs font-medium text-ivory">{use3D ? "3D" : "2D"}</span>
         {failed && <span role="status" className="rounded-full bg-white/95 px-3 py-1 text-xs text-warning">تعذرت المعاينة ثلاثية الأبعاد، نعرض المخطط</span>}

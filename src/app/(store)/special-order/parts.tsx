@@ -54,17 +54,38 @@ export function Choice({ label, options, value, onChange }: { label: string; opt
   );
 }
 
-export function Swatches({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const custom = !COLORS.some((c) => c.name === value);
+// قائمة الأقمشة (من الإدارة): صورة القماش الحقيقية بجانب الاسم إن وُجدت
+export function FabricChoice({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { name: string; texture: string | null }[] }) {
+  const all = [...options, { name: "غير متأكد — اقترحوا عليّ", texture: null }];
+  return (
+    <fieldset className="space-y-2">
+      <legend className="text-sm font-medium text-charcoal">نوع القماش</legend>
+      <div className="flex flex-wrap gap-2">
+        {all.map((o) => (
+          <label key={o.name} className={`flex cursor-pointer items-center gap-2 rounded-full border py-1.5 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold ${o.texture ? "ps-1.5 pe-4" : "px-4 py-2"} ${value === o.name ? "border-charcoal bg-charcoal text-ivory" : "border-border bg-white text-charcoal hover:border-border-strong"}`}>
+            <input type="radio" className="sr-only" checked={value === o.name} onChange={() => onChange(o.name)} />
+            {/* eslint-disable-next-line @next/next/no-img-element -- صورة قماش صغيرة من مخزن الصور */}
+            {o.texture && <img src={o.texture} alt="" className="h-7 w-7 rounded-full object-cover" loading="lazy" />}
+            {o.name}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+export function Swatches({ value, onChange, colors = COLORS }: { value: string; onChange: (v: string) => void; colors?: { name: string; hex: string }[] }) {
+  const custom = !colors.some((c) => c.name === value);
+  const dark = (hex: string) => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114) < 140; };
   return (
     <fieldset className="space-y-3">
       <legend className="text-sm font-medium text-charcoal">اللون</legend>
       <div className="flex flex-wrap gap-2.5">
-        {COLORS.map((c) => (
+        {colors.map((c) => (
           <label key={c.name} title={c.name} className="group cursor-pointer has-[:focus-visible]:[&>span]:ring-2 has-[:focus-visible]:[&>span]:ring-gold">
             <input type="radio" className="sr-only" checked={value === c.name} onChange={() => onChange(c.name)} aria-label={c.name} />
             <span className={`grid h-10 w-10 place-items-center rounded-full border transition-transform group-hover:scale-105 ${value === c.name ? "ring-2 ring-charcoal ring-offset-2 ring-offset-ivory" : "border-black/10"}`} style={{ background: c.hex }}>
-              {value === c.name && <Check aria-hidden="true" strokeWidth={2} className={`h-4 w-4 ${["كحلي", "عنابي", "بني", "رمادي غامق", "أخضر زيتي"].includes(c.name) ? "text-white" : "text-charcoal"}`} />}
+              {value === c.name && <Check aria-hidden="true" strokeWidth={2} className={`h-4 w-4 ${dark(c.hex) ? "text-white" : "text-charcoal"}`} />}
             </span>
           </label>
         ))}
